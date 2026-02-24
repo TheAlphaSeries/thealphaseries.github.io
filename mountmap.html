@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MountMap — Sensor Mounting Diagrams</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans',sans-serif;background:#0f1923;color:#e2e8f0;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+.top-nav{background:#0a1219;border-bottom:2px solid #FF6B00;padding:0 20px;height:52px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;position:relative;z-index:50}
+.logo{font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:600;color:#FF6B00;letter-spacing:2px}.logo span{color:#475569;font-weight:400}
+.nav-actions{display:flex;gap:8px;align-items:center}
+.btn{padding:7px 14px;border-radius:4px;border:none;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;font-size:12px;font-weight:500;transition:all .15s;white-space:nowrap}
+.btn-primary{background:#FF6B00;color:white}.btn-primary:hover{background:#e05c00}
+.btn-secondary{background:#1e3a52;color:#94a3b8;border:1px solid #2d5070}.btn-secondary:hover{background:#2d5070}
+.btn-ghost{background:transparent;color:#64748b;border:1px solid #1e3a52}.btn-ghost:hover{background:#1e3a52;color:#94a3b8}
+.app-body{display:flex;flex:1;overflow:hidden}
+.sidebar{width:220px;background:#0d1e2e;border-right:1px solid #1e3a52;display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.sidebar-hdr{padding:12px 14px 8px;border-bottom:1px solid #1e3a52;flex-shrink:0}
+.sidebar-hdr h3{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:#FF6B00;font-family:'IBM Plex Mono',monospace;margin-bottom:8px}
+.vsearch{width:100%;background:#0f2235;border:1px solid #1e3a52;border-radius:4px;color:#e2e8f0;padding:6px 10px;font-size:12px;outline:none;font-family:'IBM Plex Sans',sans-serif}
+.vsearch:focus{border-color:#FF6B00}.vsearch::placeholder{color:#334155}
+.vehicle-list{flex:1;overflow-y:auto;padding:6px 0}
+.vehicle-list::-webkit-scrollbar{width:3px}.vehicle-list::-webkit-scrollbar-thumb{background:#1e3a52}
+.brand-hdr{padding:7px 14px 3px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#2d5070;font-family:'IBM Plex Mono',monospace;cursor:pointer;display:flex;justify-content:space-between;user-select:none}
+.brand-hdr:hover{color:#5a90b0}
+.model-item{padding:5px 14px 5px 22px;font-size:11.5px;color:#3d6078;cursor:pointer;border-left:2px solid transparent;transition:all .1s}
+.model-item:hover{color:#94a3b8;background:#0f2235;border-left-color:#2d5070}
+.model-item.active{color:#FF6B00;background:#1a2e40;border-left-color:#FF6B00;font-weight:600}
+.model-item.hidden{display:none}
+.main-content{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.sensor-palette{background:#0d1e2e;border-bottom:1px solid #1e3a52;padding:8px 14px;flex-shrink:0}
+.palette-lbl{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:#3d6e8f;font-family:'IBM Plex Mono',monospace;margin-bottom:6px}
+.sensor-row{display:flex;gap:5px;flex-wrap:wrap}
+.sensor-chip{display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 7px;background:#0f2235;border:1px solid #1e3a52;border-radius:5px;cursor:grab;transition:all .15s;user-select:none;min-width:54px}
+.sensor-chip:hover{background:#1a3a52;border-color:#3d6e8f;transform:translateY(-1px)}
+.sensor-chip:active{cursor:grabbing}
+.sensor-chip svg{width:20px;height:20px}
+.chip-lbl{font-size:8.5px;font-family:'IBM Plex Mono',monospace;color:#3d6e8f;white-space:nowrap;text-align:center}
+.diagram-area{flex:1;overflow:auto;padding:14px;background:#0d1828}
+.diag-wrap{min-width:900px}
+.diag-header{background:white;border-radius:4px;margin-bottom:10px;border:1px solid #cbd5e1;overflow:hidden}
+.diag-hdr-top{background:#1a3a52;padding:8px 16px;display:flex;justify-content:space-between;align-items:center}
+.diag-logo{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:#FF6B00;letter-spacing:2px}
+.diag-veh{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#7fb3d3}
+.hdr-fields{display:grid;grid-template-columns:repeat(6,1fr);border-top:1px solid #e2e8f0}
+.hf{padding:6px 10px;border-right:1px solid #e2e8f0}
+.hf:last-child{border-right:none}
+.hf label{display:block;font-size:7.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;font-family:'IBM Plex Mono',monospace;margin-bottom:1px}
+.hf input{width:100%;border:none;outline:none;font-size:11px;color:#1e293b;font-family:'IBM Plex Sans',sans-serif;background:transparent}
+.hf input::placeholder{color:#cbd5e1}
+.four-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.view-panel{background:white;border-radius:4px;border:1.5px solid #cbd5e1;overflow:hidden}
+.view-phdr{background:#f8fafc;border-bottom:1px solid #e2e8f0;padding:4px 12px;display:flex;justify-content:space-between;align-items:center}
+.view-ptitle{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#1a3a52}
+.view-psub{font-size:8.5px;color:#94a3b8;font-family:'IBM Plex Mono',monospace}
+.drop-zone{position:relative;height:200px;background:#f9fafb;background-image:radial-gradient(circle,#d1dce8 1px,transparent 1px);background-size:20px 20px;overflow:hidden}
+.drop-zone.drag-over{background-color:#eff6ff;outline:2px dashed #3b82f6;outline-offset:-3px}
+.drop-zone svg.vsvg{width:100%;height:100%;position:absolute;top:0;left:0;pointer-events:none}
+.no-veh{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;color:#bfcad3;font-size:10px;font-family:'IBM Plex Mono',monospace;pointer-events:none;line-height:2}
+.placed{position:absolute;display:flex;flex-direction:column;align-items:center;cursor:move;z-index:10;transform:translate(-50%,-50%);user-select:none}
+.placed:hover .pi{filter:brightness(1.15)}
+.pi{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2.5px solid;background:white;box-shadow:0 2px 5px rgba(0,0,0,.25)}
+.pi svg{width:13px;height:13px}
+.plbl{font-size:7.5px;font-family:'IBM Plex Mono',monospace;color:#1e3a52;background:rgba(255,255,255,.9);padding:1px 3px;border-radius:2px;margin-top:1px;white-space:nowrap;max-width:76px;overflow:hidden;text-overflow:ellipsis;box-shadow:0 1px 2px rgba(0,0,0,.1)}
+.placed.sel .pi{box-shadow:0 0 0 3px #FF6B00,0 2px 5px rgba(0,0,0,.2)}
+.legend-block{background:white;border-radius:4px;border:1px solid #cbd5e1;padding:10px 14px}
+.legend-ttl{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#1a3a52;margin-bottom:7px}
+.legend-items{display:flex;gap:12px;flex-wrap:wrap}
+.li{display:flex;align-items:center;gap:4px;font-size:10.5px;color:#334155}
+.li-ico{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:white;border:2px solid;flex-shrink:0}
+.li-ico svg{width:10px;height:10px}
+.li-cnt{font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:600;background:#f1f5f9;padding:1px 4px;border-radius:8px;color:#475569}
+.right-panel{width:200px;background:#0d1e2e;border-left:1px solid #1e3a52;flex-shrink:0;display:flex;flex-direction:column}
+.rp-hdr{padding:10px 14px 8px;border-bottom:1px solid #1e3a52;flex-shrink:0}
+.rp-hdr h3{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:#3d6e8f;font-family:'IBM Plex Mono',monospace}
+.props{flex:1;padding:12px;overflow-y:auto}
+.props::-webkit-scrollbar{width:3px}.props::-webkit-scrollbar-thumb{background:#1e3a52}
+.pg{margin-bottom:12px}
+.pg label{display:block;font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:#3d6e8f;font-family:'IBM Plex Mono',monospace;margin-bottom:4px}
+.pi2{width:100%;background:#0f2235;border:1px solid #1e3a52;border-radius:4px;color:#e2e8f0;padding:5px 8px;font-size:12px;font-family:'IBM Plex Sans',sans-serif;outline:none;margin-bottom:4px}
+.pi2:focus{border-color:#FF6B00}
+.pta{width:100%;background:#0f2235;border:1px solid #1e3a52;border-radius:4px;color:#e2e8f0;padding:5px 8px;font-size:12px;font-family:'IBM Plex Sans',sans-serif;outline:none;resize:vertical;min-height:54px}
+.pta:focus{border-color:#FF6B00}
+.color-row{display:flex;gap:4px;flex-wrap:wrap}
+.cs{width:18px;height:18px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .1s}
+.cs.active{border-color:white;transform:scale(1.2)}
+.btn-del{padding:7px 10px;border-radius:4px;background:#7f1d1d;color:#fca5a5;border:1px solid #991b1b;cursor:pointer;font-size:11px;font-family:'IBM Plex Sans',sans-serif;width:100%;margin-top:4px}
+.btn-del:hover{background:#991b1b}
+.no-sel{color:#2d4a62;font-size:10.5px;text-align:center;padding:20px 8px;line-height:1.9;font-family:'IBM Plex Mono',monospace}
+.saved-dd{position:absolute;top:52px;right:0;background:#0d1e2e;border:1px solid #1e3a52;border-radius:6px;min-width:240px;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,.4);display:none}
+.saved-dd.open{display:block}
+.saved-dd-hdr{padding:8px 12px;border-bottom:1px solid #1e3a52;font-size:9px;font-family:'IBM Plex Mono',monospace;color:#3d6e8f;text-transform:uppercase;letter-spacing:1px}
+.saved-item{padding:7px 12px;font-size:11px;color:#64748b;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.saved-item:hover{background:#0f2235;color:#94a3b8}
+.sd-del{font-size:11px;color:#7f1d1d;background:none;border:none;cursor:pointer;padding:2px 6px}.sd-del:hover{color:#ef4444}
+.no-saves{padding:14px 12px;font-size:10px;color:#334155;font-family:'IBM Plex Mono',monospace;text-align:center}
+.toast{position:fixed;bottom:16px;right:16px;background:#1a3a52;color:#e2e8f0;padding:8px 14px;border-radius:5px;font-size:12px;font-family:'IBM Plex Sans',sans-serif;border:1px solid #2d6a94;box-shadow:0 4px 14px rgba(0,0,0,.3);z-index:9999;opacity:0;transform:translateY(8px);transition:all .2s;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+<div class="top-nav">
+  <div class="logo">MOUNT<span>MAP</span></div>
+  <div class="nav-actions" id="nav-wrap" style="position:relative">
+    <button class="btn btn-ghost" onclick="toggleSaved(event)">📂 Saved</button>
+    <button class="btn btn-ghost" onclick="saveDiagram()">💾 Save</button>
+    <button class="btn btn-ghost" onclick="clearAll()">🗑 Clear</button>
+    <button class="btn btn-primary" onclick="exportPNG()">⬇ Export PNG</button>
+    <div class="saved-dd" id="saved-dd">
+      <div class="saved-dd-hdr">Saved Diagrams</div>
+      <div id="saved-list"></div>
+    </div>
+  </div>
+</div>
+
+<div class="app-body">
+  <div class="sidebar">
+    <div class="sidebar-hdr">
+      <h3>Select Vehicle</h3>
+      <input type="text" class="vsearch" placeholder="Search…" oninput="filterVehicles(this.value)" id="vsearch">
+    </div>
+    <div class="vehicle-list" id="vehicle-list"></div>
+  </div>
+
+  <div class="main-content">
+    <div class="sensor-palette">
+      <div class="palette-lbl">Sensor Library — Drag onto diagram</div>
+      <div class="sensor-row" id="sensor-row"></div>
+    </div>
+    <div class="diagram-area" id="diagram-area">
+      <div class="diag-wrap" id="diag-wrap">
+        <div class="diag-header" id="diag-header">
+          <div class="diag-hdr-top">
+            <div class="diag-logo">MOUNTMAP</div>
+            <div class="diag-veh" id="veh-title-lbl">No vehicle selected</div>
+          </div>
+          <div class="hdr-fields">
+            <div class="hf"><label>Project</label><input type="text" placeholder="Project name" id="f-project"></div>
+            <div class="hf"><label>Vehicle</label><input type="text" placeholder="Vehicle" id="f-vehicle"></div>
+            <div class="hf"><label>Unit #</label><input type="text" placeholder="Serial / Unit" id="f-unit"></div>
+            <div class="hf"><label>Prepared By</label><input type="text" placeholder="Name" id="f-by"></div>
+            <div class="hf"><label>Date</label><input type="text" id="f-date"></div>
+            <div class="hf"><label>Revision</label><input type="text" placeholder="Rev 1" id="f-rev"></div>
+          </div>
+        </div>
+        <div class="four-grid" id="four-grid">
+          <div class="view-panel" id="panel-front"><div class="view-phdr"><span class="view-ptitle">FRONT VIEW</span><span class="view-psub" id="sub-front"></span></div><div class="drop-zone" id="dz-front"><div class="no-veh">← Select a vehicle<br>from the sidebar</div></div></div>
+          <div class="view-panel" id="panel-rear"><div class="view-phdr"><span class="view-ptitle">REAR VIEW</span><span class="view-psub" id="sub-rear"></span></div><div class="drop-zone" id="dz-rear"><div class="no-veh"></div></div></div>
+          <div class="view-panel" id="panel-left"><div class="view-phdr"><span class="view-ptitle">LEFT SIDE</span><span class="view-psub" id="sub-left"></span></div><div class="drop-zone" id="dz-left"><div class="no-veh"></div></div></div>
+          <div class="view-panel" id="panel-right"><div class="view-phdr"><span class="view-ptitle">RIGHT SIDE</span><span class="view-psub" id="sub-right"></span></div><div class="drop-zone" id="dz-right"><div class="no-veh"></div></div></div>
+        </div>
+        <div class="legend-block" id="legend-block">
+          <div class="legend-ttl">SENSOR LEGEND</div>
+          <div class="legend-items" id="legend-items"><span style="font-size:10px;color:#94a3b8;font-family:'IBM Plex Mono',monospace">No sensors placed yet</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="right-panel">
+    <div class="rp-hdr"><h3>Properties</h3></div>
+    <div class="props" id="props-panel">
+      <div class="no-sel">Click a placed<br>sensor to edit<br>its properties</div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script>
+// ==================== DATA ====================
+const COLORS=['#3B82F6','#EF4444','#10B981','#F59E0B','#8B5CF6','#EC4899','#06B6D4','#F97316','#6366F1','#14B8A6'];
+
+const SENSORS=[
+  {id:'lidar-mech',name:'LiDAR Mech',color:'#3B82F6',svg:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="3" x2="12" y2="7"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="3" y1="12" x2="7" y2="12"/><line x1="17" y1="12" x2="21" y2="12"/><line x1="5.6" y1="5.6" x2="8.5" y2="8.5"/><line x1="15.5" y1="15.5" x2="18.4" y2="18.4"/></svg>`},
+  {id:'lidar-solid',name:'LiDAR Solid',color:'#2563EB',svg:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="8" width="18" height="8" rx="2"/><line x1="7" y1="8" x2="7" y2="5"/><line x1="12" y1="8" x2="12" y2="4"/><line x1="17" y1="8" x2="17" y2="5"/><circle cx="12" cy="12" r="2" fill="currentColor"/></svg>`},
+  {id:'cam-mono',name:'Camera',color:'#10B981',svg:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="7" width="20" height="13" rx="2"/><circle cx="12" cy="13" r="4"/><path d="M7 7l2-4h6l2 4"/></svg>`},
+  {id:'cam-stereo',name:'Stereo Cam',color:'#059669',svg:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="1" y="7" width="10" height="10" rx="2"/><rect x="13" y="7" width="10" height="10" rx="2"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="12" r="2.5"/></svg>`},
+  {id:'cam-360',name:'360° Cam',color:'#34D399',svg:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><ellipse cx="12" cy="12" rx="5" ry="9" stroke-dasharray="3 2"/></svg>`},
+  {id:'radar-sr',name:'Radar SR',color:'#F59E0B',svg:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 14Q8 8 12 8Q16 8 18 14"/><path d="M8 14Q9.5 10 12 10Q14.5 10 16 14"/><line x1="12" y1="14" x2="12" y2="20"/><line x1="9" y1="20" x2="15" y2="20"/></svg>`},
+  {id:'radar-lr',name:'Radar LR',color:'#D97706',svg:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 14Q7 4 12 4Q17 4 21 14"/><path d="M6 14Q8.5 7 12 7Q15.5 7 18 14"/><path d="M9 14Q10 10 12 10Q14 10 15 14"/><line x1="12" y1="14" x2="12" y2="20"/><rect x="9" y="18" width="6" height="4"/></svg>`},
+  {id:'starlink',name:'Starlink Mini',color:'#8B5CF6',svg:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="11" rx="1"/><line x1="12" y1="16" x2="12" y2="20"/><line x1="8" y1="20" x2="16" y2="20"/><line x1="5" y1="9" x2="19" y2="9"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`},
+  {id:'gnss',name:'GNSS/GPS',color:'#EC4899',svg:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="2" x2="12" y2="22"/><line x1="12" y1="7" x2="20" y2="4"/><line x1="12" y1="7" x2="4" y2="4"/><line x1="12" y1="13" x2="21" y2="11"/><line x1="12" y1="13" x2="3" y2="11"/><circle cx="12" cy="7" r="1.5" fill="currentColor"/></svg>`},
+  {id:'imu',name:'IMU/INS',color:'#06B6D4',svg:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="8" y="8" width="8" height="8"/><circle cx="12" cy="12" r="2" fill="currentColor"/><line x1="12" y1="4" x2="12" y2="8"/><line x1="12" y1="16" x2="12" y2="20"/><line x1="4" y1="12" x2="8" y2="12"/><line x1="16" y1="12" x2="20" y2="12"/></svg>`},
+  {id:'thermal',name:'Thermal',color:'#F97316',svg:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="8" width="18" height="12" rx="2"/><circle cx="12" cy="14" r="3"/><path d="M9 8V5M12 8V4M15 8V5"/></svg>`},
+  {id:'compute',name:'Compute',color:'#64748b',svg:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="14" rx="2"/><line x1="7" y1="9" x2="17" y2="9"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="7" y1="15" x2="13" y2="15"/><circle cx="18" cy="15" r="1.5" fill="currentColor"/></svg>`},
+  {id:'ultrasonic',name:'Ultrasonic',color:'#0EA5E9',svg:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12Q3 6 8 6M3 12Q3 18 8 18"/><path d="M6 12Q6 8 10 8M6 12Q6 16 10 16"/><rect x="10" y="9" width="4" height="6" rx="1"/><path d="M14 12Q16 10 18 12Q16 14 14 12" fill="none"/><path d="M16 12Q19 9 22 12Q19 15 16 12" fill="none"/></svg>`},
+  {id:'custom',name:'Custom',color:'#94a3b8',svg:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>`}
+];
+
+// ==================== VEHICLES ====================
+const s1='#1e3a52',s2='#b8ccd8',s3='#d0e0ea',s4='#8aa8be',s5='#c4d8e4';
+function mksvg(c){return`<svg class="vsvg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 200"><style>.b{fill:${s3};stroke:${s1};stroke-width:1.5}.g{fill:#ddeef8;stroke:${s1};stroke-width:1}.t{fill:${s2};stroke:${s1};stroke-width:1.5}.w{fill:${s5};stroke:${s1};stroke-width:1.5}.d{fill:${s4};stroke:${s1};stroke-width:1}.ln{fill:none;stroke:${s1};stroke-width:1.5}</style>${c}</svg>`}
+
+// EXCAVATOR
+const EX={
+front:mksvg(`<rect class="t" x="20" y="148" width="90" height="40" rx="8"/><rect class="d" x="30" y="155" width="70" height="26" rx="4"/>
+<rect class="t" x="270" y="148" width="90" height="40" rx="8"/><rect class="d" x="280" y="155" width="70" height="26" rx="4"/>
+<rect class="b" x="40" y="132" width="300" height="22"/>
+<rect class="b" x="70" y="76" width="240" height="60" rx="4"/>
+<rect class="b" x="90" y="80" width="130" height="54" rx="3"/>
+<rect class="g" x="97" y="86" width="112" height="38" rx="2"/>
+<rect class="d" x="232" y="90" width="70" height="44" rx="3"/>
+<rect class="b" x="166" y="44" width="48" height="36" rx="3"/>
+<circle class="d" cx="173" cy="78" r="5"/><circle class="d" cx="207" cy="78" r="5"/>`),
+rear:mksvg(`<rect class="t" x="20" y="148" width="90" height="40" rx="8"/><rect class="d" x="30" y="155" width="70" height="26" rx="4"/>
+<rect class="t" x="270" y="148" width="90" height="40" rx="8"/><rect class="d" x="280" y="155" width="70" height="26" rx="4"/>
+<rect class="b" x="40" y="132" width="300" height="22"/>
+<path class="d" d="M64 70Q190 54 316 70L314 132L66 132Z"/>
+<line class="ln" x1="100" y1="80" x2="100" y2="128"/><line class="ln" x1="145" y1="74" x2="145" y2="130"/><line class="ln" x1="190" y1="72" x2="190" y2="131"/><line class="ln" x1="235" y1="74" x2="235" y2="130"/><line class="ln" x1="280" y1="80" x2="280" y2="128"/>
+<rect class="b" x="130" y="54" width="120" height="20" rx="2"/>`),
+left:mksvg(`<rect class="t" x="22" y="154" width="240" height="34" rx="14"/><rect class="d" x="36" y="160" width="212" height="22" rx="10"/>
+<circle class="w" cx="50" cy="171" r="11"/><circle class="w" cx="95" cy="171" r="11"/><circle class="w" cx="140" cy="171" r="11"/><circle class="w" cx="185" cy="171" r="11"/><circle class="w" cx="248" cy="171" r="11"/>
+<rect class="b" x="36" y="136" width="218" height="20"/>
+<rect class="b" x="60" y="84" width="156" height="55" rx="4"/>
+<rect class="b" x="62" y="87" width="68" height="50" rx="2"/>
+<rect class="g" x="67" y="91" width="58" height="38" rx="2"/>
+<rect class="d" x="192" y="95" width="22" height="44" rx="3"/>
+<line class="ln" x1="144" y1="97" x2="185" y2="97"/><line class="ln" x1="144" y1="107" x2="185" y2="107"/><line class="ln" x1="144" y1="117" x2="185" y2="117"/>
+<polygon class="b" points="94,95 114,90 230,44 218,50"/>
+<polygon class="b" points="223,47 286,89 278,99 215,58"/>
+<path class="b" d="M280,90 L316,78 L320,108 L286,114 Q272,111 270,101 Q270,90 280,90Z"/>
+<line class="ln" x1="302" y1="112" x2="304" y2="120"/><line class="ln" x1="312" y1="110" x2="315" y2="118"/>`),
+right:mksvg(`<rect class="t" x="118" y="154" width="240" height="34" rx="14"/><rect class="d" x="132" y="160" width="212" height="22" rx="10"/>
+<circle class="w" cx="142" cy="171" r="11"/><circle class="w" cx="187" cy="171" r="11"/><circle class="w" cx="232" cy="171" r="11"/><circle class="w" cx="277" cy="171" r="11"/><circle class="w" cx="330" cy="171" r="11"/>
+<rect class="b" x="126" y="136" width="218" height="20"/>
+<rect class="b" x="164" y="84" width="156" height="55" rx="4"/>
+<rect class="b" x="250" y="87" width="68" height="50" rx="2"/>
+<rect class="g" x="255" y="91" width="58" height="38" rx="2"/>
+<rect class="d" x="166" y="95" width="22" height="44" rx="3"/>
+<line class="ln" x1="195" y1="97" x2="236" y2="97"/><line class="ln" x1="195" y1="107" x2="236" y2="107"/><line class="ln" x1="195" y1="117" x2="236" y2="117"/>
+<polygon class="b" points="286,95 266,90 150,44 162,50"/>
+<polygon class="b" points="157,47 94,89 102,99 165,58"/>
+<path class="b" d="M100,90 L64,78 L60,108 L94,114 Q108,111 110,101 Q110,90 100,90Z"/>`)
+};
+
+// DOZER
+const DZ={
+front:mksvg(`<rect class="t" x="14" y="142" width="94" height="44" rx="8"/><rect class="d" x="22" y="150" width="78" height="28" rx="5"/>
+<rect class="t" x="272" y="142" width="94" height="44" rx="8"/><rect class="d" x="280" y="150" width="78" height="28" rx="5"/>
+<rect class="b" x="32" y="128" width="316" height="20"/>
+<rect class="b" x="62" y="86" width="256" height="48" rx="4"/>
+<rect class="b" x="96" y="58" width="188" height="60" rx="4"/>
+<rect class="g" x="108" y="66" width="164" height="40" rx="2"/>
+<rect class="b" x="18" y="79" width="344" height="62" rx="4"/>
+<rect class="d" x="18" y="136" width="344" height="8" rx="2"/>
+<line class="ln" x1="104" y1="82" x2="104" y2="136"/><line class="ln" x1="190" y1="82" x2="190" y2="136"/><line class="ln" x1="276" y1="82" x2="276" y2="136"/>
+<rect class="d" x="52" y="78" width="12" height="32" rx="2"/><rect class="d" x="316" y="78" width="12" height="32" rx="2"/>`),
+rear:mksvg(`<rect class="t" x="14" y="142" width="94" height="44" rx="8"/><rect class="d" x="22" y="150" width="78" height="28" rx="5"/>
+<rect class="t" x="272" y="142" width="94" height="44" rx="8"/><rect class="d" x="280" y="150" width="78" height="28" rx="5"/>
+<rect class="b" x="32" y="128" width="316" height="20"/>
+<rect class="b" x="60" y="86" width="260" height="48" rx="4"/>
+<rect class="b" x="96" y="56" width="188" height="56" rx="4"/>
+<rect class="g" x="114" y="62" width="152" height="34" rx="2"/>
+<rect class="d" x="132" y="26" width="12" height="32" rx="3"/><rect class="d" x="236" y="26" width="12" height="32" rx="3"/>
+<rect class="d" x="106" y="148" width="12" height="28" rx="2"/><path class="d" d="M111,173 L117,186 L105,186Z"/>
+<rect class="d" x="183" y="148" width="12" height="28" rx="2"/><path class="d" d="M188,173 L194,186 L182,186Z"/>
+<rect class="d" x="260" y="148" width="12" height="28" rx="2"/><path class="d" d="M265,173 L271,186 L259,186Z"/>`),
+left:mksvg(`<rect class="t" x="10" y="150" width="320" height="36" rx="17"/><rect class="d" x="24" y="156" width="292" height="24" rx="11"/>
+<circle class="w" cx="48" cy="168" r="13"/><circle class="w" cx="96" cy="168" r="13"/><circle class="w" cx="144" cy="168" r="13"/><circle class="w" cx="192" cy="168" r="13"/><circle class="w" cx="240" cy="168" r="13"/><circle class="w" cx="308" cy="168" r="19"/><circle class="w" cx="22" cy="168" r="19"/>
+<rect class="b" x="24" y="132" width="288" height="22"/>
+<rect class="b" x="44" y="88" width="228" height="48" rx="4"/>
+<rect class="b" x="156" y="62" width="100" height="74" rx="4"/>
+<rect class="g" x="162" y="68" width="60" height="44" rx="2"/>
+<rect class="g" x="232" y="72" width="20" height="30" rx="2"/>
+<rect class="b" x="48" y="92" width="102" height="42" rx="3"/>
+<line class="ln" x1="74" y1="95" x2="74" y2="132"/><line class="ln" x1="106" y1="95" x2="106" y2="132"/>
+<rect class="b" x="2" y="85" width="32" height="82" rx="3"/>
+<path class="d" d="M5,89 Q34,108 34,134 Q34,152 5,160" fill="none" stroke-width="2"/>
+<rect class="d" x="2" y="158" width="32" height="8" rx="1"/>
+<rect class="b" x="332" y="122" width="20" height="50" rx="3"/>
+<path class="d" d="M341,162 L347,178 L335,178Z"/>`),
+right:mksvg(`<rect class="t" x="50" y="150" width="320" height="36" rx="17"/><rect class="d" x="64" y="156" width="292" height="24" rx="11"/>
+<circle class="w" cx="74" cy="168" r="13"/><circle class="w" cx="122" cy="168" r="13"/><circle class="w" cx="170" cy="168" r="13"/><circle class="w" cx="218" cy="168" r="13"/><circle class="w" cx="266" cy="168" r="13"/><circle class="w" cx="64" cy="168" r="19"/><circle class="w" cx="350" cy="168" r="19"/>
+<rect class="b" x="68" y="132" width="288" height="22"/>
+<rect class="b" x="108" y="88" width="228" height="48" rx="4"/>
+<rect class="b" x="124" y="62" width="100" height="74" rx="4"/>
+<rect class="g" x="148" y="68" width="60" height="44" rx="2"/>
+<rect class="g" x="128" y="72" width="20" height="30" rx="2"/>
+<rect class="b" x="230" y="92" width="102" height="42" rx="3"/>
+<line class="ln" x1="256" y1="95" x2="256" y2="132"/><line class="ln" x1="288" y1="95" x2="288" y2="132"/>
+<rect class="b" x="346" y="85" width="32" height="82" rx="3"/>
+<path class="d" d="M375,89 Q346,108 346,134 Q346,152 375,160" fill="none" stroke-width="2"/>
+<rect class="d" x="346" y="158" width="32" height="8" rx="1"/>
+<rect class="b" x="28" y="122" width="20" height="50" rx="3"/>
+<path class="d" d="M37,162 L43,178 L31,178Z"/>`)
+};
+
+// WHEEL LOADER
+const WL={
+front:mksvg(`<circle class="w" cx="74" cy="158" r="34"/><circle class="d" cx="74" cy="158" r="20"/><circle class="d" cx="74" cy="158" r="8"/>
+<circle class="w" cx="306" cy="158" r="34"/><circle class="d" cx="306" cy="158" r="20"/><circle class="d" cx="306" cy="158" r="8"/>
+<rect class="b" x="56" y="130" width="268" height="22" rx="5"/>
+<rect class="b" x="96" y="95" width="188" height="38" rx="4"/>
+<rect class="b" x="118" y="58" width="144" height="58" rx="4"/>
+<rect class="g" x="128" y="65" width="124" height="40" rx="2"/>
+<rect class="d" x="86" y="76" width="18" height="52" rx="3"/><rect class="d" x="276" y="76" width="18" height="52" rx="3"/>
+<path class="ln" d="M34,77 L50,55 L330,55 L346,77" fill="none" stroke-width="2"/>
+<rect class="b" x="34" y="77" width="312" height="58" rx="4"/>
+<rect class="d" x="34" y="130" width="312" height="8" rx="2"/>`),
+rear:mksvg(`<circle class="w" cx="74" cy="158" r="34"/><circle class="d" cx="74" cy="158" r="20"/><circle class="d" cx="74" cy="158" r="8"/>
+<circle class="w" cx="306" cy="158" r="34"/><circle class="d" cx="306" cy="158" r="20"/><circle class="d" cx="306" cy="158" r="8"/>
+<rect class="b" x="56" y="130" width="268" height="22" rx="5"/>
+<rect class="b" x="76" y="77" width="228" height="56" rx="4"/>
+<line class="ln" x1="98" y1="88" x2="282" y2="88"/><line class="ln" x1="98" y1="100" x2="282" y2="100"/><line class="ln" x1="98" y1="112" x2="282" y2="112"/><line class="ln" x1="98" y1="122" x2="282" y2="122"/>
+<rect class="b" x="118" y="52" width="144" height="30" rx="4"/>
+<rect class="g" x="136" y="57" width="108" height="20" rx="2"/>
+<rect class="d" x="80" y="108" width="20" height="18" rx="2"/><rect class="d" x="280" y="108" width="20" height="18" rx="2"/>`),
+left:mksvg(`<circle class="w" cx="270" cy="158" r="36"/><circle class="d" cx="270" cy="158" r="20"/><circle class="d" cx="270" cy="158" r="8"/>
+<circle class="w" cx="96" cy="158" r="36"/><circle class="d" cx="96" cy="158" r="20"/><circle class="d" cx="96" cy="158" r="8"/>
+<rect class="b" x="58" y="106" width="248" height="55" rx="4"/>
+<rect class="d" x="172" y="110" width="14" height="47" rx="3"/>
+<rect class="b" x="184" y="65" width="106" height="76" rx="4"/>
+<rect class="g" x="189" y="70" width="58" height="48" rx="2"/>
+<rect class="g" x="260" y="72" width="24" height="36" rx="2"/>
+<path class="b" d="M70,120 L66,77 L90,72 L95,117Z"/>
+<path class="b" d="M68,79 L48,96 L46,112 L68,98Z"/>
+<path class="b" d="M15,50 L68,44 L72,112 L15,118Q3,112 3,80Q3,50 15,50Z"/>
+<rect class="d" x="3" y="112" width="68" height="7" rx="1"/>
+<rect class="d" x="176" y="60" width="112" height="5" rx="1"/>`),
+right:mksvg(`<circle class="w" cx="110" cy="158" r="36"/><circle class="d" cx="110" cy="158" r="20"/><circle class="d" cx="110" cy="158" r="8"/>
+<circle class="w" cx="284" cy="158" r="36"/><circle class="d" cx="284" cy="158" r="20"/><circle class="d" cx="284" cy="158" r="8"/>
+<rect class="b" x="74" y="106" width="248" height="55" rx="4"/>
+<rect class="d" x="194" y="110" width="14" height="47" rx="3"/>
+<rect class="b" x="90" y="65" width="106" height="76" rx="4"/>
+<rect class="g" x="133" y="70" width="58" height="48" rx="2"/>
+<rect class="g" x="96" y="72" width="24" height="36" rx="2"/>
+<path class="b" d="M310,120 L314,77 L290,72 L285,117Z"/>
+<path class="b" d="M312,79 L332,96 L334,112 L312,98Z"/>
+<path class="b" d="M365,50 L312,44 L308,112 L365,118Q377,112 377,80Q377,50 365,50Z"/>
+<rect class="d" x="309" y="112" width="68" height="7" rx="1"/>
+<rect class="d" x="92" y="60" width="112" height="5" rx="1"/>`)
+};
+
+// HAUL TRUCK
+const HT={
+front:mksvg(`<circle class="w" cx="76" cy="155" r="30"/><circle class="d" cx="76" cy="155" r="16"/><circle class="d" cx="76" cy="155" r="6"/>
+<circle class="w" cx="304" cy="155" r="30"/><circle class="d" cx="304" cy="155" r="16"/><circle class="d" cx="304" cy="155" r="6"/>
+<rect class="b" x="58" y="138" width="264" height="14" rx="5"/>
+<rect class="b" x="80" y="88" width="220" height="54" rx="4"/>
+<rect class="d" x="96" y="98" width="188" height="40" rx="3"/>
+<line class="ln" x1="116" y1="104" x2="116" y2="132"/><line class="ln" x1="150" y1="102" x2="150" y2="134"/><line class="ln" x1="190" y1="101" x2="190" y2="135"/><line class="ln" x1="230" y1="102" x2="230" y2="134"/><line class="ln" x1="264" y1="104" x2="264" y2="132"/>
+<rect class="d" x="84" y="92" width="32" height="20" rx="3"/><rect class="d" x="264" y="92" width="32" height="20" rx="3"/>
+<rect class="b" x="100" y="42" width="180" height="54" rx="4"/>
+<rect class="g" x="112" y="49" width="156" height="40" rx="2"/>`),
+rear:mksvg(`<circle class="w" cx="62" cy="154" r="30"/><circle class="w" cx="88" cy="154" r="30"/>
+<circle class="w" cx="292" cy="154" r="30"/><circle class="w" cx="318" cy="154" r="30"/>
+<rect class="b" x="36" y="136" width="308" height="15" rx="5"/>
+<rect class="b" x="58" y="26" width="264" height="114" rx="4"/>
+<rect class="d" x="65" y="33" width="250" height="100" rx="2"/>
+<rect class="b" x="58" y="26" width="16" height="114" rx="2"/><rect class="b" x="306" y="26" width="16" height="114" rx="2"/>
+<rect class="d" x="60" y="114" width="22" height="16" rx="2"/><rect class="d" x="298" y="114" width="22" height="16" rx="2"/>`),
+left:mksvg(`<circle class="w" cx="88" cy="158" r="30"/><circle class="d" cx="88" cy="158" r="16"/><circle class="d" cx="88" cy="158" r="6"/>
+<circle class="w" cx="280" cy="158" r="30"/><circle class="d" cx="280" cy="158" r="16"/><circle class="d" cx="280" cy="158" r="6"/>
+<circle class="w" cx="310" cy="158" r="30"/><circle class="d" cx="310" cy="158" r="16"/>
+<rect class="b" x="54" y="118" width="296" height="32" rx="3"/>
+<path class="b" d="M54,118 L54,52Q54,45 62,45L166,45 L176,52 L176,118Z"/>
+<rect class="g" x="60" y="57" width="100" height="48" rx="2"/>
+<rect class="d" x="54" y="115" width="32" height="8" rx="2"/>
+<path class="b" d="M54,90 L18,90 L18,108 L54,108"/>
+<rect class="b" x="168" y="39" width="194" height="84" rx="3"/>
+<line class="ln" x1="212" y1="42" x2="212" y2="121"/><line class="ln" x1="254" y1="42" x2="254" y2="121"/><line class="ln" x1="296" y1="42" x2="296" y2="121"/><line class="ln" x1="338" y1="42" x2="338" y2="121"/>
+<rect class="d" x="168" y="119" width="194" height="6" rx="1"/>
+<rect class="d" x="148" y="18" width="12" height="28" rx="2"/>`),
+right:mksvg(`<circle class="w" cx="292" cy="158" r="30"/><circle class="d" cx="292" cy="158" r="16"/><circle class="d" cx="292" cy="158" r="6"/>
+<circle class="w" cx="100" cy="158" r="30"/><circle class="d" cx="100" cy="158" r="16"/><circle class="d" cx="100" cy="158" r="6"/>
+<circle class="w" cx="70" cy="158" r="30"/><circle class="d" cx="70" cy="158" r="16"/>
+<rect class="b" x="30" y="118" width="296" height="32" rx="3"/>
+<path class="b" d="M326,118 L326,52Q326,45 318,45L214,45 L204,52 L204,118Z"/>
+<rect class="g" x="220" y="57" width="100" height="48" rx="2"/>
+<rect class="d" x="294" y="115" width="32" height="8" rx="2"/>
+<path class="b" d="M326,90 L362,90 L362,108 L326,108"/>
+<rect class="b" x="18" y="39" width="194" height="84" rx="3"/>
+<line class="ln" x1="56" y1="42" x2="56" y2="121"/><line class="ln" x1="98" y1="42" x2="98" y2="121"/><line class="ln" x1="140" y1="42" x2="140" y2="121"/><line class="ln" x1="182" y1="42" x2="182" y2="121"/>
+<rect class="d" x="18" y="119" width="194" height="6" rx="1"/>
+<rect class="d" x="220" y="18" width="12" height="28" rx="2"/>`)
+};
+
+// MOTOR GRADER
+const MG={
+front:mksvg(`<circle class="w" cx="116" cy="162" r="20"/><circle class="d" cx="116" cy="162" r="11"/>
+<circle class="w" cx="264" cy="162" r="20"/><circle class="d" cx="264" cy="162" r="11"/>
+<rect class="b" x="96" y="150" width="188" height="14" rx="4"/>
+<path class="b" d="M162,78 L96,148 L120,148 L190,96Z"/>
+<path class="b" d="M218,78 L284,148 L260,148 L190,96Z"/>
+<rect class="b" x="128" y="46" width="124" height="54" rx="4"/>
+<rect class="g" x="140" y="53" width="100" height="38" rx="2"/>
+<rect class="b" x="26" y="123" width="328" height="30" rx="3"/>
+<rect class="d" x="26" y="148" width="328" height="6" rx="2"/>`),
+rear:mksvg(`<circle class="w" cx="58" cy="155" r="24"/><circle class="w" cx="88" cy="155" r="24"/>
+<circle class="w" cx="292" cy="155" r="24"/><circle class="w" cx="322" cy="155" r="24"/>
+<rect class="b" x="42" y="128" width="296" height="24" rx="4"/>
+<rect class="b" x="66" y="70" width="248" height="62" rx="4"/>
+<line class="ln" x1="88" y1="80" x2="292" y2="80"/><line class="ln" x1="88" y1="92" x2="292" y2="92"/><line class="ln" x1="88" y1="104" x2="292" y2="104"/><line class="ln" x1="88" y1="116" x2="292" y2="116"/>
+<rect class="b" x="126" y="43" width="128" height="32" rx="4"/>
+<rect class="g" x="144" y="49" width="92" height="22" rx="2"/>
+<rect class="d" x="136" y="16" width="12" height="30" rx="3"/><rect class="d" x="232" y="16" width="12" height="30" rx="3"/>`),
+left:mksvg(`<circle class="w" cx="52" cy="160" r="20"/><circle class="d" cx="52" cy="160" r="11"/>
+<path class="b" d="M32,126 L32,140 L272,138 L283,118 L44,118Z"/>
+<rect class="b" x="264" y="112" width="94" height="30" rx="3"/>
+<rect class="b" x="236" y="70" width="116" height="58" rx="4"/>
+<rect class="g" x="241" y="75" width="62" height="40" rx="2"/>
+<rect class="g" x="318" y="77" width="28" height="30" rx="2"/>
+<path class="ln" d="M32,123 Q162,104 236,114" fill="none" stroke-width="3"/>
+<circle class="b" cx="162" cy="148" r="18"/><circle class="d" cx="162" cy="148" r="10"/>
+<circle class="w" cx="298" cy="152" r="24"/><circle class="d" cx="298" cy="152" r="13"/>
+<circle class="w" cx="330" cy="152" r="24"/><circle class="d" cx="330" cy="152" r="13"/>
+<circle class="w" cx="360" cy="152" r="24"/><circle class="d" cx="360" cy="152" r="13"/>
+<path class="b" d="M90,140 L238,126 L238,140 L90,156Z"/>
+<line class="ln" x1="90" y1="155" x2="238" y2="141"/>`),
+right:mksvg(`<circle class="w" cx="328" cy="160" r="20"/><circle class="d" cx="328" cy="160" r="11"/>
+<path class="b" d="M348,126 L348,140 L108,138 L97,118 L336,118Z"/>
+<rect class="b" x="22" y="112" width="94" height="30" rx="3"/>
+<rect class="b" x="28" y="70" width="116" height="58" rx="4"/>
+<rect class="g" x="75" y="75" width="62" height="40" rx="2"/>
+<rect class="g" x="34" y="77" width="28" height="30" rx="2"/>
+<path class="ln" d="M348,123 Q218,104 144,114" fill="none" stroke-width="3"/>
+<circle class="b" cx="218" cy="148" r="18"/><circle class="d" cx="218" cy="148" r="10"/>
+<circle class="w" cx="82" cy="152" r="24"/><circle class="d" cx="82" cy="152" r="13"/>
+<circle class="w" cx="50" cy="152" r="24"/><circle class="d" cx="50" cy="152" r="13"/>
+<circle class="w" cx="20" cy="152" r="24"/><circle class="d" cx="20" cy="152" r="13"/>
+<path class="b" d="M290,140 L142,126 L142,140 L290,156Z"/>
+<line class="ln" x1="290" y1="155" x2="142" y2="141"/>`)
+};
+
+// COMPACTOR
+const CP={
+front:mksvg(`<rect class="w" x="14" y="118" width="120" height="70" rx="20"/>
+<line class="ln" x1="16" y1="130" x2="132" y2="130"/><line class="ln" x1="16" y1="142" x2="132" y2="142"/><line class="ln" x1="16" y1="154" x2="132" y2="154"/><line class="ln" x1="16" y1="166" x2="132" y2="166"/>
+<rect class="w" x="246" y="118" width="120" height="70" rx="20"/>
+<line class="ln" x1="248" y1="130" x2="364" y2="130"/><line class="ln" x1="248" y1="142" x2="364" y2="142"/><line class="ln" x1="248" y1="154" x2="364" y2="154"/><line class="ln" x1="248" y1="166" x2="364" y2="166"/>
+<rect class="b" x="124" y="126" width="132" height="56" rx="4"/>
+<rect class="b" x="138" y="72" width="104" height="62" rx="4"/>
+<rect class="g" x="148" y="78" width="84" height="44" rx="2"/>
+<rect class="b" x="130" y="70" width="120" height="8" rx="2"/>`),
+rear:mksvg(`<rect class="w" x="14" y="118" width="120" height="70" rx="20"/>
+<line class="ln" x1="16" y1="130" x2="132" y2="130"/><line class="ln" x1="16" y1="142" x2="132" y2="142"/><line class="ln" x1="16" y1="154" x2="132" y2="154"/><line class="ln" x1="16" y1="166" x2="132" y2="166"/>
+<rect class="w" x="246" y="118" width="120" height="70" rx="20"/>
+<line class="ln" x1="248" y1="130" x2="364" y2="130"/><line class="ln" x1="248" y1="142" x2="364" y2="142"/><line class="ln" x1="248" y1="154" x2="364" y2="154"/><line class="ln" x1="248" y1="166" x2="364" y2="166"/>
+<rect class="b" x="124" y="126" width="132" height="56" rx="4"/>
+<rect class="b" x="138" y="72" width="104" height="62" rx="4"/>
+<rect class="g" x="148" y="78" width="84" height="44" rx="2"/>
+<rect class="d" x="138" y="42" width="14" height="32" rx="3"/><rect class="d" x="228" y="42" width="14" height="32" rx="3"/>`),
+left:mksvg(`<rect class="w" x="16" y="112" width="118" height="74" rx="18"/>
+<line class="ln" x1="18" y1="124" x2="132" y2="124"/><line class="ln" x1="18" y1="136" x2="132" y2="136"/><line class="ln" x1="18" y1="148" x2="132" y2="148"/><line class="ln" x1="18" y1="160" x2="132" y2="160"/>
+<circle class="d" cx="75" cy="149" r="14"/><circle class="d" cx="75" cy="149" r="5"/>
+<rect class="b" x="108" y="104" width="46" height="62" rx="4"/>
+<rect class="d" x="138" y="112" width="16" height="44" rx="3"/>
+<rect class="b" x="148" y="71" width="136" height="72" rx="4"/>
+<rect class="g" x="153" y="76" width="74" height="48" rx="2"/>
+<rect class="g" x="244" y="78" width="34" height="34" rx="2"/>
+<rect class="d" x="148" y="139" width="136" height="7" rx="1"/>
+<circle class="w" cx="246" cy="155" r="30"/><circle class="d" cx="246" cy="155" r="16"/><circle class="d" cx="246" cy="155" r="6"/>
+<circle class="w" cx="328" cy="155" r="30"/><circle class="d" cx="328" cy="155" r="16"/><circle class="d" cx="328" cy="155" r="6"/>
+<rect class="b" x="218" y="142" width="138" height="20" rx="3"/>
+<rect class="d" x="146" y="69" width="138" height="5" rx="1"/>`),
+right:mksvg(`<rect class="w" x="246" y="112" width="118" height="74" rx="18"/>
+<line class="ln" x1="248" y1="124" x2="362" y2="124"/><line class="ln" x1="248" y1="136" x2="362" y2="136"/><line class="ln" x1="248" y1="148" x2="362" y2="148"/><line class="ln" x1="248" y1="160" x2="362" y2="160"/>
+<circle class="d" cx="305" cy="149" r="14"/><circle class="d" cx="305" cy="149" r="5"/>
+<rect class="b" x="226" y="104" width="46" height="62" rx="4"/>
+<rect class="d" x="226" y="112" width="16" height="44" rx="3"/>
+<rect class="b" x="96" y="71" width="136" height="72" rx="4"/>
+<rect class="g" x="153" y="76" width="74" height="48" rx="2"/>
+<rect class="g" x="102" y="78" width="34" height="34" rx="2"/>
+<rect class="d" x="96" y="139" width="136" height="7" rx="1"/>
+<circle class="w" cx="134" cy="155" r="30"/><circle class="d" cx="134" cy="155" r="16"/><circle class="d" cx="134" cy="155" r="6"/>
+<circle class="w" cx="52" cy="155" r="30"/><circle class="d" cx="52" cy="155" r="16"/><circle class="d" cx="52" cy="155" r="6"/>
+<rect class="b" x="24" y="142" width="138" height="20" rx="3"/>
+<rect class="d" x="96" y="69" width="138" height="5" rx="1"/>`)
+};
+
+// BACKHOE LOADER
+const BH={
+front:mksvg(`<circle class="w" cx="76" cy="158" r="30"/><circle class="d" cx="76" cy="158" r="16"/><circle class="d" cx="76" cy="158" r="6"/>
+<circle class="w" cx="304" cy="158" r="30"/><circle class="d" cx="304" cy="158" r="16"/><circle class="d" cx="304" cy="158" r="6"/>
+<rect class="b" x="56" y="132" width="268" height="20" rx="4"/>
+<rect class="b" x="100" y="86" width="180" height="50" rx="4"/>
+<rect class="b" x="120" y="58" width="140" height="54" rx="4"/>
+<rect class="g" x="132" y="65" width="116" height="38" rx="2"/>
+<rect class="d" x="78" y="98" width="14" height="32" rx="3"/><rect class="d" x="288" y="98" width="14" height="32" rx="3"/>
+<rect class="b" x="14" y="68" width="352" height="70" rx="4"/>
+<rect class="d" x="14" y="132" width="352" height="8" rx="2"/>
+<path class="ln" d="M14,68 L30,46 L350,46 L366,68" fill="none" stroke-width="2"/>`),
+rear:mksvg(`<circle class="w" cx="76" cy="158" r="30"/><circle class="d" cx="76" cy="158" r="16"/>
+<circle class="w" cx="304" cy="158" r="30"/><circle class="d" cx="304" cy="158" r="16"/>
+<rect class="b" x="56" y="132" width="268" height="20" rx="4"/>
+<rect class="b" x="70" y="72" width="240" height="64" rx="4"/>
+<line class="ln" x1="94" y1="84" x2="286" y2="84"/><line class="ln" x1="94" y1="96" x2="286" y2="96"/><line class="ln" x1="94" y1="108" x2="286" y2="108"/><line class="ln" x1="94" y1="120" x2="286" y2="120"/>
+<rect class="b" x="118" y="46" width="144" height="32" rx="4"/>
+<rect class="g" x="136" y="52" width="108" height="20" rx="2"/>
+<rect class="d" x="88" y="112" width="20" height="18" rx="2"/><rect class="d" x="272" y="112" width="20" height="18" rx="2"/>`),
+left:mksvg(`<circle class="w" cx="98" cy="158" r="32"/><circle class="d" cx="98" cy="158" r="18"/><circle class="d" cx="98" cy="158" r="7"/>
+<circle class="w" cx="282" cy="158" r="32"/><circle class="d" cx="282" cy="158" r="18"/><circle class="d" cx="282" cy="158" r="7"/>
+<rect class="b" x="62" y="116" width="258" height="36" rx="4"/>
+<rect class="b" x="148" y="66" width="112" height="72" rx="4"/>
+<rect class="g" x="154" y="72" width="68" height="48" rx="2"/>
+<rect class="g" x="238" y="74" width="18" height="36" rx="2"/>
+<rect class="d" x="150" y="64" width="108" height="5" rx="1"/>
+<rect class="b" x="66" y="76" width="76" height="42" rx="3"/>
+<path class="b" d="M66,80 L30,86 L28,108 L66,102Z"/>
+<rect class="b" x="4" y="76" width="32" height="56" rx="3"/>
+<rect class="d" x="4" y="126" width="32" height="8" rx="1"/>
+<polygon class="b" points="330,120 340,80 358,88 352,130"/>
+<polygon class="b" points="352,86 368,64 376,80 360,94"/>
+<path class="d" d="M362,66 Q374,72 376,80"/>`),
+right:mksvg(`<circle class="w" cx="282" cy="158" r="32"/><circle class="d" cx="282" cy="158" r="18"/><circle class="d" cx="282" cy="158" r="7"/>
+<circle class="w" cx="98" cy="158" r="32"/><circle class="d" cx="98" cy="158" r="18"/><circle class="d" cx="98" cy="158" r="7"/>
+<rect class="b" x="60" y="116" width="258" height="36" rx="4"/>
+<rect class="b" x="120" y="66" width="112" height="72" rx="4"/>
+<rect class="g" x="158" y="72" width="68" height="48" rx="2"/>
+<rect class="g" x="124" y="74" width="18" height="36" rx="2"/>
+<rect class="d" x="122" y="64" width="108" height="5" rx="1"/>
+<rect class="b" x="238" y="76" width="76" height="42" rx="3"/>
+<path class="b" d="M314,80 L350,86 L352,108 L314,102Z"/>
+<rect class="b" x="344" y="76" width="32" height="56" rx="3"/>
+<rect class="d" x="344" y="126" width="32" height="8" rx="1"/>
+<polygon class="b" points="50,120 40,80 22,88 28,130"/>
+<polygon class="b" points="28,86 12,64 4,80 20,94"/>
+<path class="d" d="M18,66 Q6,72 4,80"/>`)
+};
+
+// SKID STEER
+const SS={
+front:mksvg(`<circle class="w" cx="72" cy="158" r="28"/><circle class="d" cx="72" cy="158" r="15"/>
+<circle class="w" cx="308" cy="158" r="28"/><circle class="d" cx="308" cy="158" r="15"/>
+<rect class="b" x="52" y="132" width="276" height="22" rx="4"/>
+<rect class="b" x="86" y="88" width="208" height="50" rx="4"/>
+<rect class="b" x="110" y="60" width="160" height="54" rx="4"/>
+<rect class="g" x="120" y="67" width="140" height="40" rx="2"/>
+<rect class="d" x="90" y="96" width="16" height="32" rx="3"/><rect class="d" x="274" y="96" width="16" height="32" rx="3"/>
+<rect class="b" x="86" y="126" width="208" height="12" rx="2"/>
+<line class="ln" x1="114" y1="92" x2="114" y2="128"/><line class="ln" x1="190" y1="90" x2="190" y2="128"/><line class="ln" x1="266" y1="92" x2="266" y2="128"/>
+<path class="b" d="M44,76 L52,130 L70,130 L70,80Z"/>
+<path class="b" d="M336,76 L328,130 L310,130 L310,80Z"/>`),
+rear:mksvg(`<circle class="w" cx="72" cy="158" r="28"/><circle class="d" cx="72" cy="158" r="15"/>
+<circle class="w" cx="308" cy="158" r="28"/><circle class="d" cx="308" cy="158" r="15"/>
+<rect class="b" x="52" y="132" width="276" height="22" rx="4"/>
+<rect class="b" x="82" y="72" width="216" height="64" rx="4"/>
+<line class="ln" x1="106" y1="84" x2="274" y2="84"/><line class="ln" x1="106" y1="96" x2="274" y2="96"/><line class="ln" x1="106" y1="108" x2="274" y2="108"/><line class="ln" x1="106" y1="120" x2="274" y2="120"/>
+<rect class="b" x="126" y="48" width="128" height="30" rx="4"/>
+<rect class="g" x="142" y="54" width="96" height="18" rx="2"/>
+<path class="b" d="M44,76 L52,132 L70,132 L70,80Z"/>
+<path class="b" d="M336,76 L328,132 L310,132 L310,80Z"/>`),
+left:mksvg(`<rect class="t" x="18" y="148" width="318" height="36" rx="8"/>
+<circle class="w" cx="48" cy="166" r="22"/><circle class="d" cx="48" cy="166" r="12"/>
+<circle class="w" cx="316" cy="166" r="22"/><circle class="d" cx="316" cy="166" r="12"/>
+<rect class="b" x="42" y="112" width="280" height="40" rx="4"/>
+<rect class="b" x="178" y="62" width="120" height="76" rx="4"/>
+<rect class="g" x="184" y="68" width="62" height="48" rx="2"/>
+<rect class="g" x="258" y="70" width="36" height="36" rx="2"/>
+<rect class="d" x="46" y="106" width="14" height="50" rx="3"/>
+<rect class="d" x="300" y="106" width="14" height="50" rx="3"/>
+<path class="b" d="M62,120 L74,76 L92,74 L84,118Z"/>
+<path class="b" d="M68,78 L52,90 L52,106 L70,96Z"/>
+<rect class="d" x="14" y="72" width="44" height="76" rx="4"/>
+<rect class="d" x="180" y="60" width="118" height="5" rx="1"/>`),
+right:mksvg(`<rect class="t" x="44" y="148" width="318" height="36" rx="8"/>
+<circle class="w" cx="64" cy="166" r="22"/><circle class="d" cx="64" cy="166" r="12"/>
+<circle class="w" cx="332" cy="166" r="22"/><circle class="d" cx="332" cy="166" r="12"/>
+<rect class="b" x="58" y="112" width="280" height="40" rx="4"/>
+<rect class="b" x="82" y="62" width="120" height="76" rx="4"/>
+<rect class="g" x="134" y="68" width="62" height="48" rx="2"/>
+<rect class="g" x="86" y="70" width="36" height="36" rx="2"/>
+<rect class="d" x="60" y="106" width="14" height="50" rx="3"/>
+<rect class="d" x="320" y="106" width="14" height="50" rx="3"/>
+<path class="b" d="M318,120 L306,76 L288,74 L296,118Z"/>
+<path class="b" d="M312,78 L328,90 L328,106 L310,96Z"/>
+<rect class="d" x="322" y="72" width="44" height="76" rx="4"/>
+<rect class="d" x="82" y="60" width="118" height="5" rx="1"/>`)
+};
+
+// TELEHANDLER
+const TH={
+front:mksvg(`<circle class="w" cx="78" cy="157" r="30"/><circle class="d" cx="78" cy="157" r="16"/><circle class="d" cx="78" cy="157" r="6"/>
+<circle class="w" cx="302" cy="157" r="30"/><circle class="d" cx="302" cy="157" r="16"/><circle class="d" cx="302" cy="157" r="6"/>
+<rect class="b" x="56" y="130" width="268" height="22" rx="4"/>
+<rect class="b" x="96" y="86" width="188" height="48" rx="4"/>
+<rect class="b" x="120" y="56" width="140" height="56" rx="4"/>
+<rect class="g" x="130" y="63" width="120" height="40" rx="2"/>
+<rect class="d" x="90" y="90" width="16" height="36" rx="3"/><rect class="d" x="274" y="90" width="16" height="36" rx="3"/>
+<rect class="b" x="30" y="70" width="320" height="66" rx="4"/>
+<rect class="d" x="30" y="130" width="320" height="8" rx="2"/>
+<path class="b" d="M74,128 L68,94 L30,94 L30,128Z"/>
+<path class="b" d="M306,128 L312,94 L350,94 L350,128Z"/>`),
+rear:mksvg(`<circle class="w" cx="78" cy="157" r="30"/><circle class="d" cx="78" cy="157" r="16"/>
+<circle class="w" cx="302" cy="157" r="30"/><circle class="d" cx="302" cy="157" r="16"/>
+<rect class="b" x="56" y="130" width="268" height="22" rx="4"/>
+<rect class="b" x="70" y="68" width="240" height="66" rx="4"/>
+<line class="ln" x1="94" y1="80" x2="286" y2="80"/><line class="ln" x1="94" y1="92" x2="286" y2="92"/><line class="ln" x1="94" y1="104" x2="286" y2="104"/><line class="ln" x1="94" y1="116" x2="286" y2="116"/>
+<rect class="b" x="118" y="42" width="144" height="32" rx="4"/>
+<rect class="g" x="136" y="48" width="108" height="20" rx="2"/>
+<rect class="d" x="86" y="114" width="20" height="18" rx="2"/><rect class="d" x="274" y="114" width="20" height="18" rx="2"/>
+<rect class="d" x="138" y="14" width="12" height="30" rx="3"/><rect class="d" x="230" y="14" width="12" height="30" rx="3"/>`),
+left:mksvg(`<circle class="w" cx="100" cy="158" r="32"/><circle class="d" cx="100" cy="158" r="18"/><circle class="d" cx="100" cy="158" r="7"/>
+<circle class="w" cx="280" cy="158" r="32"/><circle class="d" cx="280" cy="158" r="18"/><circle class="d" cx="280" cy="158" r="7"/>
+<rect class="b" x="64" y="112" width="252" height="40" rx="4"/>
+<rect class="b" x="182" y="66" width="118" height="72" rx="4"/>
+<rect class="g" x="188" y="72" width="64" height="48" rx="2"/>
+<rect class="g" x="268" y="74" width="26" height="36" rx="2"/>
+<rect class="d" x="184" y="64" width="114" height="5" rx="1"/>
+<rect class="b" x="68" y="78" width="108" height="38" rx="3"/>
+<line class="ln" x1="96" y1="82" x2="96" y2="114"/><line class="ln" x1="130" y1="82" x2="130" y2="114"/>
+<polygon class="b" points="318,90 334,50 350,58 344,100"/>
+<polygon class="b" points="344,54 360,34 368,50 354,62"/>
+<rect class="d" x="64" y="106" width="14" height="48" rx="3"/>`),
+right:mksvg(`<circle class="w" cx="280" cy="158" r="32"/><circle class="d" cx="280" cy="158" r="18"/><circle class="d" cx="280" cy="158" r="7"/>
+<circle class="w" cx="100" cy="158" r="32"/><circle class="d" cx="100" cy="158" r="18"/><circle class="d" cx="100" cy="158" r="7"/>
+<rect class="b" x="64" y="112" width="252" height="40" rx="4"/>
+<rect class="b" x="80" y="66" width="118" height="72" rx="4"/>
+<rect class="g" x="128" y="72" width="64" height="48" rx="2"/>
+<rect class="g" x="86" y="74" width="26" height="36" rx="2"/>
+<rect class="d" x="82" y="64" width="114" height="5" rx="1"/>
+<rect class="b" x="204" y="78" width="108" height="38" rx="3"/>
+<line class="ln" x1="230" y1="82" x2="230" y2="114"/><line class="ln" x1="264" y1="82" x2="264" y2="114"/>
+<polygon class="b" points="62,90 46,50 30,58 36,100"/>
+<polygon class="b" points="36,54 20,34 12,50 26,62"/>
+<rect class="d" x="302" y="106" width="14" height="48" rx="3"/>`)
+};
+
+const VEHICLES=[
+  {brand:'CAT',models:[
+    {name:'336 Excavator',type:'excavator',svgs:EX},
+    {name:'D6 Dozer',type:'dozer',svgs:DZ},
+    {name:'745 Articulated Truck',type:'haulTruck',svgs:HT},
+    {name:'972 Wheel Loader',type:'wheelLoader',svgs:WL},
+    {name:'12M Motor Grader',type:'motorGrader',svgs:MG},
+    {name:'CB10 Compactor',type:'compactor',svgs:CP}
+  ]},
+  {brand:'Komatsu',models:[
+    {name:'PC390 Excavator',type:'excavator',svgs:EX},
+    {name:'D65 Dozer',type:'dozer',svgs:DZ},
+    {name:'HD785 Haul Truck',type:'haulTruck',svgs:HT},
+    {name:'WA470 Wheel Loader',type:'wheelLoader',svgs:WL},
+    {name:'GD655 Motor Grader',type:'motorGrader',svgs:MG}
+  ]},
+  {brand:'John Deere',models:[
+    {name:'350G Excavator',type:'excavator',svgs:EX},
+    {name:'700K Dozer',type:'dozer',svgs:DZ},
+    {name:'644K Wheel Loader',type:'wheelLoader',svgs:WL},
+    {name:'672GP Motor Grader',type:'motorGrader',svgs:MG},
+    {name:'410L Backhoe Loader',type:'backhoe',svgs:BH}
+  ]},
+  {brand:'Volvo CE',models:[
+    {name:'EC380 Excavator',type:'excavator',svgs:EX},
+    {name:'A40G Articulated Hauler',type:'haulTruck',svgs:HT},
+    {name:'L120H Wheel Loader',type:'wheelLoader',svgs:WL},
+    {name:'G946 Motor Grader',type:'motorGrader',svgs:MG},
+    {name:'DD120 Compactor',type:'compactor',svgs:CP}
+  ]},
+  {brand:'Hitachi',models:[
+    {name:'ZX350 Excavator',type:'excavator',svgs:EX},
+    {name:'EH4000 Haul Truck',type:'haulTruck',svgs:HT},
+    {name:'ZW310 Wheel Loader',type:'wheelLoader',svgs:WL}
+  ]},
+  {brand:'Liebherr',models:[
+    {name:'R 976 Excavator',type:'excavator',svgs:EX},
+    {name:'PR 746 Dozer',type:'dozer',svgs:DZ},
+    {name:'T 284 Mining Truck',type:'haulTruck',svgs:HT},
+    {name:'L 586 Wheel Loader',type:'wheelLoader',svgs:WL}
+  ]},
+  {brand:'Doosan / Bobcat',models:[
+    {name:'DX380LC Excavator',type:'excavator',svgs:EX},
+    {name:'E88 Mini Excavator',type:'excavator',svgs:EX},
+    {name:'T770 Track Loader',type:'skidSteer',svgs:SS},
+    {name:'S740 Skid Steer',type:'skidSteer',svgs:SS}
+  ]},
+  {brand:'CASE',models:[
+    {name:'CX490D Excavator',type:'excavator',svgs:EX},
+    {name:'2050M Dozer',type:'dozer',svgs:DZ},
+    {name:'621G Wheel Loader',type:'wheelLoader',svgs:WL},
+    {name:'580ST Backhoe',type:'backhoe',svgs:BH}
+  ]},
+  {brand:'Terex',models:[
+    {name:'TC85 Excavator',type:'excavator',svgs:EX},
+    {name:'TA400 Articulated Hauler',type:'haulTruck',svgs:HT},
+    {name:'TL210 Wheel Loader',type:'wheelLoader',svgs:WL},
+    {name:'GTH-1056 Telehandler',type:'telehandler',svgs:TH}
+  ]},
+  {brand:'Hyundai',models:[
+    {name:'HX380A Excavator',type:'excavator',svgs:EX},
+    {name:'HL960 Wheel Loader',type:'wheelLoader',svgs:WL},
+    {name:'HD1500 Dump Truck',type:'haulTruck',svgs:HT},
+    {name:'9VS Motor Grader',type:'motorGrader',svgs:MG}
+  ]}
+];
+
+// ==================== STATE ====================
+let selectedVehicle=null;
+let placedSensors={front:[],rear:[],left:[],right:[]};
+let selectedSensor=null;
+let draggedSensorType=null;
+let dragOffX=0,dragOffY=0;
+let isDraggingPlaced=false;
+let nextId=1;
+const VIEWS=['front','rear','left','right'];
+
+// ==================== INIT ====================
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('f-date').value=new Date().toLocaleDateString();
+  buildVehicleList();
+  buildSensorPalette();
+  renderAll();
+  document.addEventListener('click',e=>{
+    const dd=document.getElementById('saved-dd');
+    if(!e.target.closest('#nav-wrap'))dd.classList.remove('open');
+    if(!e.target.closest('.placed')&&!e.target.closest('.props'))deselectAll();
+  });
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Delete'&&selectedSensor)deleteSensor();
+    if(e.key==='Escape')deselectAll();
+  });
+});
+
+// ==================== VEHICLE LIST ====================
+function buildVehicleList(){
+  const container=document.getElementById('vehicle-list');
+  container.innerHTML='';
+  VEHICLES.forEach(brand=>{
+    const bh=document.createElement('div');
+    bh.className='brand-hdr';
+    bh.innerHTML=`${brand.brand}<span>▸</span>`;
+    bh.onclick=()=>{
+      const items=bh.nextElementSibling.querySelectorAll('.model-item');
+      const open=items[0]&&items[0].style.display!=='none';
+      items.forEach(i=>i.style.display=open?'none':'block');
+      bh.querySelector('span').textContent=open?'▸':'▾';
+    };
+    container.appendChild(bh);
+    const group=document.createElement('div');
+    brand.models.forEach(model=>{
+      const key=`${brand.brand}__${model.name}`;
+      const item=document.createElement('div');
+      item.className='model-item';
+      item.dataset.key=key;
+      item.dataset.brand=brand.brand;
+      item.dataset.name=model.name;
+      item.textContent=model.name;
+      item.style.display='none';
+      item.onclick=()=>selectVehicle(brand.brand,model);
+      group.appendChild(item);
+    });
+    container.appendChild(group);
+  });
+}
+
+function filterVehicles(q){
+  const items=document.querySelectorAll('.model-item');
+  const brandHeaders=document.querySelectorAll('.brand-hdr');
+  q=q.toLowerCase();
+  items.forEach(item=>{
+    const match=!q||(item.dataset.name.toLowerCase().includes(q)||item.dataset.brand.toLowerCase().includes(q));
+    item.style.display=match?'block':'none';
+  });
+  brandHeaders.forEach(bh=>{
+    const grp=bh.nextElementSibling;
+    const anyVisible=grp&&[...grp.querySelectorAll('.model-item')].some(i=>i.style.display!=='none');
+    bh.style.display=(anyVisible||!q)?'':'none';
+    if(q&&anyVisible)bh.querySelector('span').textContent='▾';
+  });
+}
+
+function selectVehicle(brand,model){
+  selectedVehicle={brand,model};
+  document.querySelectorAll('.model-item').forEach(i=>i.classList.remove('active'));
+  const key=`${brand}__${model.name}`;
+  const el=document.querySelector(`[data-key="${CSS.escape(key)}"]`);
+  if(el)el.classList.add('active');
+  document.getElementById('veh-title-lbl').textContent=`${brand} ${model.name}`;
+  document.getElementById('f-vehicle').value=`${brand} ${model.name}`;
+  VIEWS.forEach(v=>{
+    document.getElementById(`sub-${v}`).textContent=`${brand} ${model.name}`;
+    const dz=document.getElementById(`dz-${v}`);
+    const nv=dz.querySelector('.no-veh');
+    if(nv)nv.style.display='none';
+    let svgEl=dz.querySelector('.vsvg');
+    if(svgEl)svgEl.remove();
+    const tmp=document.createElement('div');
+    tmp.innerHTML=model.svgs[v]||model.svgs.front;
+    const newSvg=tmp.firstElementChild;
+    newSvg.classList.add('vsvg');
+    dz.insertBefore(newSvg,dz.firstChild);
+  });
+  showToast(`${brand} ${model.name} loaded`);
+}
+
+// ==================== SENSOR PALETTE ====================
+function buildSensorPalette(){
+  const row=document.getElementById('sensor-row');
+  SENSORS.forEach(s=>{
+    const chip=document.createElement('div');
+    chip.className='sensor-chip';
+    chip.draggable=true;
+    chip.innerHTML=`<div style="color:${s.color}">${s.svg}</div><div class="chip-lbl">${s.name}</div>`;
+    chip.addEventListener('dragstart',e=>{
+      draggedSensorType=s;
+      e.dataTransfer.effectAllowed='copy';
+    });
+    chip.addEventListener('dragend',()=>{draggedSensorType=null;});
+    row.appendChild(chip);
+  });
+}
+
+// ==================== DROP ZONES ====================
+function renderAll(){
+  VIEWS.forEach(v=>renderView(v));
+  renderProps();
+  renderLegend();
+}
+
+function renderView(view){
+  const dz=document.getElementById(`dz-${view}`);
+  dz.querySelectorAll('.placed').forEach(e=>e.remove());
+  placedSensors[view].forEach(s=>addPlacedElement(dz,s,view));
+  setupDropZone(dz,view);
+}
+
+function setupDropZone(dz,view){
+  dz.ondragover=e=>{e.preventDefault();dz.classList.add('drag-over');};
+  dz.ondragleave=()=>dz.classList.remove('drag-over');
+  dz.ondrop=e=>{
+    e.preventDefault();
+    dz.classList.remove('drag-over');
+    if(!draggedSensorType)return;
+    const rect=dz.getBoundingClientRect();
+    const x=Math.round(((e.clientX-rect.left)/rect.width)*100);
+    const y=Math.round(((e.clientY-rect.top)/rect.height)*100);
+    const sensor={
+      id:nextId++,
+      type:draggedSensorType.id,
+      name:draggedSensorType.name+' '+(placedSensors[view].filter(s=>s.type===draggedSensorType.id).length+1),
+      color:draggedSensorType.color,
+      x,y,
+      notes:''
+    };
+    placedSensors[view].push(sensor);
+    addPlacedElement(dz,sensor,view);
+    renderLegend();
+    draggedSensorType=null;
+  };
+}
+
+function addPlacedElement(dz,sensor,view){
+  const stype=SENSORS.find(s=>s.id===sensor.type);
+  if(!stype)return;
+  const el=document.createElement('div');
+  el.className='placed';
+  el.id=`placed-${view}-${sensor.id}`;
+  el.style.left=sensor.x+'%';
+  el.style.top=sensor.y+'%';
+  el.innerHTML=`<div class="pi" style="border-color:${sensor.color};color:${sensor.color}">${stype.svg}</div><div class="plbl">${sensor.name}</div>`;
+  el.addEventListener('mousedown',e=>{
+    e.stopPropagation();
+    selectSensorItem(sensor,view);
+    isDraggingPlaced=true;
+    const rect=dz.getBoundingClientRect();
+    dragOffX=e.clientX-rect.left-(sensor.x/100)*rect.width;
+    dragOffY=e.clientY-rect.top-(sensor.y/100)*rect.height;
+    const onMove=me=>{
+      if(!isDraggingPlaced)return;
+      const r=dz.getBoundingClientRect();
+      sensor.x=Math.max(2,Math.min(98,Math.round(((me.clientX-r.left-dragOffX)/r.width)*100)));
+      sensor.y=Math.max(2,Math.min(98,Math.round(((me.clientY-r.top-dragOffY)/r.height)*100)));
+      el.style.left=sensor.x+'%';
+      el.style.top=sensor.y+'%';
+    };
+    const onUp=()=>{isDraggingPlaced=false;document.removeEventListener('mousemove',onMove);document.removeEventListener('mouseup',onUp);};
+    document.addEventListener('mousemove',onMove);
+    document.addEventListener('mouseup',onUp);
+  });
+  dz.appendChild(el);
+}
+
+// ==================== SELECTION ====================
+function selectSensorItem(sensor,view){
+  deselectAll(false);
+  selectedSensor={sensor,view};
+  const el=document.getElementById(`placed-${view}-${sensor.id}`);
+  if(el)el.classList.add('sel');
+  renderProps();
+}
+
+function deselectAll(rerender=true){
+  selectedSensor=null;
+  document.querySelectorAll('.placed').forEach(e=>e.classList.remove('sel'));
+  if(rerender)renderProps();
+}
+
+function deleteSensor(){
+  if(!selectedSensor)return;
+  const {sensor,view}=selectedSensor;
+  placedSensors[view]=placedSensors[view].filter(s=>s.id!==sensor.id);
+  const el=document.getElementById(`placed-${view}-${sensor.id}`);
+  if(el)el.remove();
+  selectedSensor=null;
+  renderProps();
+  renderLegend();
+}
+
+// ==================== PROPERTIES PANEL ====================
+function renderProps(){
+  const panel=document.getElementById('props-panel');
+  if(!selectedSensor){
+    panel.innerHTML=`<div class="no-sel">Click a placed<br>sensor to edit</div>`;
+    return;
+  }
+  const {sensor,view}=selectedSensor;
+  const stype=SENSORS.find(s=>s.id===sensor.type);
+  const colors=COLORS.map(c=>`<div class="cs${sensor.color===c?' active':''}" style="background:${c}" onclick="changeSensorColor('${c}')"></div>`).join('');
+  panel.innerHTML=`
+    <div class="pg"><label>Type</label><div style="color:${sensor.color};font-size:11px;font-family:'IBM Plex Mono',monospace;padding:2px 0">${stype?stype.name:'Unknown'}</div></div>
+    <div class="pg"><label>Label</label><input class="pi2" type="text" value="${sensor.name}" oninput="updateSensorName(this.value)"></div>
+    <div class="pg"><label>View</label><div style="font-size:11px;color:#5a90b0;font-family:'IBM Plex Mono',monospace;padding:2px 0">${view.toUpperCase()}</div></div>
+    <div class="pg"><label>Color</label><div class="color-row">${colors}</div></div>
+    <div class="pg"><label>Notes</label><textarea class="pta" oninput="updateSensorNotes(this.value)">${sensor.notes||''}</textarea></div>
+    <button class="btn-del" onclick="deleteSensor()">🗑 Delete Sensor</button>`;
+}
+
+function updateSensorName(val){
+  if(!selectedSensor)return;
+  selectedSensor.sensor.name=val;
+  const el=document.getElementById(`placed-${selectedSensor.view}-${selectedSensor.sensor.id}`);
+  if(el){const lbl=el.querySelector('.plbl');if(lbl)lbl.textContent=val;}
+  renderLegend();
+}
+function updateSensorNotes(val){if(selectedSensor)selectedSensor.sensor.notes=val;}
+function changeSensorColor(c){
+  if(!selectedSensor)return;
+  selectedSensor.sensor.color=c;
+  const el=document.getElementById(`placed-${selectedSensor.view}-${selectedSensor.sensor.id}`);
+  if(el){const pi=el.querySelector('.pi');if(pi){pi.style.borderColor=c;pi.style.color=c;}}
+  renderProps();
+  renderLegend();
+}
+
+// ==================== LEGEND ====================
+function renderLegend(){
+  const container=document.getElementById('legend-items');
+  const counts={};
+  const colorMap={};
+  VIEWS.forEach(v=>placedSensors[v].forEach(s=>{
+    counts[s.type]=(counts[s.type]||0)+1;
+    colorMap[s.type]=s.color;
+  }));
+  if(!Object.keys(counts).length){
+    container.innerHTML=`<span style="font-size:10px;color:#94a3b8;font-family:'IBM Plex Mono',monospace">No sensors placed yet</span>`;
+    return;
+  }
+  container.innerHTML=Object.entries(counts).map(([tid,cnt])=>{
+    const st=SENSORS.find(s=>s.id===tid);
+    if(!st)return'';
+    const c=colorMap[tid]||st.color;
+    return`<div class="li"><div class="li-ico" style="border-color:${c};color:${c}">${st.svg}</div><span>${st.name}</span><span class="li-cnt">×${cnt}</span></div>`;
+  }).join('');
+}
+
+// ==================== SAVE/LOAD ====================
+function saveDiagram(){
+  const name=document.getElementById('f-project').value||'Diagram '+Date.now();
+  const data={
+    name,vehicle:selectedVehicle,
+    placed:JSON.parse(JSON.stringify(placedSensors)),
+    fields:{
+      project:document.getElementById('f-project').value,
+      vehicle:document.getElementById('f-vehicle').value,
+      unit:document.getElementById('f-unit').value,
+      by:document.getElementById('f-by').value,
+      date:document.getElementById('f-date').value,
+      rev:document.getElementById('f-rev').value
+    }
+  };
+  const saves=JSON.parse(localStorage.getItem('mountmap-saves')||'[]');
+  saves.unshift({id:Date.now(),name,data});
+  if(saves.length>20)saves.pop();
+  localStorage.setItem('mountmap-saves',JSON.stringify(saves));
+  showToast('Diagram saved!');
+  renderSavedList();
+}
+
+function loadDiagram(id){
+  const saves=JSON.parse(localStorage.getItem('mountmap-saves')||'[]');
+  const save=saves.find(s=>s.id===id);
+  if(!save)return;
+  const {data}=save;
+  if(data.fields){
+    document.getElementById('f-project').value=data.fields.project||'';
+    document.getElementById('f-vehicle').value=data.fields.vehicle||'';
+    document.getElementById('f-unit').value=data.fields.unit||'';
+    document.getElementById('f-by').value=data.fields.by||'';
+    document.getElementById('f-date').value=data.fields.date||'';
+    document.getElementById('f-rev').value=data.fields.rev||'';
+  }
+  if(data.vehicle){selectVehicle(data.vehicle.brand,data.vehicle.model);}
+  placedSensors=data.placed||{front:[],rear:[],left:[],right:[]};
+  nextId=Math.max(...Object.values(placedSensors).flat().map(s=>s.id))+1||1;
+  renderAll();
+  document.getElementById('saved-dd').classList.remove('open');
+  showToast(`Loaded: ${save.name}`);
+}
+
+function deleteSave(id,e){
+  e.stopPropagation();
+  const saves=JSON.parse(localStorage.getItem('mountmap-saves')||'[]');
+  localStorage.setItem('mountmap-saves',JSON.stringify(saves.filter(s=>s.id!==id)));
+  renderSavedList();
+}
+
+function renderSavedList(){
+  const saves=JSON.parse(localStorage.getItem('mountmap-saves')||'[]');
+  const container=document.getElementById('saved-list');
+  if(!saves.length){container.innerHTML=`<div class="no-saves">No saved diagrams</div>`;return;}
+  container.innerHTML=saves.map(s=>`<div class="saved-item" onclick="loadDiagram(${s.id})"><span>${s.name}</span><button class="sd-del" onclick="deleteSave(${s.id},event)">✕</button></div>`).join('');
+}
+
+function toggleSaved(e){
+  e.stopPropagation();
+  const dd=document.getElementById('saved-dd');
+  dd.classList.toggle('open');
+  if(dd.classList.contains('open'))renderSavedList();
+}
+
+// ==================== CLEAR ====================
+function clearAll(){
+  if(!confirm('Clear all placed sensors?'))return;
+  placedSensors={front:[],rear:[],left:[],right:[]};
+  renderAll();
+  showToast('Canvas cleared');
+}
+
+// ==================== EXPORT ====================
+function exportPNG(){
+  const wrap=document.getElementById('diag-wrap');
+  deselectAll();
+  showToast('Generating export…');
+  setTimeout(()=>{
+    html2canvas(wrap,{
+      scale:2,backgroundColor:'#ffffff',
+      useCORS:true,logging:false,
+      width:wrap.offsetWidth,height:wrap.offsetHeight
+    }).then(canvas=>{
+      const a=document.createElement('a');
+      const vname=(document.getElementById('f-vehicle').value||'diagram').replace(/\s+/g,'_');
+      a.download=`MountMap_${vname}_${Date.now()}.png`;
+      a.href=canvas.toDataURL('image/png',1.0);
+      a.click();
+      showToast('Export downloaded!');
+    }).catch(()=>showToast('Export failed — try again'));
+  },100);
+}
+
+// ==================== TOAST ====================
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.add('show');
+  clearTimeout(t._to);
+  t._to=setTimeout(()=>t.classList.remove('show'),2400);
+}
+</script>
+</body>
+</html>
