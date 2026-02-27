@@ -2414,39 +2414,165 @@ function toast(msg) { const el=document.createElement('div');el.className='toast
 // ══════════════════════════════════════════════
 function seedSample() {
   if (issues.length) return;
-  issues=[{
-    num:1, week:'March 10–14, 2025', author:'Alice Chen',
-    pulse:'Strong week. Hardware on schedule. One switch capacity issue to watch.',
-    ts:new Date().toISOString(),
-    csuite:{
-      brief:['Hardware integration on schedule for Q3 field testing. Compute benchmarks exceeded targets by 40%.'],
-      dec:  ['Third network switch ($800) needed to unblock future sensor additions — needs purchase approval.']
+
+  // ── DEMO ISSUE — reflects a realistic week from a 29-person team:
+  //    2 C-suite, 1 sales, 6 PMs across workstreams, 20 engineers
+  //    Edit this data to reflect your actual team's week before transmitting.
+  issues = [{
+    num: 1,
+    week: 'February 24–28, 2025',
+    author: 'Marcus Webb',
+    pulse: 'Biggest shipping week of the quarter. Perception stack cleared 99.2% uptime. One critical blocker on the OEM data agreement needs leadership eyes before Monday.',
+    ts: new Date().toISOString(),
+    theme: 'default',
+
+    csuite: {
+      brief: [
+        'Autonomous perception stack hit 99.2% sensor uptime across a full 8-hour stress test — this is the threshold we committed to investors for Q2. We are ahead of schedule.',
+        'Commercial pipeline is accelerating: two LOIs expected to countersign by end of March, and a third enterprise prospect requested a site visit for April. Revenue path is cleaner than it was 60 days ago.',
+        'Team morale is high. Three months of consistent Friday briefs have meaningfully improved cross-functional alignment — eng and PM are no longer surprised by each other\'s blockers.'
+      ],
+      dec: [
+        'OEM data-sharing agreement has stalled at their legal team for 11 days. Without signed access to the official DBC file, engineering is working from an informal CAN map with ~94% coverage. We need a decision: escalate to C-level contact at OEM, or engage outside counsel to accelerate. Recommend escalation by Monday COB.',
+        'Third managed switch ($800 capex) is blocking physical port expansion for sensor R&D. Finance approval threshold is $1,500 — this is under that. Recommend delegating approval to engineering lead to move faster.',
+        'Two senior engineers have flagged interest in conference presentations (ROSCon, ICRA). Budget impact is ~$3,200 total. Decision needed on whether we fund this Q2 or defer to Q3 — both submissions close March 15.'
+      ]
     },
-    sales:{
-      win: ['Pilot demo with Prospect A completed — strong positive feedback on sensor density and latency.','Proposal sent to Prospect B.'],
-      blk: ['Need updated technical spec sheet from eng for Prospect C proposal.'],
-      nxt: ['Follow up call with Prospect A on Monday.','Technical demo with Prospect D — Thursday.']
+
+    sales: {
+      win: [
+        'Prospect A (regional logistics, 47 vehicles) — LOI received Friday morning. Legal review starts Monday. Estimated contract value $2.1M over 24 months. Largest deal in pipeline to date.',
+        'Prospect B (municipal transit authority) — technical evaluation call completed. Their CTO called our sensor fusion approach "the most mature we\'ve seen at this stage." Moving to commercial terms discussion.',
+        'Prospect C (last-mile delivery startup) — pilot proposal accepted. Pilot scope: 3 vehicles, 90 days, $85K. SOW being drafted.',
+        'Renewed contact with Prospect F (cold for 6 weeks) after publishing our uptime benchmark publicly. They requested a new demo slot — scheduled for March 12.',
+        'Inbound inquiry from international freight operator via LinkedIn — qualified, forwarded to Chris for follow-up.'
+      ],
+      blk: [
+        'Prospect D (enterprise fleet operator) is stalled pending an updated technical spec sheet reflecting the new sensor configuration. Engineering confirmed they can turn this around by Tuesday — need someone to own the handoff and send it directly.',
+        'Prospect E RFP requires ISO 26262 functional safety documentation we don\'t yet have. Need a scoping conversation with eng on what it would take to produce this — is it 2 weeks or 2 months?',
+        'CRM is not reflecting deals correctly after last week\'s migration. Two prospects show as "closed lost" when they are active. IT ticket open but not resolved — affects pipeline reporting accuracy.'
+      ],
+      nxt: [
+        'Monday: Prospect A legal kickoff call (10am). Ensure contracts@ is looped in.',
+        'Tuesday: Send updated spec sheet to Prospect D the moment it arrives from eng.',
+        'Wednesday: Prospect B commercial terms call. Prep comparables from Prospect A negotiation.',
+        'Thursday: Prospect C pilot SOW review — internal sign-off needed before sending.',
+        'Friday: Pipeline review with leadership — prepare updated ARR forecast reflecting LOI.',
+        'Ongoing: Qualify the international inbound — determine if they are a 2025 or 2026 opportunity before investing demo resources.'
+      ]
     },
-    pm:{
-      ship:['All 3 LiDARs mounted and wired to SW3.','PoE switch fully populated — 4 cameras + GNSS online.','Lenovo compute dual-homed and passing traffic.'],
-      blk: ['SW1 and SW3 at port capacity — no room for additional devices without a third switch.','VLAN segmentation not yet configured.'],
-      nxt: ['Configure VLANs on SW1 and SW3.','Validate LiDAR #3 field of view.','Stress test full sensor load on compute.']
+
+    pm: {
+      ship: [
+        // Perception & Sensor Platform PM
+        'Perception stack v2.4.1 shipped to staging — includes fused LiDAR + camera confidence scoring. First build to pass the 99.2% uptime threshold on the full stress test profile.',
+        'Sensor calibration pipeline fully automated — what used to take a field engineer 3 hours now runs in 18 minutes with zero manual steps. Unblocks faster vehicle turnaround for pilots.',
+        'LiDAR #3 field-of-view validation complete. All three units now cover the full 270° arc with less than 0.3° gap at overlap boundaries.',
+        // Infrastructure & Networking PM
+        'PoE switch fully populated: 4 cameras, GNSS receiver, and 2 LiDARs all drawing clean power. No voltage sag observed under full load.',
+        'Lenovo compute node dual-homed and routing correctly between sensor VLAN and operations VLAN. Latency between networks under 0.8ms.',
+        'VLAN segmentation configured on SW1 and SW3. Sensor traffic, ops traffic, and management traffic now isolated. Eliminates the broadcast storm risk we flagged two weeks ago.',
+        // Autonomy & Controls PM
+        'Path planning module v1.9 merged — handles intersection scenarios with static obstacles up to 30% faster than v1.8.',
+        'Simulation harness expanded: 12 new edge-case scenarios added covering adverse weather, partial occlusion, and erratic pedestrian behavior.',
+        // Data & ML PM
+        'Training dataset expanded by 14,000 labeled frames from last month\'s field collection runs. Dataset now at 380,000 frames total.',
+        'Model evaluation pipeline now runs nightly — team gets a Slack notification with accuracy delta vs. previous checkpoint by 7am every morning.',
+        // Platform & Tooling PM
+        'Internal developer portal launched. Engineers can now spin up a sim environment in ~4 minutes vs. the previous ~40-minute manual setup.',
+        'Dependency audit complete — 6 packages with known CVEs identified and patched. No critical vulnerabilities remaining.',
+        // Compliance & Safety PM
+        'FMEA review for sensor fusion module completed. 3 medium-severity risks identified, mitigation plans drafted and reviewed with engineering leads.',
+        'First draft of safety case document submitted to external reviewer. Feedback expected within 2 weeks.'
+      ],
+      blk: [
+        'OEM DBC file still unsigned — 94% CAN message coverage is holding up ML training accuracy for vehicle state prediction. This is the single highest-priority external blocker across all PM workstreams.',
+        'SW1 and SW3 still at port capacity for R&D expansion (day-to-day operations unaffected). Third switch purchase pending finance approval — see C-suite decisions.',
+        'Simulation harness is CPU-bound on the current test server — nightly runs taking 6.5 hours, which means results are sometimes delayed until after standup. Need either a hardware upgrade or a job scheduler conversation.',
+        'ISO 26262 gap — safety case document is a draft but we have no agreed process for what "done" looks like. Need a definition-of-done from leadership before we can scope the engineering effort accurately.',
+        'Two PM workstreams (Data/ML and Compliance) are each one person deep. If either person is unavailable for more than a few days, those streams stall. This is a staffing risk, not a process risk.',
+        'Developer portal relies on a manual provisioning step that only two people know how to perform. Knowledge is not documented — bus factor of 2.'
+      ],
+      nxt: [
+        'Perception: Begin integration testing of v2.4.1 on physical vehicle — target 4 hours of road time Tuesday/Wednesday.',
+        'Infrastructure: Document VLAN config fully before anyone touches the switches again. One undocumented change last month cost 6 hours of debugging.',
+        'Autonomy: Start v2.0 path planning spec — focus on dynamic obstacle avoidance at low speed.',
+        'Data/ML: Run first nightly evaluation against new 380K-frame dataset. Establish new accuracy baseline.',
+        'Tooling: Document the developer portal provisioning steps. Assign a second owner.',
+        'Compliance: Scope ISO 26262 effort estimate once definition-of-done is confirmed — need number before March 15 budget review.'
+      ]
     },
-    eng:{
-      ship:['Full sensor stack running at 40% compute headroom — better than projected.','Axiomatic CAN converter online — messages decoding correctly.','Peplink 5G carrier SIM approved and connected.'],
-      blk: ['Vehicle OEM has not released official DBC file — working from informal CAN map. Message IDs may change.'],
-      nxt: ['VLAN config on managed switches.','LiDAR calibration + field of view validation.','ROS2 topic rate verification at full load.']
+
+    eng: {
+      ship: [
+        // Perception engineers (5)
+        'Elena Vasquez: Merged sensor fusion confidence scoring into perception v2.4.1. Eliminated 340ms of unnecessary recomputation per frame by caching intermediate results.',
+        'James Okafor: Rewrote the LiDAR point cloud downsampling algorithm — 60% faster, same output quality. Frame processing now comfortably under the 100ms real-time budget.',
+        'Priya Nair: Completed LiDAR #3 field-of-view validation script. Now runs in CI on every perception build — no more manual range checks.',
+        'Daniel Cho: Fixed the camera timestamp drift bug that was causing 15–20ms jitter in fused outputs. Root cause was NTP sync interval misconfiguration on the capture board.',
+        'Fatima Al-Hassan: Shipped automated calibration pipeline. Wrote full test suite — 47 unit tests, 100% pass rate on all hardware configs we support.',
+        // Infrastructure engineers (4)
+        'Sam Rivera: Configured VLAN segmentation across SW1 and SW3. Verified with Wireshark that inter-VLAN traffic is correctly gated. No broadcast leakage observed.',
+        'Kenji Nakamura: Dual-homed the compute node and validated failover — both uplinks active, sub-1ms switchover on link drop. Documented the config in the infrastructure runbook.',
+        'Aisha Johnson: Completed PoE load testing. All 6 devices drawing within spec simultaneously, no sag events. Updated the power budget spreadsheet.',
+        'Tom Bergström: Set up automated switch config backups — runs nightly, stored in the infra repo with diffs. We will never lose a switch config again.',
+        // Autonomy & Controls engineers (4)
+        'Rafael Moreno: Merged path planning v1.9. Key change: pre-computed cost maps for known static obstacles — eliminates redundant A* iterations at intersections.',
+        'Nina Petrov: Added 12 simulation scenarios covering weather and occlusion edge cases. 9 of 12 pass on v1.9. 3 failing scenarios are known gaps — tickets created.',
+        'Leon Fischer: Profiled the planning loop end-to-end. Found and fixed a 22ms stall caused by a blocking mutex in the obstacle subscriber. Planning loop now consistently under 80ms.',
+        'Yuki Tanaka: Integrated vehicle state prediction outputs from ML into the planning module. First end-to-end test ran successfully — prediction data flowing correctly.',
+        // Data & ML engineers (4)
+        'Mei Zhang: Ingested and labeled 14,000 new frames from field collection. Wrote the labeling QA script that flags inconsistent annotations — caught 340 bad labels before they hit training.',
+        'Arjun Sharma: Built the nightly model evaluation pipeline end-to-end. Runs on the training server at 11pm, posts results to Slack by 7am. Solid reliability — zero failed runs this week.',
+        'Carlos Diaz: Trained a new vehicle state prediction model on the expanded dataset. Preliminary accuracy +3.1% over previous checkpoint — full evaluation running overnight.',
+        'Ingrid Svensson: Refactored the data pipeline — removed 3 manual steps that required engineering intervention daily. Fully automated now. Saves ~45 minutes of engineering time per day.',
+        // Platform & Tooling engineers (3)
+        'Patrick O\'Brien: Shipped the internal developer portal MVP. Spun up 6 test environments during the launch day — all provisioned correctly, avg 4.1 minutes.',
+        'Zara Ahmed: Completed the dependency audit. Patched all 6 CVE packages. Set up Dependabot alerts — we will get notified within 24 hours of any new vulnerability going forward.',
+        'Marco Russo: Wrote the provisioning automation script for the developer portal. Still needs one manual trigger but reduces the knowledge requirement from "know the whole system" to "run this one command."'
+      ],
+      blk: [
+        'OEM DBC file — Yuki\'s vehicle state prediction work and Carlos\'s model training are both running on an informal CAN map. 6% of message IDs are unconfirmed. If they change at certification, we retrain. Escalation needed.',
+        'Simulation server is CPU-bound. Nightly runs take 6.5 hours. Nina and Leon\'s new scenarios push it closer to 8 hours, which will overflow into the next morning. Need either a second server or cloud burst capacity — estimate is $200–400/month on AWS.',
+        'No staging environment that mirrors production sensor hardware — Patrick\'s portal spins up software-only environments. Integration bugs that only appear on hardware are found late. This is a known gap, not new, but worth naming.',
+        'Marco\'s provisioning script still needs one manual trigger that only Patrick and Marco know. Documentation sprint needed before either of them is unavailable.',
+        'Leon identified a second blocking mutex in the prediction subscriber (separate from the one he fixed this week). Not causing failures yet but will under higher message rates. Ticket created, not yet prioritized.',
+        'Arjun\'s nightly pipeline runs on a single point of failure — the training server has no failover. If it goes down overnight, we lose the morning report. Low probability, high annoyance.'
+      ],
+      nxt: [
+        'Perception team: Physical vehicle integration test for v2.4.1 — target Tuesday/Wednesday. Elena leading, James and Priya on hardware support.',
+        'Infrastructure: Full documentation pass on VLAN config and PoE setup — Tom owns, target Thursday.',
+        'Autonomy: Start v2.0 path planner spec. Rafael drafting, Leon reviewing. Focus on dynamic obstacles at low speed.',
+        'Autonomy: Fix the 3 failing simulation scenarios from this week — Nina triaging Monday to determine if they are algorithm gaps or sim bugs.',
+        'Data/ML: Finalize Carlos\'s model evaluation — if +3.1% holds, promote to staging. Mei to run final label QA pass before promotion.',
+        'Data/ML: Ingrid to document the automated pipeline — it\'s clean but only she fully understands it right now.',
+        'Tooling: Marco to finish provisioning automation so it requires zero manual steps. Patrick reviewing.',
+        'Tooling: Zara to set up automated weekly CVE summary report — proactive security posture.',
+        'All teams: Review Leon\'s second mutex ticket — assign priority before it becomes a production issue.',
+        'All teams: If OEM escalation succeeds and DBC file arrives, Yuki and Carlos should be ready to rerun training immediately — pre-stage the pipeline.'
+      ]
     },
-    shouts:[
-      {who:'Charlie Davis', what:'Reverse-engineered the CAN message database without the official DBC file. Saved the whole timeline.'},
-      {who:'Bob Kim', what:'Compute benchmarks came in 40% better than projected. Exceptional optimization work.'}
+
+    shouts: [
+      { who: 'Elena Vasquez',   what: 'The 340ms cache optimization in sensor fusion was not on anyone\'s roadmap — she found it during a code review, scoped it in an afternoon, and shipped it in the same week. That\'s the kind of initiative that makes the whole team faster.' },
+      { who: 'Fatima Al-Hassan', what: '47 unit tests for the calibration pipeline. Not because anyone asked. Because she knew it would be used by field engineers who can\'t debug Python. That\'s thinking beyond your ticket.' },
+      { who: 'Tom Bergström',   what: 'Automated switch config backups after we lost a config manually last month. Didn\'t file a ticket, didn\'t ask permission, just fixed the systemic problem. This is exactly the ownership we want.' },
+      { who: 'Arjun Sharma',    what: 'The nightly eval pipeline has run every single night this week with zero failures. Quiet infrastructure that just works is underrated — this will save hours of debugging over the next year.' },
+      { who: 'Mei Zhang',       what: 'Caught 340 bad labels before they hit training. That\'s 340 ways the model could have learned something wrong. The QA script she wrote is now part of the pipeline permanently.' },
+      { who: 'Marco Russo',     what: 'Took a hairy manual process that required knowing the whole system and turned it into one command. This is the kind of leverage work that compounds.' },
+      { who: 'Sam Rivera',      what: 'VLAN config was on the backlog for three weeks. Sam owned it start to finish — designed, implemented, verified, and documented it in one sprint. Zero drama, zero help requests.' }
     ],
-    qs:[
-      'Do we proceed with VLAN config now or after field testing?',
-      'Who owns the third switch purchase approval — and what is the turnaround?',
-      'Should we escalate the OEM DBC file request or continue with the informal map?'
+
+    qs: [
+      'OEM escalation: do we go C-level contact directly, or route through our account manager first? Who makes that call and by when?',
+      'ISO 26262 scoping: before we can estimate the effort, we need a definition of done from leadership. Can we get 30 minutes on the calendar next week?',
+      'Simulation server capacity: do we approve a second server (~$4K capex) or go cloud burst (~$300/month)? Which fits our current burn rate posture better?',
+      'Conference presentations (ROSCon, ICRA): fund Q2 or defer to Q3? Submissions close March 15 — need a decision before then.',
+      'Developer portal provisioning: should we treat this as a Q1 reliability item (Marco finishes automation this sprint) or is it fine to carry as-is into Q2?',
+      'With two PM workstreams one-person-deep, what\'s our contingency if one of those people is out for a week? Is there a backup plan or do we need to make one?'
     ]
   }];
+
   save();
 }
 
