@@ -259,11 +259,11 @@ const E=[
 const DO=['Leadership','Engineering','Operations'];
 const CW='2077.02.28';
 const SEED={
-ilia:{status:'at-risk',accomplishment:'Completed initial bench test of u-blox F9P GNSS module. RTK fix time averaging 12.4s, accuracy \u00b12.1cm.',blockers:'Need CEO alignment on GNSS budget delta before Freeport SOW. $4,200/unit more for Septentrio.',decisions:'GNSS module selection. Septentrio superior but blows BOM cost by ~8%. Decision by 03.05.',nextWeek:'Septentrio bench test. Finalize safety controller v2.3 release notes. Geofence architecture review.',risks:'Path planner team at capacity. If Freeport pulls in, may need contractor.'},
-nicole:{status:'on-track',accomplishment:'Freeport-McMoRan SOW draft at 80%. Verbal commitment from VP of Innovation for 3-vehicle pilot at Morenci mine (AZ).',blockers:'Cannot finalize SOW until GNSS decision (impacts BOM pricing). \u2192 ILIA / STEFAN',nextWeek:'Finalize Freeport SOW. Follow up Komatsu HD785 lead. Schedule Codelco Chile intro call.',pipelineMetrics:'Active proposals: 3 | Verbal commits: 1 | New leads: 2 | Pipeline: ~$2.1M'},
-chris_m:{status:'at-risk',accomplishment:'Completed site prep checklist and network topology doc for Vulcan Midlothian. Bramco confirmed crane access for LiDAR mount.',blockers:'LiDAR cal failure pushing timeline. Vulcan PM requesting updated ETA Monday. \u2192 ELENA / CHRIS',decisions:'CEO approval on revised Midlothian timeline (+3 days). Deadline: 2077.03.01.',nextWeek:'Ship replacement LiDAR if RMA not resolved Tuesday. Begin Freeport pre-staging.',customerFeedback:'Mike Reeves (Vulcan Ops Mgr): "Need this machine running before March blast schedule."'},
+ilia:{status:'at-risk',accomplishment:'Completed initial bench test of u-blox F9P GNSS module. RTK fix time averaging 12.4s, accuracy ±2.1cm.',blockers:'Need CEO alignment on GNSS budget delta before Freeport SOW. $4,200/unit more for Septentrio.',decisions:'GNSS module selection. Septentrio superior but blows BOM cost by ~8%. Decision by 03.05.',nextWeek:'Septentrio bench test. Finalize safety controller v2.3 release notes. Geofence architecture review.',risks:'Path planner team at capacity. If Freeport pulls in, may need contractor.'},
+nicole:{status:'on-track',accomplishment:'Freeport-McMoRan SOW draft at 80%. Verbal commitment from VP of Innovation for 3-vehicle pilot at Morenci mine (AZ).',blockers:'Cannot finalize SOW until GNSS decision (impacts BOM pricing). → ILIA / STEFAN',nextWeek:'Finalize Freeport SOW. Follow up Komatsu HD785 lead. Schedule Codelco Chile intro call.',pipelineMetrics:'Active proposals: 3 | Verbal commits: 1 | New leads: 2 | Pipeline: ~$2.1M'},
+chris_m:{status:'at-risk',accomplishment:'Completed site prep checklist and network topology doc for Vulcan Midlothian. Bramco confirmed crane access for LiDAR mount.',blockers:'LiDAR cal failure pushing timeline. Vulcan PM requesting updated ETA Monday. → ELENA / CHRIS',decisions:'CEO approval on revised Midlothian timeline (+3 days). Deadline: 2077.03.01.',nextWeek:'Ship replacement LiDAR if RMA not resolved Tuesday. Begin Freeport pre-staging.',customerFeedback:'Mike Reeves (Vulcan Ops Mgr): "Need this machine running before March blast schedule."'},
 elena:{status:'blocked',accomplishment:'Isolated LiDAR cal bug to firmware v3.2.1 interaction with ROS wrapper. Does NOT reproduce on v3.1.8 but lacks multi-return for dust rejection.',blockers:'Velodyne non-responsive on RMA #VLP-8841 (opened 02.25). Need firmware patch or replacement unit.',decisions:'If no response by Tuesday: fall back to v3.1.8 (lose dust rejection) or ship Ouster OS1-64 (+2 days)?',nextWeek:'Continue Velodyne escalation. Prepare Ouster fallback config.'},
-emerson:{status:'on-track',accomplishment:'Completed Granite bring-up at Watsonville quarry. CAT 745 running autonomous haul cycles. 47 cycles, zero safety stops. Customer signed acceptance.',blockers:'None.',nextWeek:'Return to HQ Monday. Debrief engineering. Begin pre-trip for Vulcan Midlothian.',fieldNotes:'Dust brutal \u2014 LiDAR degradation after 4hrs. Recommend compressed air nozzle for maintenance SOP.',bringUpStatus:'GRANITE / WATSONVILLE \u2014 [COMPLETE] Accepted 02.27.'},
+emerson:{status:'on-track',accomplishment:'Completed Granite bring-up at Watsonville quarry. CAT 745 running autonomous haul cycles. 47 cycles, zero safety stops. Customer signed acceptance.',blockers:'None.',nextWeek:'Return to HQ Monday. Debrief engineering. Begin pre-trip for Vulcan Midlothian.',fieldNotes:'Dust brutal — LiDAR degradation after 4hrs. Recommend compressed air nozzle for maintenance SOP.',bringUpStatus:'GRANITE / WATSONVILLE — [COMPLETE] Accepted 02.27.'},
 quentin:{status:'on-track',accomplishment:'Merged PR #412: adaptive speed profiling for loaded/unloaded haul cycles. ~8% cycle time reduction on Watsonville route.',blockers:'None.',nextWeek:'Dynamic exclusion zones for geofence. Unit tests for PR #412 edge cases.',engMetrics:'PRs merged: 3 | Review turnaround: 1.1d avg | Coverage: 84%'},
 stephen:{status:'on-track',accomplishment:'Safety controller v2.3 passed all 114 regression tests. E-stop latency: 47ms (down from 62ms). Ready for CTO sign-off.',blockers:'None.',nextWeek:'Deploy v2.3 to Watsonville (OTA). Begin FMEA for Freeport config.'},
 kimberly:{status:'on-track',accomplishment:'Finalized BOM v3.1. Consolidated 3 PoE switch SKUs to 1 (Netgear M4250-10G2XF-PoE+). Saves $340/kit.',blockers:'None.',nextWeek:'Assemble 2 kits for Freeport. Update Airtable BOM database.'}
@@ -271,15 +271,15 @@ kimberly:{status:'on-track',accomplishment:'Finalized BOM v3.1. Consolidated 3 P
 const BLURBS={
 stefan:'Overseer of the Vault. Keeps the lights on, the machines running, and the vision alive. Known to deliver directives from the observation deck at sunset. Preferred protocol: strategic patience.',
 ilia:'Chief architect of the autonomous mind. Speaks fluent ROS, C++, and sarcasm. Has been known to debug hardware with a multimeter in one hand and espresso in the other.',
-wally:'Polymath staff since day one. If it compiles, Wally probably touched it. Quiet until it matters \u2014 then the code speaks.',
+wally:'Polymath staff since day one. If it compiles, Wally probably touched it. Quiet until it matters — then the code speaks.',
 michael:'Full-stack wanderer. Moves between firmware and cloud like it\'s the same ZIP code. Surprisingly strong opinions about variable naming.',
 raj:'Algorithm architect. Sees the math behind the motion. Once optimized a pathfinding routine during a power outage by candlelight.',
 stephen:'Safety-first, always. If the e-stop fires in 47ms, thank Stephen. Sleeps soundly knowing every failure mode has a countermeasure.',
 quentin:'Path planning perfectionist. Makes machines move with purpose. PR merge rate: relentless. Test coverage: personal mission.',
 ismael:'Quiet force multiplier. Ships clean code and asks no questions. Known to fix bugs before anyone reports them.',
 emerson:'Boots on the ground, eyes on the machine. If it rolls autonomous in the field, Emerson was there for first contact. Dust-proof.',
-elena:'Sees what machines see \u2014 and then some. LiDAR wrangler. Firmware whisperer. The one who finds the bug everyone else missed.',
-nikhil:'Deep-diver. Give Nikhil a hard problem and come back in 48 hours \u2014 it\'ll be solved, documented, and unit-tested.',
+elena:'Sees what machines see — and then some. LiDAR wrangler. Firmware whisperer. The one who finds the bug everyone else missed.',
+nikhil:'Deep-diver. Give Nikhil a hard problem and come back in 48 hours — it\'ll be solved, documented, and unit-tested.',
 aurnob:'Rapid prototyper. Turns "what if we tried..." into working demos before lunch. Dangerously fast with Python.',
 zarija:'Precision-obsessed. Calibration runs cleaner after Zarija looks at it. Believes "close enough" is never close enough.',
 iva:'Systems thinker. Connects dots between subsystems nobody else notices. Asks the question that changes the whole approach.',
@@ -293,24 +293,24 @@ cameron:'Field support ace. Can troubleshoot a CAN bus issue over a satellite ph
 harsha:'Data pipeline architect. If telemetry flows clean, Harsha made it happen. Allergic to unstructured logs.',
 nicole:'The voice of the Vault. Turns cold leads into warm handshakes. Pipeline whisperer. Once closed a deal during a site power outage.',
 robert:'Logistics mastermind. Knows where every piece of hardware is, where it\'s going, and when it\'ll get there.',
-kimberly:'Turns a pile of parts into a retrofit kit. BOM optimizer. Cable harness artist. If it plugs in or bolts on \u2014 it went through Kimberly.',
+kimberly:'Turns a pile of parts into a retrofit kit. BOM optimizer. Cable harness artist. If it plugs in or bolts on — it went through Kimberly.',
 ryan:'Process optimizer. Finds the bottleneck, removes it, documents the fix. Repeat. Spreadsheet wizard in disguise.',
 chris_m:'Keeper of the checklists, master of the timeline. If it ships on time, Chris made it happen. If late, Chris warned you two weeks ago.',
 hannah:'Comms central. Keeps information flowing between field and HQ. Nothing falls through the cracks on her watch.',
-johanna:'Regulatory navigator. Knows the compliance landscape like the back of her hand. Safety filings, permits, paperwork \u2014 handled.'
+johanna:'Regulatory navigator. Knows the compliance landscape like the back of her hand. Safety filings, permits, paperwork — handled.'
 };
 const PW='2077.02.21';
 const SEED_PREV={
 ilia:{status:'on-track',accomplishment:'Finalized Granite autonomy config. All sensor calibration within spec. Path planner v2.1 deployed to field unit.',blockers:'None.',nextWeek:'GNSS evaluation kickoff. Begin Septentrio vs u-blox bench test. Safety controller v2.3 regression.',risks:'Path planner team stretched if Freeport accelerates.'},
-nicole:{status:'on-track',accomplishment:'Vulcan Midlothian SOW signed ($1.2M). Freeport intro call completed \u2014 strong interest in 3-vehicle pilot.',blockers:'None.',nextWeek:'Begin Freeport SOW draft. Follow up Komatsu lead from MINExpo.',pipelineMetrics:'Active proposals: 2 | Verbal commits: 1 | New leads: 3 | Pipeline: ~$1.8M'},
-emerson:{status:'on-track',accomplishment:'Granite bring-up Day 3 at Watsonville. CAT 745 running supervised haul loops. 22 cycles, 1 soft stop (dust occlusion).',blockers:'None.',nextWeek:'Continue Granite bring-up through acceptance. Target Day 5 sign-off.',fieldNotes:'Dust levels high \u2014 LiDAR needs cleaning every 2 hours. Consider air nozzle for SOP.',bringUpStatus:'GRANITE / WATSONVILLE \u2014 [IN PROGRESS] Day 3 of 5.'},
+nicole:{status:'on-track',accomplishment:'Vulcan Midlothian SOW signed ($1.2M). Freeport intro call completed — strong interest in 3-vehicle pilot.',blockers:'None.',nextWeek:'Begin Freeport SOW draft. Follow up Komatsu lead from MINExpo.',pipelineMetrics:'Active proposals: 2 | Verbal commits: 1 | New leads: 3 | Pipeline: ~$1.8M'},
+emerson:{status:'on-track',accomplishment:'Granite bring-up Day 3 at Watsonville. CAT 745 running supervised haul loops. 22 cycles, 1 soft stop (dust occlusion).',blockers:'None.',nextWeek:'Continue Granite bring-up through acceptance. Target Day 5 sign-off.',fieldNotes:'Dust levels high — LiDAR needs cleaning every 2 hours. Consider air nozzle for SOP.',bringUpStatus:'GRANITE / WATSONVILLE — [IN PROGRESS] Day 3 of 5.'},
 elena:{status:'on-track',accomplishment:'Multi-return LiDAR configuration deployed to Granite. Dust rejection improved 40% over single-return mode.',blockers:'None.',nextWeek:'Monitor field performance at Watsonville. Begin firmware v3.2.1 upgrade testing on bench.'},
 quentin:{status:'on-track',accomplishment:'Path planner v2.1 merged. Multi-vehicle awareness scaffolding in place. 12 unit tests added.',blockers:'None.',nextWeek:'Begin adaptive speed profiling for loaded/unloaded detection. PR review backlog.',engMetrics:'PRs merged: 4 | Review turnaround: 0.9d avg | Coverage: 82%'},
-kimberly:{status:'on-track',accomplishment:'BOM v3.0 draft circulated. Evaluating PoE switch consolidation \u2014 3 SKUs down to 1.',blockers:'None.',nextWeek:'Finalize BOM v3.1 with switch decision. Begin kit assembly for Vulcan.'}
+kimberly:{status:'on-track',accomplishment:'BOM v3.0 draft circulated. Evaluating PoE switch consolidation — 3 SKUs down to 1.',blockers:'None.',nextWeek:'Finalize BOM v3.1 with switch decision. Begin kit assembly for Vulcan.'}
 };
 const OVERSEER_SEEDS={};
-OVERSEER_SEEDS[CW]='Team \u2014 strong week. Granite acceptance at Watsonville is a milestone worth celebrating. Emerson and the field crew delivered. The LiDAR situation with Elena needs resolution by Tuesday or we go with the Ouster fallback \u2014 I don\'t want Vulcan\'s timeline slipping further. Ilia, let\'s sync on the GNSS decision Monday morning. Eight percent BOM increase is real money at scale but Septentrio\'s performance delta might justify it. Bring the bench data.\n\nKimberly \u2014 nice work consolidating the switch SKUs. That kind of BOM discipline adds up.\n\nEveryone: submit your updates by Friday 17:00. No exceptions. If it\'s not in the brief, it didn\'t happen.\n\n\u2014 Stefan';
-OVERSEER_SEEDS[PW]='Granite bring-up is tracking well. Good work from Emerson and the Watsonville crew. Nicole \u2014 Vulcan signing is a big deal, well earned. Let\'s make sure Freeport gets the same energy.\n\nQuentin\'s path planner work is quietly excellent. Four PRs merged with sub-day review turnaround. That\'s the pace we need.\n\nReminder: MINExpo leads are cooling. Nicole, prioritize the top 6 follow-ups this week.\n\n\u2014 Stefan';
+OVERSEER_SEEDS[CW]='Team — strong week. Granite acceptance at Watsonville is a milestone worth celebrating. Emerson and the field crew delivered. The LiDAR situation with Elena needs resolution by Tuesday or we go with the Ouster fallback — I don\'t want Vulcan\'s timeline slipping further. Ilia, let\'s sync on the GNSS decision Monday morning. Eight percent BOM increase is real money at scale but Septentrio\'s performance delta might justify it. Bring the bench data.\n\nKimberly — nice work consolidating the switch SKUs. That kind of BOM discipline adds up.\n\nEveryone: submit your updates by Friday 17:00. No exceptions. If it\'s not in the brief, it didn\'t happen.\n\n— Stefan';
+OVERSEER_SEEDS[PW]='Granite bring-up is tracking well. Good work from Emerson and the Watsonville crew. Nicole — Vulcan signing is a big deal, well earned. Let\'s make sure Freeport gets the same energy.\n\nQuentin\'s path planner work is quietly excellent. Four PRs merged with sub-day review turnaround. That\'s the pace we need.\n\nReminder: MINExpo leads are cooling. Nicole, prioritize the top 6 follow-ups this week.\n\n— Stefan';
 const ARC=[
 {id:'BRIEF-2077.02.28',dt:'2077-02-28',dd:'2077.02.28',t:'LiDAR blocker, GNSS eval, Granite acceptance',tg:['bring-up','bug','decision','customer'],st:['red','amber','green'],c:'LiDAR firmware v3.2.1 calibration failure. GNSS evaluation underway. Granite/Watsonville complete. Freeport SOW at 80%.'},
 {id:'BRIEF-2077.02.21',dt:'2077-02-21',dd:'2077.02.21',t:'Granite bring-up Day 3, BOM v3, safety controller testing',tg:['bring-up','integration','safety'],st:['amber','green'],c:'Granite on track at Watsonville. BOM v3.0 draft circulated. Safety controller v2.3 entering regression.'},
@@ -330,7 +330,7 @@ seed(){if(this._g('v5'))return;
 const u={};u[CW]={};Object.entries(SEED).forEach(([i,d])=>{u[CW][i]={...d,at:'2077.02.28 13:47'}});
 u[PW]={};Object.entries(SEED_PREV).forEach(([i,d])=>{u[PW][i]={...d,at:'2077.02.21 14:02'}});
 this._s('updates',u);this._s('blurbs',{...BLURBS});this._s('overseer',{...OVERSEER_SEEDS});this._s('v5',true)},
-blurb(id){return(this._g('blurbs')||{})[id]||'AWAITING PERSONNEL FILE \u2014 click to add your bio.'},
+blurb(id){return(this._g('blurbs')||{})[id]||'AWAITING PERSONNEL FILE — click to add your bio.'},
 setBlurb(id,t){const b=this._g('blurbs')||{};b[id]=t;this._s('blurbs',b)},
 updates(wk){return(this._g('updates')||{})[wk]||{}},
 submit(id,wk,d){const a=this._g('updates')||{};if(!a[wk])a[wk]={};a[wk][id]={...d,at:new Date().toISOString().replace('T',' ').substring(0,16)};this._s('updates',a)},
@@ -357,17 +357,17 @@ const bl=alerts.filter(a=>a.u.status==='blocked').length,ar=alerts.filter(a=>a.u
 const onote=DB.overseerNote(wk);
 const[copied,setCopied]=useState(false);
 function exportMD(){
-let md='# POLYMATH ROBOTICS \u2014 WEEKLY BRIEF\n## Week of '+wk+'\n\n';
+let md='# POLYMATH ROBOTICS — WEEKLY BRIEF\n## Week of '+wk+'\n\n';
 md+=en.length+' / '+tot+' submissions';
 if(bl>0)md+=' | '+bl+' BLOCKED';
 if(ar>0)md+=' | '+ar+' AT RISK';
 md+='\n\n';
 if(onote)md+='---\n### OVERSEER\'S DISPATCH\n'+onote+'\n\n';
-if(alerts.length>0){md+='---\n### CRITICAL ALERTS & BLOCKERS\n';alerts.forEach(a=>{md+='- **['+a.u.status.toUpperCase().replace('-',' ')+']** '+(a.u.blockers&&a.u.blockers!=='None.'&&a.u.blockers!=='None'?a.u.blockers:a.u.accomplishment)+' \u2014 '+a.e?.n?.split(' ')[0]+'\n'});md+='\n'}
-if(decs.length>0){md+='---\n### PENDING DECISIONS\n';decs.forEach(d=>{md+='- '+d.u.decisions+' \u2014 '+d.e?.n?.split(' ')[0]+'\n'});md+='\n'}
+if(alerts.length>0){md+='---\n### CRITICAL ALERTS & BLOCKERS\n';alerts.forEach(a=>{md+='- **['+a.u.status.toUpperCase().replace('-',' ')+']** '+(a.u.blockers&&a.u.blockers!=='None.'&&a.u.blockers!=='None'?a.u.blockers:a.u.accomplishment)+' — '+a.e?.n?.split(' ')[0]+'\n'});md+='\n'}
+if(decs.length>0){md+='---\n### PENDING DECISIONS\n';decs.forEach(d=>{md+='- '+d.u.decisions+' — '+d.e?.n?.split(' ')[0]+'\n'});md+='\n'}
 md+='---\n### COMPILED SUBMISSIONS\n\n';
 DO.forEach(dept=>{const items=byD[dept];if(!items?.length)return;md+='#### '+dept.toUpperCase()+'\n\n';
-items.forEach(({e:emp,u})=>{md+='**'+emp.n+'** \u2014 '+emp.r+' ['+u.status.toUpperCase().replace('-',' ')+']\n';
+items.forEach(({e:emp,u})=>{md+='**'+emp.n+'** — '+emp.r+' ['+u.status.toUpperCase().replace('-',' ')+']\n';
 if(u.accomplishment)md+='- Top Accomplishment: '+u.accomplishment+'\n';
 if(u.blockers&&u.blockers!=='None.'&&u.blockers!=='None')md+='- Blockers: '+u.blockers+'\n';
 if(u.decisions)md+='- Decisions: '+u.decisions+'\n';
@@ -375,32 +375,32 @@ if(u.nextWeek)md+='- Next Week: '+u.nextWeek+'\n';
 md+='\n'})});
 try{navigator.clipboard.writeText(md);setCopied(true);setTimeout(()=>setCopied(false),2000)}catch{}}
 return<div>
-<div className="week-banner"><div><div className="week-label">WEEKLY BRIEF \u2014 COMPILED</div>
+<div className="week-banner"><div><div className="week-label">WEEKLY BRIEF — COMPILED</div>
 <div style={{display:'flex',alignItems:'center',gap:12}}>
 <div className="week-date">{wk}</div>
 {weeks.length>1&&<select className="form-select" value={wk} onChange={e=>setWk(e.target.value)} style={{maxWidth:180,fontSize:'.7rem',padding:'4px 8px',background:'var(--bg-input)',color:'var(--amber)',border:'1px solid var(--amber-dim)',fontFamily:'var(--font-terminal)',letterSpacing:1}}>{weeks.map(w=><option key={w} value={w}>{w}{w===CW?' (CURRENT)':''}</option>)}</select>}
 </div></div>
 <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:6}}>
 <div className="week-stats">{en.length} / {tot} SUBMISSIONS<br/>{bl>0&&<span style={{color:'var(--red)'}}>● {bl} BLOCKED </span>}{ar>0&&<span style={{color:'var(--amber)'}}>● {ar} AT RISK </span>}{bl===0&&ar===0&&<span style={{color:'var(--green-bright)'}}>● ALL CLEAR</span>}</div>
-<button className="btn btn-small" onClick={exportMD} style={{fontSize:'.6rem',padding:'4px 12px'}}>{copied?'[\u2713 COPIED]':'[ EXPORT MD ]'}</button>
+<button className="btn btn-small" onClick={exportMD} style={{fontSize:'.6rem',padding:'4px 12px'}}>{copied?'[✓ COPIED]':'[ EXPORT MD ]'}</button>
 </div></div>
 
 {onote&&<div className="overseer-note">
-<div className="overseer-note-header"><span className="overseer-note-label">OVERSEER'S DISPATCH \u2014 POLYMATH DISPATCH OF THE WEEK</span></div>
+<div className="overseer-note-header"><span className="overseer-note-label">OVERSEER'S DISPATCH — POLYMATH DISPATCH OF THE WEEK</span></div>
 <div className="overseer-note-body">{onote}</div>
 </div>}
 
-{alerts.length>0&&<div className="panel-box"><div className="box-title glow">\u26a0 CRITICAL ALERTS &amp; BLOCKERS</div><table className="alert-table"><thead><tr><th>STATUS</th><th>ITEM</th><th>OWNER</th></tr></thead><tbody>
+{alerts.length>0&&<div className="panel-box"><div className="box-title glow">⚠ CRITICAL ALERTS &amp; BLOCKERS</div><table className="alert-table"><thead><tr><th>STATUS</th><th>ITEM</th><th>OWNER</th></tr></thead><tbody>
 {alerts.map(a=><tr key={a.e?.id}><td><SB s={a.u.status}/></td><td>{a.u.blockers&&a.u.blockers!=='None.'&&a.u.blockers!=='None'?a.u.blockers:a.u.accomplishment}</td><td style={{whiteSpace:'nowrap'}}>{a.e?.n?.split(' ')[0]}</td></tr>)}
 </tbody></table></div>}
-{(()=>{const missing=E.filter(x=>x.id!=='stefan'&&!up[x.id]);return missing.length>0?<div className="panel-box"><div className="box-title" style={{color:'var(--amber)'}}>\u23f3 AWAITING SUBMISSION ({missing.length})</div><div style={{display:'flex',flexWrap:'wrap',gap:'8px'}}>{missing.map(m=><span key={m.id} style={{fontFamily:'var(--font-terminal)',fontSize:'.6rem',letterSpacing:1,color:'var(--text-dim)',border:'1px solid var(--border)',padding:'3px 10px'}}>{m.n.split(' ')[0]} {m.n.split(' ').slice(-1)[0][0]}.</span>)}</div></div>:null})()}
-{decs.length>0&&<div className="panel-box"><div className="box-title glow">\ud83d\udccb PENDING DECISIONS</div><table className="alert-table"><thead><tr><th>DECISION</th><th>OWNER</th></tr></thead><tbody>
+{(()=>{const missing=E.filter(x=>x.id!=='stefan'&&!up[x.id]);return missing.length>0?<div className="panel-box"><div className="box-title" style={{color:'var(--amber)'}}>⏳ AWAITING SUBMISSION ({missing.length})</div><div style={{display:'flex',flexWrap:'wrap',gap:'8px'}}>{missing.map(m=><span key={m.id} style={{fontFamily:'var(--font-terminal)',fontSize:'.6rem',letterSpacing:1,color:'var(--text-dim)',border:'1px solid var(--border)',padding:'3px 10px'}}>{m.n.split(' ')[0]} {m.n.split(' ').slice(-1)[0][0]}.</span>)}</div></div>:null})()}
+{decs.length>0&&<div className="panel-box"><div className="box-title glow">📋 PENDING DECISIONS</div><table className="alert-table"><thead><tr><th>DECISION</th><th>OWNER</th></tr></thead><tbody>
 {decs.map(d=><tr key={d.e?.id}><td>{d.u.decisions}</td><td style={{whiteSpace:'nowrap'}}>{d.e?.n?.split(' ')[0]}</td></tr>)}
 </tbody></table></div>}
-<div className="ascii-divider">\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550</div>
-<div className="panel-box"><div className="box-title glow">COMPILED SUBMISSIONS \u2014 WEEK OF {wk}</div>
-{DO.map(dept=>{const items=byD[dept];if(!items?.length)return null;return<div key={dept}><div className="dept-header">\u25b8 {dept.toUpperCase()}</div>
-{items.map(({e:emp,u})=><div className="submission" key={emp.id}><div className="submission-header"><div><span className="submission-name">{emp.n}</span><span className="submission-role"> \u2014 {emp.r}</span></div><SB s={u.status}/></div>
+<div className="ascii-divider">════════════════════════════════════════════════════════════════════════</div>
+<div className="panel-box"><div className="box-title glow">COMPILED SUBMISSIONS — WEEK OF {wk}</div>
+{DO.map(dept=>{const items=byD[dept];if(!items?.length)return null;return<div key={dept}><div className="dept-header">▸ {dept.toUpperCase()}</div>
+{items.map(({e:emp,u})=><div className="submission" key={emp.id}><div className="submission-header"><div><span className="submission-name">{emp.n}</span><span className="submission-role"> — {emp.r}</span></div><SB s={u.status}/></div>
 {u.accomplishment&&<><div className="field-label">TOP ACCOMPLISHMENT:</div><div className="field-value">{u.accomplishment}</div></>}
 {u.blockers&&u.blockers!=='None.'&&u.blockers!=='None'&&<><div className="field-label">BLOCKERS:</div><div className={`field-value ${u.status==='blocked'?'red':u.status==='at-risk'?'amber':''}`}>{u.blockers}</div></>}
 {u.decisions&&<><div className="field-label">DECISIONS NEEDED:</div><div className="field-value amber">{u.decisions}</div></>}
@@ -456,37 +456,37 @@ function savB(){DB.setBlurb(eid,blurb);setEd(false)}
 function savO(){DB.setOverseerNote(CW,onote);setOSaved(true);setTimeout(()=>setOSaved(false),2000);if(onRef)onRef()}
 function sub(){if(!status||!acc||!nw){setFb({t:'err',m:'STATUS, ACCOMPLISHMENT, and NEXT WEEK required.'});return}
 const d={status,accomplishment:acc,blockers:blk,decisions:dec,nextWeek:nw,risks:risk,fieldNotes:fn,customerFeedback:cf,bringUpStatus:bu,pipelineMetrics:pm,engMetrics:em};
-Object.keys(d).forEach(k=>{if(!d[k])delete d[k]});DB.submit(eid,CW,d);setFb({t:'ok',m:'UPDATE SUBMITTED \u2014 will appear in compiled brief.'});if(onRef)onRef()}
-return<div><button className="back-btn" onClick={onBack}>\u25c2 BACK TO ROSTER</button>
+Object.keys(d).forEach(k=>{if(!d[k])delete d[k]});DB.submit(eid,CW,d);setFb({t:'ok',m:'UPDATE SUBMITTED — will appear in compiled brief.'});if(onRef)onRef()}
+return<div><button className="back-btn" onClick={onBack}>◂ BACK TO ROSTER</button>
 <div className="panel-box"><div className="profile-header">
 <div className="profile-portrait"><img src={emp.p} alt=""/><div className="portrait-scanline"></div><div className="portrait-glow"></div>{emp.p===SP&&<div className="portrait-corner"></div>}</div>
-<div className="profile-meta"><div className="name">{emp.n}</div><div className="role">POLYMATH ROBOTICS \u2014 {emp.r}</div><div className="dept-tag">{emp.d.toUpperCase()}</div></div>
+<div className="profile-meta"><div className="name">{emp.n}</div><div className="role">POLYMATH ROBOTICS — {emp.r}</div><div className="dept-tag">{emp.d.toUpperCase()}</div></div>
 </div>
-<div className="field-label" style={{marginTop:16}}>PERSONNEL FILE \u2014 BIO:</div>
+<div className="field-label" style={{marginTop:16}}>PERSONNEL FILE — BIO:</div>
 {ed?<div><textarea className="blurb-edit" value={blurb} onChange={e=>setBlurb(e.target.value)} rows={4}/><div className="btn-row" style={{marginTop:8}}><button className="btn btn-small" onClick={savB}>[ SAVE ]</button><button className="btn btn-small btn-amber" onClick={()=>{setBlurb(DB.blurb(eid));setEd(false)}}>[ CANCEL ]</button></div></div>
-:<div className="blurb-area" onClick={()=>setEd(true)}>{blurb}<div style={{marginTop:8,fontFamily:'var(--font-terminal)',fontSize:'.6rem',color:'var(--green-dim)',letterSpacing:1}}>\u25b8 CLICK TO EDIT</div></div>}
+:<div className="blurb-area" onClick={()=>setEd(true)}>{blurb}<div style={{marginTop:8,fontFamily:'var(--font-terminal)',fontSize:'.6rem',color:'var(--green-dim)',letterSpacing:1}}>▸ CLICK TO EDIT</div></div>}
 </div>
-{emp.id==='stefan'?<div className="panel-box"><div className="box-title glow">OVERSEER'S DISPATCH \u2014 WEEK OF {CW}</div>
-<div style={{color:'var(--text-dim)',fontFamily:'var(--font-read)',fontSize:'.8rem',fontWeight:300,marginBottom:12}}>Your response appears at the top of the compiled brief. Write as much as you want \u2014 the team reads this.</div>
+{emp.id==='stefan'?<div className="panel-box"><div className="box-title glow">OVERSEER'S DISPATCH — WEEK OF {CW}</div>
+<div style={{color:'var(--text-dim)',fontFamily:'var(--font-read)',fontSize:'.8rem',fontWeight:300,marginBottom:12}}>Your response appears at the top of the compiled brief. Write as much as you want — the team reads this.</div>
 <textarea className="form-textarea" rows={8} value={onote} onChange={e=>setOnote(e.target.value)} placeholder="Address the team. Acknowledge wins, flag concerns, set direction for next week. No length limit." style={{minHeight:120,resize:'vertical'}}/>
-<div className="btn-row" style={{marginTop:10}}><button className="btn" onClick={savO}>{oSaved?'[\u2713 DISPATCH SAVED]':'[ SAVE DISPATCH ]'}</button></div>
+<div className="btn-row" style={{marginTop:10}}><button className="btn" onClick={savO}>{oSaved?'[✓ DISPATCH SAVED]':'[ SAVE DISPATCH ]'}</button></div>
 </div>
-:<div className="panel-box"><div className="box-title glow">SUBMIT UPDATE \u2014 WEEK OF {CW}</div>
+:<div className="panel-box"><div className="box-title glow">SUBMIT UPDATE — WEEK OF {CW}</div>
 <div className="countdown-bar"><span className="countdown-label">SUBMISSION WINDOW CLOSES IN:</span><span className="countdown-time">{cdown}</span></div>
-{ex&&<div style={{color:'var(--amber)',fontFamily:'var(--font-terminal)',fontSize:'.7rem',letterSpacing:1,marginBottom:12}}>\u26a0 EXISTING SUBMISSION \u2014 editing overwrites</div>}
-<div className="form-group"><label className="form-label">STATUS *</label><select className="form-select" value={status} onChange={e=>setStatus(e.target.value)}><option value="">— SELECT —</option><option value="on-track">\ud83d\udfe2 ON TRACK</option><option value="at-risk">\ud83d\udfe1 AT RISK</option><option value="blocked">\ud83d\udd34 BLOCKED</option></select></div>
+{ex&&<div style={{color:'var(--amber)',fontFamily:'var(--font-terminal)',fontSize:'.7rem',letterSpacing:1,marginBottom:12}}>⚠ EXISTING SUBMISSION — editing overwrites</div>}
+<div className="form-group"><label className="form-label">STATUS *</label><select className="form-select" value={status} onChange={e=>setStatus(e.target.value)}><option value="">— SELECT —</option><option value="on-track">🟢 ON TRACK</option><option value="at-risk">🟡 AT RISK</option><option value="blocked">🔴 BLOCKED</option></select></div>
 <div className="form-group"><label className="form-label">TOP ACCOMPLISHMENT *</label><textarea className="form-textarea" rows={2} value={acc} onChange={e=>setAcc(e.target.value)} placeholder="What shipped or moved forward?"/></div>
 <div className="form-group"><label className="form-label">BLOCKERS</label><textarea className="form-textarea" rows={2} value={blk} onChange={e=>setBlk(e.target.value)} placeholder="What's stopping progress? Tag owner."/></div>
 <div className="form-group"><label className="form-label">DECISIONS NEEDED</label><textarea className="form-textarea" rows={2} value={dec} onChange={e=>setDec(e.target.value)} placeholder="Decision pending? Who? Deadline?"/></div>
 <div className="form-group"><label className="form-label">NEXT WEEK FOCUS *</label><textarea className="form-textarea" rows={2} value={nw} onChange={e=>setNw(e.target.value)} placeholder="Top 1-3 priorities next week."/></div>
-<div className="ascii-divider">\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 OPTIONAL \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500</div>
+<div className="ascii-divider">──────── OPTIONAL ────────</div>
 <div className="form-group"><label className="form-label">RISKS / WATCH ITEMS</label><textarea className="form-textarea" rows={2} value={risk} onChange={e=>setRisk(e.target.value)} placeholder="What might become a problem?"/></div>
 <div className="form-group"><label className="form-label">FIELD NOTES</label><textarea className="form-textarea" rows={2} value={fn} onChange={e=>setFn(e.target.value)} placeholder="Learnings, SOP suggestions."/></div>
 <div className="form-group"><label className="form-label">CUSTOMER FEEDBACK</label><textarea className="form-textarea" rows={2} value={cf} onChange={e=>setCf(e.target.value)} placeholder="Direct quotes preferred."/></div>
 <div className="form-row"><div className="form-group"><label className="form-label">BRING-UP STATUS</label><input className="form-input" value={bu} onChange={e=>setBu(e.target.value)} placeholder="SITE — [STATUS]"/></div><div className="form-group"><label className="form-label">PIPELINE METRICS</label><input className="form-input" value={pm} onChange={e=>setPm(e.target.value)} placeholder="Proposals / pipeline"/></div></div>
 <div className="form-group"><label className="form-label">ENGINEERING METRICS</label><input className="form-input" value={em} onChange={e=>setEm(e.target.value)} placeholder="PRs / coverage / uptime"/></div>
 <div className="btn-row"><button className="btn" onClick={sub}>[ SUBMIT UPDATE ]</button></div>
-{fb&&<div className={`feedback-msg ${fb.t==='ok'?'ok':''}`}><span className={fb.t==='ok'?'glow':''} style={{fontFamily:'var(--font-terminal)',fontSize:'.75rem',letterSpacing:1,color:fb.t==='err'?'var(--red)':'var(--green-bright)'}}>{fb.t==='ok'?'\u2713':'\u2717'} {fb.m}</span></div>}
+{fb&&<div className={`feedback-msg ${fb.t==='ok'?'ok':''}`}><span className={fb.t==='ok'?'glow':''} style={{fontFamily:'var(--font-terminal)',fontSize:'.75rem',letterSpacing:1,color:fb.t==='err'?'var(--red)':'var(--green-bright)'}}>{fb.t==='ok'?'✓':'✗'} {fb.m}</span></div>}
 </div>}
 </div>}
 
@@ -573,63 +573,63 @@ If you have other internal tools you think should live here, drop a note in your
 const PROJECTS=[
 {id:'autonomy',name:'AUTONOMY STACK',status:'on-track',owner:'ILIA BARANOV',
 summary:'Core autonomous operation software for retrofitted construction vehicles. Handles perception, planning, and control for CAT 745s, Komatsu HD785s, and other heavy equipment.',
-phase:'Production \u2014 Active customer deployments',
+phase:'Production — Active customer deployments',
 lastUpdate:'Speed profiling PR #412 merged. Adaptive loaded/unloaded detection now live. Geofence boundary testing underway for pit wall operations.',
 risks:'Sensor fusion latency on loaded haul cycles. Geofence edge cases near pit walls still under validation.',
 asana:[
-{name:'Adaptive speed profiling \u2014 loaded vs unloaded',done:true,due:'2077.02.25'},
+{name:'Adaptive speed profiling — loaded vs unloaded',done:true,due:'2077.02.25'},
 {name:'Geofence boundary refinement for pit operations',done:false,due:'2077.03.05'},
-{name:'LiDAR point cloud filtering \u2014 dust suppression',done:false,due:'2077.03.10'},
+{name:'LiDAR point cloud filtering — dust suppression',done:false,due:'2077.03.10'},
 {name:'Emergency stop response time audit',done:true,due:'2077.02.20'}
-],milestone:'V2.8 Release \u2014 Target: 2077.03.15',completion:68},
+],milestone:'V2.8 Release — Target: 2077.03.15',completion:68},
 
 {id:'polyglot',name:'POLYGLOT',status:'at-risk',owner:'ENGINEERING TEAM',
 summary:'Multi-system translation layer. Makes our autonomy stack talk to every OEM\'s proprietary CAN protocols, sensor interfaces, and control systems.',
-phase:'Development \u2014 Protocol mapping in progress',
-lastUpdate:'CAT protocol adapter 90% complete. Komatsu adapter blocked on missing CAN documentation \u2014 reverse-engineering 3 signal groups manually.',
+phase:'Development — Protocol mapping in progress',
+lastUpdate:'CAT protocol adapter 90% complete. Komatsu adapter blocked on missing CAN documentation — reverse-engineering 3 signal groups manually.',
 risks:'Komatsu CAN documentation incomplete. Reverse-engineering required. Volvo adapter not yet started.',
 asana:[
 {name:'CAT 745 CAN protocol adapter',done:true,due:'2077.02.22'},
 {name:'Komatsu HD785 signal group reverse-eng',done:false,due:'2077.03.12'},
 {name:'Volvo A40G protocol mapping',done:false,due:'2077.03.20'},
 {name:'Protocol adapter unit test suite',done:false,due:'2077.03.08'}
-],milestone:'Multi-OEM Support \u2014 Target: 2077.03.25',completion:41},
+],milestone:'Multi-OEM Support — Target: 2077.03.25',completion:41},
 
 {id:'polynet',name:'POLYNET',status:'on-track',owner:'PM_CHRIS',
 summary:'Network infrastructure management and field deployment toolkit. Topology mapping, switch config, PoE allocation, and real-time diagnostics for every customer site.',
-phase:'Design \u2014 Architecture finalized, build starting',
-lastUpdate:'PoE calculator and switch selection SOP complete. Network diagram templates built in Mermaid. Planet switch firmware bug on VLAN trunking \u2014 workaround deployed.',
+phase:'Design — Architecture finalized, build starting',
+lastUpdate:'PoE calculator and switch selection SOP complete. Network diagram templates built in Mermaid. Planet switch firmware bug on VLAN trunking — workaround deployed.',
 risks:'Planet switch firmware bug on VLAN trunking. Vendor notified, workaround in place but not permanent.',
 asana:[
-{name:'PoE budget calculator \u2014 Apps Script',done:true,due:'2077.02.18'},
+{name:'PoE budget calculator — Apps Script',done:true,due:'2077.02.18'},
 {name:'Switch selection SOP document',done:true,due:'2077.02.20'},
 {name:'Network topology Mermaid templates',done:true,due:'2077.02.24'},
 {name:'Real-time port diagnostics dashboard',done:false,due:'2077.03.18'},
 {name:'VLAN auto-config for site deployments',done:false,due:'2077.03.22'}
-],milestone:'Site Toolkit V1 \u2014 Target: 2077.03.30',completion:55},
+],milestone:'Site Toolkit V1 — Target: 2077.03.30',completion:55},
 
 {id:'fieldops',name:'FIELD OPS',status:'blocked',owner:'PM_CHRIS + APPS ENGINEERS',
 summary:'Customer site deployment operations. The "Bring Up" process: multi-day on-site work to retrofit vehicles and bring autonomous operation online.',
-phase:'Active \u2014 Deployments ongoing',
+phase:'Active — Deployments ongoing',
 lastUpdate:'Master Deployment Checklist v2 complete. Three-phase Bring Up SOP documented. Site 7 blocked on Velodyne RMA. Site 4 rain delays being rescheduled.',
 risks:'Velodyne RMA #VLP-8841 stalled (opened 02.25). Blocking sensor install at Site 7. Rain delays at Site 4 pushing timeline.',
 asana:[
-{name:'Site 7 \u2014 Velodyne sensor RMA follow-up',done:false,due:'2077.03.01'},
-{name:'Site 4 \u2014 Rain delay reschedule',done:false,due:'2077.03.03'},
+{name:'Site 7 — Velodyne sensor RMA follow-up',done:false,due:'2077.03.01'},
+{name:'Site 4 — Rain delay reschedule',done:false,due:'2077.03.03'},
 {name:'Master Deployment Checklist v2',done:true,due:'2077.02.26'},
-{name:'Bring Up SOP \u2014 Phase 1/2/3 documentation',done:true,due:'2077.02.27'},
-{name:'Site 8 \u2014 Pre-deployment survey',done:false,due:'2077.03.08'}
+{name:'Bring Up SOP — Phase 1/2/3 documentation',done:true,due:'2077.02.27'},
+{name:'Site 8 — Pre-deployment survey',done:false,due:'2077.03.08'}
 ],milestone:'Q1 Target: 4 sites online',completion:50},
 
 {id:'brief',name:'FRIDAY BRIEF TERMINAL',status:'on-track',owner:'PM_CHRIS',
 summary:'This terminal. Replaces Friday all-hands with async weekly submissions compiled into a single brief for leadership review.',
-phase:'Demo \u2014 Presenting to CTO for approval',
+phase:'Demo — Presenting to CTO for approval',
 lastUpdate:'All tabs functional. Seed data loaded. Boot sequence, archive search, tools placeholder, context map all working. Ready for demo.',
-risks:'Adoption risk \u2014 people need to actually use it. Fallout theme is the hook to get buy-in.',
+risks:'Adoption risk — people need to actually use it. Fallout theme is the hook to get buy-in.',
 asana:[
-{name:'Weekly Brief terminal \u2014 full build',done:true,due:'2077.02.28'},
-{name:'Demo prep \u2014 CTO presentation',done:false,due:'2077.03.01'},
-{name:'Rollout plan \u2014 Phase 1 pilot with Engineering',done:false,due:'2077.03.07'},
+{name:'Weekly Brief terminal — full build',done:true,due:'2077.02.28'},
+{name:'Demo prep — CTO presentation',done:false,due:'2077.03.01'},
+{name:'Rollout plan — Phase 1 pilot with Engineering',done:false,due:'2077.03.07'},
 {name:'Slack integration for submission reminders',done:false,due:'2077.03.14'}
 ],milestone:'CTO Approval + Pilot Launch',completion:45}
 ];
@@ -656,7 +656,7 @@ return<div key={p.id} className={`ctx-card${isOpen?' open':''}`}>
 </div>
 <div className="ctx-card-meta">
 <span className="ctx-card-owner">{p.owner}</span>
-<span className="ctx-card-toggle">{isOpen?'[ \u25B4 COLLAPSE ]':'[ \u25BE EXPAND ]'}</span>
+<span className="ctx-card-toggle">{isOpen?'[ ▴ COLLAPSE ]':'[ ▾ EXPAND ]'}</span>
 </div>
 </div>
 <div className="ctx-card-body">
@@ -676,7 +676,7 @@ return<div key={p.id} className={`ctx-card${isOpen?' open':''}`}>
 <div style={{fontSize:'.7rem',fontFamily:'var(--font-terminal)',color:'var(--amber)',letterSpacing:1,margin:'8px 0 10px'}}>{p.milestone}</div>
 <div className="ctx-tasks">
 {p.asana.map((t,i)=><div key={i} className="ctx-task">
-<span className="ctx-task-check" style={{color:t.done?'var(--green)':'var(--text-dim)'}}>{t.done?'[\u2713]':'[  ]'}</span>
+<span className="ctx-task-check" style={{color:t.done?'var(--green)':'var(--text-dim)'}}>{t.done?'[✓]':'[  ]'}</span>
 <span className={`ctx-task-name${t.done?' done':''}`}>{t.name}</span>
 <span className="ctx-task-due">{t.due}</span>
 </div>)}
@@ -703,8 +703,8 @@ return<div id="terminal-wrapper">
 <div className={`tab-panel ${tab==='context'?'active':''}`}><ContextMap/></div>
 <div className={`tab-panel ${tab==='tools'?'active':''}`}><ToolsView/></div>
 <div className={`tab-panel ${tab==='readme'?'active':''}`}><Readme/></div>
-<div className="footer">\u2550\u2550\u2550 POLYMATH ROBOTICS TERMINAL v2.77 \u2014 VAULT-TECH APPROVED \u2550\u2550\u2550<br/>PROPERTY OF POLYMATH ROBOTICS INC.
-<div className="clear-data-wrap">{confirmClear?<span><span style={{color:'var(--red)',marginRight:8}}>CONFIRM: This resets all data to factory seed.</span><button className="btn btn-small" style={{color:'var(--red)',borderColor:'var(--red-dim)',marginRight:6}} onClick={()=>{DB.clearAll();setConfirmClear(false);setRk(k=>k+1);setProf(null)}}>[ YES \u2014 PURGE ]</button><button className="btn btn-small" onClick={()=>setConfirmClear(false)}>[ CANCEL ]</button></span>:<button className="btn btn-small btn-amber" onClick={()=>setConfirmClear(true)} style={{fontSize:'.55rem',padding:'3px 10px'}}>[ CLEAR DATA \u2014 FACTORY RESET ]</button>}</div>
+<div className="footer">═══ POLYMATH ROBOTICS TERMINAL v2.77 — VAULT-TECH APPROVED ═══<br/>PROPERTY OF POLYMATH ROBOTICS INC.
+<div className="clear-data-wrap">{confirmClear?<span><span style={{color:'var(--red)',marginRight:8}}>CONFIRM: This resets all data to factory seed.</span><button className="btn btn-small" style={{color:'var(--red)',borderColor:'var(--red-dim)',marginRight:6}} onClick={()=>{DB.clearAll();setConfirmClear(false);setRk(k=>k+1);setProf(null)}}>[ YES — PURGE ]</button><button className="btn btn-small" onClick={()=>setConfirmClear(false)}>[ CANCEL ]</button></span>:<button className="btn btn-small btn-amber" onClick={()=>setConfirmClear(true)} style={{fontSize:'.55rem',padding:'3px 10px'}}>[ CLEAR DATA — FACTORY RESET ]</button>}</div>
 </div>
 </div>}
 ReactDOM.createRoot(document.getElementById('app-root')).render(<App/>);
