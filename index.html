@@ -221,7 +221,6 @@ figcaption { color: var(--dim); font-size: 15px; line-height: 1.4; margin-top: 6
     <button class="opt locked" type="button" id="m-photos" data-locked="Not available yet." data-help="View photos. Not available yet.">Photos</button>
     <button class="opt locked" type="button" id="m-prints" data-locked="Not available yet." data-help="Buy prints. Not available yet.">Shop</button>
     <button class="opt" type="button" id="m-about" data-help="About this site.">About</button>
-    <button class="opt" type="button" id="m-config" data-help="Change settings.">Config</button>
     <button class="opt" type="button" id="m-how" data-help="View controls.">Help</button>
   </nav>
 
@@ -295,7 +294,7 @@ const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const store = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
 const sorted = POSTS.slice().sort((a, b) => b.date.localeCompare(a.date) || a.file.localeCompare(b.file));
 const main = $("#main"), helptext = $("#helptext"), reader = $("#reader"), rwin = $("#readerwin");
-let view = "files", viewHelp = "", soundOn = store.get("sound") === "on", ac = null, current = null;
+let view = "files", viewHelp = "", soundOn = false, ac = null, current = null;
 
 function setHash(h) { try { history.replaceState(null, "", h ? "#" + h : location.pathname + location.search); } catch (e) {} }
 let helpTimer = null, helpNow = "";
@@ -433,34 +432,6 @@ function setColour(c) {
   r.setProperty("--win-a", t[2]); r.setProperty("--win-b", t[3]); r.setProperty("--accent", t[4]);
   store.set("win2", winId);
 }
-function showConfig() {
-  open("config", "Change settings.", "m-config");
-  main.append(el("p", "label", "Config"));
-  const cur = winId;
-  const g1 = el("div", "group"); g1.append(el("h3", null, "Window Color"));
-  const r1 = el("div", "row");
-  COLOURS.forEach(([id, name, ca, cb, cc]) => {
-    const b = opt(null, "Window color: " + name + ".", () => { setColour(id); showConfig(); main.querySelector('[data-c="' + id + '"]').focus(); });
-    const lab = el("span"), sw = el("span", "sw"), dot = el("i");
-    sw.style.background = "linear-gradient(" + ca + "," + cb + ")"; dot.style.background = cc; sw.append(dot);
-    lab.append(sw, document.createTextNode(name)); b.append(lab);
-    b.dataset.c = id; b.setAttribute("aria-pressed", String(id === cur)); r1.append(b);
-  });
-  g1.append(r1);
-  const g2 = el("div", "group"); g2.append(el("h3", null, "Cursor Sound"));
-  const r2 = el("div", "row");
-  [["on", "On"], ["off", "Off"]].forEach(([id, name]) => {
-    const b = opt(name, "Cursor sound: " + name + ".", () => { soundOn = id === "on"; store.set("sound", id); showConfig(); main.querySelector('[data-s="' + id + '"]').focus(); blip(1320); });
-    b.dataset.s = id; b.setAttribute("aria-pressed", String((id === "on") === soundOn)); r2.append(b);
-  });
-  g2.append(r2);
-  const g3 = el("div", "group"); g3.append(el("h3", null, "System"));
-  const r3 = el("div", "row");
-  r3.append(opt("Title Screen", "Return to the title screen.", () => intro(true)), opt("Back", "Return to the log.", () => showFiles(true)));
-  g3.append(r3);
-  main.append(g1, g2, g3);
-}
-
 function showAbout() {
   open("about", "About this site.", "m-about");
   main.append(el("p", "label", "About"));
@@ -505,7 +476,6 @@ Select an entry to open it. Select Back, or tap outside the window, to close it.
 /* ---------- menu + input ---------- */
 $("#m-files").addEventListener("click", () => showFiles(true));
 $("#m-about").addEventListener("click", showAbout);
-$("#m-config").addEventListener("click", showConfig);
 $("#zoom").addEventListener("click", unzoom);
 $("#m-how").addEventListener("click", showControls);
 document.querySelectorAll("#menu .locked").forEach((b) => b.addEventListener("click", () => { help(b.dataset.locked, true); blip(160, .16); }));
@@ -584,7 +554,7 @@ $("#count").textContent = sorted.length;
 $("#latest").textContent = sorted[0] ? day(sorted[0].date).split(",")[0] : "-";
 const tick = () => { $("#clock").textContent = new Date().toTimeString().slice(0, 8); };
 tick(); setInterval(tick, 1000);
-setColour(store.get("win2") || "blackout");
+setColour("blackout");
 sizeSky();
 if (!reduce) (function loop() { if (!document.hidden) drawSky(1); requestAnimationFrame(loop); })();
 showFiles();
