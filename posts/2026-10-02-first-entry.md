@@ -2,18 +2,12 @@
 title: Test TEST TesT
 date: 2026-10-02
 ---
-[SAMPLE ENTRY. Chris, rewrite or delete this one. It is here so you can see how a real post reads in the window.]
+Hi folks,
 
-I nearly opened a Substack. It takes five minutes and it works.
+I’ve been wanting to make a website for a while, and I finally got around to putting this one together.
 
-But every Substack looks like every other Substack. A place I built myself can look like whatever I want, and what I want is for it to feel like opening a save file.
+The current plan is to start with a few longer, retrospective posts about things I’ve done this year. Projects I’ve worked on, places I’ve been, things I’ve made, and whatever else feels worth documenting.
 
-## What goes here
+After that, we’ll see where this goes.
 
-- Updates, whenever I have one. No schedule.
-- Photos, once that menu unlocks.
-- Prints for sale, eventually.
-
-> Each post is a log entry. You opened one. That is the whole idea.
-
-More soon.
+For now, welcome to the site.
