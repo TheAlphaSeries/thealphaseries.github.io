@@ -107,7 +107,7 @@ h3 { font-size: 12px; line-height: 1.7; color: var(--accent); margin-top: 8px; }
 .tally { color: var(--dim); margin: -6px 0 14px 24px; font-variant-numeric: tabular-nums; }
 .beasts { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 18px; align-items: start; }
 .beastlist { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.beast { grid-template-columns: 18px 3ch minmax(0, 1fr) auto; }
+.beast { grid-template-columns: 18px 3ch minmax(0, 1fr); }
 .beast .num { color: var(--dim); font-variant-numeric: tabular-nums; }
 .beast .name { font-family: var(--display); font-size: 12px; line-height: 1.8; overflow-wrap: anywhere; }
 .beast .qty { color: var(--dim); font-variant-numeric: tabular-nums; }
@@ -418,7 +418,7 @@ function showBestiary(focusFirst) {
     const pick = () => { if (btn.getAttribute("aria-pressed") !== "true") show(b, btn); };
     const btn = opt(null, pick, "beast");
     btn.addEventListener("focus", pick);   /* moving the cursor shows that fish */
-    btn.append(el("span", "num", String(i + 1).padStart(3, "0")), el("span", "name", b.name), el("span", "qty", b.length ? b.length + " in" : ""));
+    btn.append(el("span", "num", String(i + 1).padStart(3, "0")), el("span", "name", b.name));
     btn.style.setProperty("--i", i);
     list.append(btn);
   });
