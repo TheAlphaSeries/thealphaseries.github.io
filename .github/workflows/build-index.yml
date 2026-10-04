@@ -1,0 +1,26 @@
+# Rebuilds posts.json (the list the site loads) whenever an entry or the About page changes.
+name: Build entry index
+on:
+  push:
+    branches: [main]
+    paths: ["posts/**", "pages/**", "scripts/build-index.mjs"]
+permissions:
+  contents: write
+jobs:
+  index:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node scripts/build-index.mjs
+      - name: Save the index if it changed
+        run: |
+          git add posts.json
+          if ! git diff --cached --quiet; then
+            git config user.name "half-life-index"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "Update entry index"
+            git push
+          fi
