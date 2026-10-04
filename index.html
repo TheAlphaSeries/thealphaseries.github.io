@@ -223,6 +223,7 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
     <button class="opt locked" type="button" id="m-prints" data-locked="Not available yet." data-help="Buy prints. Not available yet.">Shop</button>
     <button class="opt" type="button" id="m-about" data-help="About this site.">About</button>
     <button class="opt" type="button" id="m-how" data-help="View controls.">Help</button>
+    <button class="opt" type="button" id="m-music" aria-pressed="false" data-help="Turn the music on or off.">Music Off</button>
   </nav>
 
   <dl class="win" id="status">
@@ -535,6 +536,53 @@ function drawSky(step) { /* pixel sparkles that float up and sway */
   sx.globalAlpha = 1;
 }
 window.addEventListener("resize", sizeSky);
+
+/* ---------- menu music: an original looping piece of soft plucked arpeggios ---------- */
+const CHORDS = [[53, 57, 60, 64], [55, 59, 62, 64], [52, 55, 59, 62], [57, 60, 64, 67], [50, 53, 57, 60], [55, 59, 62, 65], [48, 52, 55, 59], [48, 55, 60, 64]];
+const ROLL = [[0, 0], [2, 0], [1, 0], [3, 0], [2, 12], [3, 0], [1, 12], [2, 0]];
+const STEP = 0.36;
+let musicOn = false, musicGain = null, musicTimer = null, nextNote = 0, stepNo = 0;
+const hz = (m) => 440 * Math.pow(2, (m - 69) / 12);
+function pluck(m, t, len, vol, type) {
+  const o = ac.createOscillator(), g = ac.createGain();
+  o.type = type; o.frequency.value = hz(m);
+  g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+  o.connect(g); g.connect(musicGain); o.start(t); o.stop(t + len + 0.05);
+}
+function musicTick() {
+  if (document.hidden) { nextNote = 0; return; }
+  if (nextNote < ac.currentTime) nextNote = ac.currentTime + 0.05;
+  while (nextNote < ac.currentTime + 0.4) {
+    const bar = Math.floor(stepNo / 8) % CHORDS.length, s = stepNo % 8, c = CHORDS[bar], r = ROLL[s];
+    pluck(c[r[0]] + 12 + r[1], nextNote, 1.1, 0.06, "triangle");
+    if (s === 0) pluck(c[0] - 12, nextNote, 2.6, 0.07, "sine");
+    if (s === 4 && bar % 2 === 1) pluck(c[3] + 24, nextNote, 1.8, 0.025, "sine");
+    nextNote += STEP; stepNo++;
+  }
+}
+function setMusic(on, save) {
+  musicOn = on; const b = $("#m-music");
+  b.textContent = on ? "Music On" : "Music Off"; b.setAttribute("aria-pressed", String(on));
+  if (save) store.set("music", on ? "on" : "off");
+  try {
+    if (on) {
+      ac = ac || new (window.AudioContext || window.webkitAudioContext)(); ac.resume();
+      if (!musicGain) {
+        const lp = ac.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 2400;
+        musicGain = ac.createGain(); musicGain.gain.value = 0; musicGain.connect(lp); lp.connect(ac.destination);
+      }
+      musicGain.gain.cancelScheduledValues(ac.currentTime); musicGain.gain.setTargetAtTime(0.6, ac.currentTime, 0.4);
+      nextNote = 0; clearInterval(musicTimer); musicTimer = setInterval(musicTick, 100); musicTick();
+    } else if (musicGain) { clearInterval(musicTimer); musicGain.gain.setTargetAtTime(0, ac.currentTime, 0.15); }
+  } catch (e) {}
+}
+$("#m-music").addEventListener("click", () => setMusic(!musicOn, true));
+if (store.get("music") === "on") { /* browsers only allow sound after a tap or key press, so resume on the first one */
+  let kicked = false;
+  const kick = () => { if (!kicked) { kicked = true; setMusic(true, false); } };
+  document.addEventListener("pointerdown", kick, { once: true, capture: true });
+  document.addEventListener("keydown", kick, { once: true, capture: true });
+}
 
 /* ---------- start ---------- */
 $("#count").textContent = sorted.length;
