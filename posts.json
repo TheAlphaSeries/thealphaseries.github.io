@@ -1,5 +1,5 @@
 {
-  "source": "github",
+  "source": "other",
   "about": "> Half Life is a permanent state of change. Nothing holds its shape for long. Time moves, places shift, people become someone else, and so do you. You are still conscious, still moving, still wanting, and the only way through is to move with it.",
   "posts": [
     {
@@ -53,6 +53,17 @@
       "location": "Lake Chabot, California",
       "photo": "",
       "lore": "A stout green brigand that lurks beside drowned timber and awaits events. Its mouth is of extraordinary capacity, and it regards whatever passes as a meal first and a question of suitability afterward.\n\nIt is the fish that every lake angler professes to find commonplace and privately desires above all others. To land one is to be insufferable for a week."
+    },
+    {
+      "file": "006-catfish",
+      "name": "Catfish",
+      "sprite": "catfish",
+      "date": "",
+      "weight": null,
+      "length": null,
+      "location": "",
+      "photo": "",
+      "lore": "A whiskered dignitary of the lake bottom, smooth as a river stone and wholly without scales, which it appears to regard as an affectation of lesser fish. It goes abroad by night, tasting the mud with its barbels and finding nothing beneath its notice.\n\nThe spines of its fins deliver a sharp rebuke to careless hands. Those so instructed seldom require a second lesson."
     }
   ]
 }

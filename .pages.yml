@@ -52,6 +52,8 @@ content:
               label: Crappie
             - name: bass
               label: Bass
+            - name: catfish
+              label: Catfish
             - name: fish
               label: Other fish
       - name: date
