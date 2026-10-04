@@ -106,19 +106,21 @@ h3 { font-size: 12px; line-height: 1.7; color: var(--accent); margin-top: 8px; }
 
 .files { display: flex; flex-direction: column; gap: 8px; }
 .file { grid-template-columns: 18px minmax(0, 1fr) auto; padding-block: 9px; }
+.file.chosen { animation: chosen .12s steps(1) 2; }
+@keyframes chosen { 50% { opacity: .2; } }
 .file .name { font-family: var(--display); font-size: 12px; line-height: 1.8; overflow-wrap: anywhere; }
 .file .date { color: var(--dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
 
 /* an opened entry: translucent window that pops out over the screen */
 #reader {
-  position: fixed; inset: 0; z-index: 4; background: var(--veil);
+  position: fixed; inset: 0; z-index: 4; background: color-mix(in srgb, var(--bg) 30%, transparent);
   display: flex; align-items: center; justify-content: center;
   padding: calc(16px + env(safe-area-inset-top, 0px)) 16px calc(16px + env(safe-area-inset-bottom, 0px));
 }
 #readerwin {
   width: min(100%, 720px); max-height: 100%; overflow-y: auto; padding: 22px 22px 20px;
-  background: linear-gradient(to bottom, color-mix(in srgb, var(--win-a) 84%, transparent), color-mix(in srgb, var(--win-b) 88%, transparent));
-  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--win-a) 66%, transparent), color-mix(in srgb, var(--win-b) 72%, transparent));   /* see-through: the log shows faintly behind */
+  -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
   box-shadow: inset 0 0 0 2px var(--border-shade), 0 0 0 2px #000, 0 18px 50px rgba(0, 0, 0, .6);
 }
 #readerwin:focus { outline: none; }
@@ -166,7 +168,12 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
   display: flex; align-items: center; justify-content: center; padding: 20px; transition: opacity .4s;
 }
 #intro.done { opacity: 0; pointer-events: none; visibility: hidden; transition: opacity .4s, visibility 0s .4s; }
-#intro .win { width: min(100%, 440px); padding: 30px 20px 26px; text-align: center; animation: rise 1.2s var(--spring) backwards; }
+#intro .titlewrap { position: relative; width: min(100%, 440px); }
+/* the sprite stands behind the title box and springs up to wave over its top edge */
+#sprite { position: absolute; right: 12%; bottom: 100%; width: 96px; height: auto; image-rendering: pixelated; z-index: 0;
+  transform: translateY(102%); transition: transform .9s var(--spring); }
+#sprite.up { transform: translateY(20%); }
+#intro .win { position: relative; z-index: 1; width: 100%; padding: 30px 20px 26px; text-align: center; animation: rise 1.2s var(--spring) backwards; }
 #intro .name { font-family: var(--display); font-size: clamp(20px, 6.5vw, 30px); line-height: 1.5; color: var(--accent); }
 #intro .tagline { color: var(--dim); margin-top: 8px; }
 #intro .start { width: auto; margin: 24px auto 0; grid-template-columns: 18px auto; padding: 10px 16px 10px 10px; font-family: var(--display); font-size: 13px; line-height: 1.7; }
@@ -193,8 +200,8 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
   #readerwin { padding: 18px 14px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .opt:focus-visible::before, #readerwin.pop, .stage.go > .win, #main > *, #main .files > *, #main .group, #titlebar .site, #intro .win, #intro .start::before { animation: none; }
-  #intro, .opt { transition: none; }
+  .opt:focus-visible::before, .file.chosen, #readerwin.pop, .stage.go > .win, #main > *, #main .files > *, #main .group, #titlebar .site, #intro .win, #intro .start::before { animation: none; }
+  #intro, .opt, #sprite { transition: none; }
 }
 </style>
 
@@ -225,10 +232,13 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
 
 <div id="zoom" hidden><img alt=""><p></p></div>
 
-<div id="intro"><div class="win">
+<div id="intro"><div class="titlewrap">
+  <canvas id="sprite" width="24" height="30" aria-hidden="true"></canvas>
+  <div class="win">
   <div class="name">HALF LIFE</div>
   <div class="tagline">Still receiving.</div>
   <button class="opt start" id="startbtn" type="button">Start</button>
+  </div>
 </div></div>
 
 <script>
@@ -292,7 +302,10 @@ function showFiles(focusFirst) {
   openScreen("files", "m-files");
   const list = el("div", "files");
   sorted.forEach((p, i) => {
-    const b = opt(null, () => showPost(p), "file"); b.dataset.file = p.file;
+    const b = opt(null, () => {   /* flash the chosen row, then open it */
+      if (reduceMotion) return showPost(p);
+      b.classList.add("chosen"); setTimeout(() => { b.classList.remove("chosen"); showPost(p); }, 250);
+    }, "file"); b.dataset.file = p.file;
     b.append(el("span", "name", p.title), el("span", "date", day(p.date)));
     b.style.setProperty("--i", i);
     list.append(b);
@@ -453,12 +466,35 @@ document.addEventListener("keydown", (e) => {
 let pendingPost = null;   /* an entry named in the link, opened once Start is pressed */
 function endIntro() {
   if (introBox.classList.contains("done")) return;
-  introBox.classList.add("done"); syncLayers();
+  introBox.classList.add("done"); syncLayers(); stopSprite();
   stage.classList.remove("go"); void stage.offsetWidth; stage.classList.add("go");   /* replay the windows' entrance */
   showFiles(true);
   if (pendingPost) { showPost(pendingPost); pendingPost = null; }
 }
 introBox.addEventListener("click", endIntro);
+
+/* ==========================================================================
+   5b. TITLE SCREEN SPRITE
+   A small pixel figure of Chris that pops up from behind the title box and
+   waves. Each string is one row of pixels; each letter is a colour below.
+   ========================================================================== */
+const SPRITE_COLOURS = {"o": "#3e3e49", "h": "#26262b", "H": "#45454e", "s": "#8d5a3a", "d": "#6f432a", "m": "#4a2a1c", "g": "#050505", "w": "#ffffff", "c": "#303037", "C": "#4a4a55", "x": "#1b1b20", "b": "#232328", "S": "#8a8a92"};
+const SPRITE_FRAMES = [ [ ".......oooooooo.........", "......ohhhhhhhho........", ".....ohhHHHhhhhho.......", ".....ohhHhhhhhhho.......", ".....ohhhhhhhhhho.ooo...", ".....ohsssssssshoossso..", ".....ohgwgggggghoossso..", ".....ohsggggggshosssso..", "......osssssssso.ossso..", "......odssmmssdo.ocCo...", "......oossssssoo.occo...", ".....ocxxddddxxcoocco...", "...ooccccxxxxccccocco...", "..oCccCcccxccccccccco...", "..occcCcccxcccccccco....", "..occcCcccxccccccoo.....", "..occcCcccxcccccco......", "..occcCcccxcccccco......", "..occcCcccxcccccco......", "..occcCcccxcccccco......", "..osscCcccxccccccco.....", "..osscCcccxccccccco.....", "...occCcccxccccccco.....", "...occCcccxccccccco.....", "...occCcccxccccccco.....", "...oxxxxxxxxxxxxxxo.....", "....oobbbboobbbboo......", ".....obbbboobbbbo.......", "....oSSSSSooSSSSSo......", ".....ooooo..ooooo......." ], [ ".......oooooooo.........", "......ohhhhhhhho........", ".....ohhHHHhhhhho.......", ".....ohhHhhhhhhho.......", ".....ohhhhhhhhhho...ooo.", ".....ohssssssssho..ossso", ".....ohgwggggggho..ossso", ".....ohsggggggsho.osssso", "......osssssssso...ossso", "......odssmmssdo..ocCoo.", "......oossssssoo..occo..", ".....ocxxddddxxcooccco..", "...ooccccxxxxccccocco...", "..oCccCcccxccccccccco...", "..occcCcccxcccccccco....", "..occcCcccxccccccoo.....", "..occcCcccxcccccco......", "..occcCcccxcccccco......", "..occcCcccxcccccco......", "..occcCcccxcccccco......", "..osscCcccxccccccco.....", "..osscCcccxccccccco.....", "...occCcccxccccccco.....", "...occCcccxccccccco.....", "...occCcccxccccccco.....", "...oxxxxxxxxxxxxxxo.....", "....oobbbboobbbboo......", ".....obbbboobbbbo.......", "....oSSSSSooSSSSSo......", ".....ooooo..ooooo......." ] ];
+const spriteBox = $("#sprite"), spx = spriteBox.getContext("2d");
+let waveTimer = null;
+function drawSprite(n) {
+  spx.clearRect(0, 0, spriteBox.width, spriteBox.height);
+  SPRITE_FRAMES[n].forEach((row, y) => { for (let x = 0; x < row.length; x++) { const c = SPRITE_COLOURS[row[x]]; if (c) { spx.fillStyle = c; spx.fillRect(x, y, 1, 1); } } });
+}
+function startSprite() {
+  drawSprite(0);
+  if (reduceMotion) { spriteBox.classList.add("up"); return; }
+  setTimeout(() => {
+    spriteBox.classList.add("up");
+    let n = 0; waveTimer = setInterval(() => { n = 1 - n; drawSprite(n); }, 280);
+  }, 1300);
+}
+function stopSprite() { clearInterval(waveTimer); waveTimer = null; }
 
 /* ==========================================================================
    6. DRIFTING SPARKLES (background)
@@ -606,6 +642,7 @@ syncLayers();
   if (view === "files" && reader.hidden) showFiles(introBox.classList.contains("done"));
   if (pendingPost && introBox.classList.contains("done")) { showPost(pendingPost); pendingPost = null; }
 })();
+startSprite();
 $("#startbtn").focus();
 </script>
 </body>
