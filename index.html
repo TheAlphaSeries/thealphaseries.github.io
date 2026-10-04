@@ -436,21 +436,7 @@ function showAbout() {
   open("about", "About this site.", "m-about");
   main.append(el("p", "label", "About"));
   const body = el("div", "post");
-  renderBody(`[DRAFT. Chris, replace this with your own words.]
-
-Half Life is where I keep photographs and notes.
-
-## The name
-
-Write a line or two here on what Half Life means to you.
-
-## Who
-
-Write a line or two here on who you are and what you shoot.
-
-## Contact
-
-Add how people can reach you.`, body);
+  renderBody(`> Half Life is not death, but what comes after it, an existence that lingers, unstable and eroding. It is a state where time runs backward, objects decay, and reality itself loses its certainty. You are still conscious, still moving, still wanting, but everything around you is thinning out. Memory fades, the present slips, and the future feels borrowed.`, body);
   const nav = el("div", "row group"); nav.append(opt("Back", "Return to the log.", () => showFiles(true)));
   main.append(body, nav);
 }
