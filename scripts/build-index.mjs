@@ -38,14 +38,17 @@ if (existsSync("posts")) {
   }
 }
 posts.sort((a, b) => b.date.localeCompare(a.date) || b.file.localeCompare(a.file));
-// The bestiary: one file per creature in bestiary/, listed in file-name order.
+// The bestiary: one file per fish caught in bestiary/, listed in file-name order.
 const bestiary = [];
 if (existsSync("bestiary")) {
   for (const name of readdirSync("bestiary").sort()) {
     if (!name.endsWith(".md")) continue;
     const { meta, body } = parse(readFileSync("bestiary/" + name, "utf8"));
+    const num = (v) => { const n = parseFloat(v); return Number.isFinite(n) && n > 0 ? n : null; };
+    const day = /^\d{4}-\d{2}-\d{2}/.exec(String(meta.date || ""));
     bestiary.push({ file: name.replace(/\.md$/, ""), name: String(meta.name || name.replace(/\.md$/, "")), sprite: String(meta.sprite || "fish"),
-      count: Math.max(0, parseInt(meta.count, 10) || 0), location: String(meta.location || ""), note: body });
+      date: day ? day[0] : "", weight: num(meta.weight), length: num(meta.length), location: String(meta.location || ""),
+      photo: String(meta.photo || ""), lore: body });
   }
 }
 const about = existsSync("pages/about.md") ? parse(readFileSync("pages/about.md", "utf8")).body : "";

@@ -1,7 +1,10 @@
 ---
 name: Sunfish
 sprite: sunfish
-count: 2
+date: 
+weight: 
+length: 
 location: Pine Lake, California
+photo: 
 ---
-Small, round and quick to bite.
+A round-bodied panfish of warm, weedy shallows. Small, but bold enough to charge anything that drifts near its nest.

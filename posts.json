@@ -1,5 +1,5 @@
 {
-  "source": "github",
+  "source": "other",
   "about": "> Half Life is a permanent state of change. Nothing holds its shape for long. Time moves, places shift, people become someone else, and so do you. You are still conscious, still moving, still wanting, and the only way through is to move with it.",
   "posts": [
     {
@@ -14,33 +14,56 @@
       "file": "001-rainbow-trout",
       "name": "Rainbow Trout",
       "sprite": "trout",
-      "count": 1,
+      "date": "",
+      "weight": null,
+      "length": null,
       "location": "Pine Lake, California",
-      "note": "A cold-water fish with a pink stripe along its side."
+      "photo": "",
+      "lore": "A cold-water fish of the Pacific slope, named for the pink band that runs from gill to tail. It strikes fast and is known to leap clear of the water when hooked."
     },
     {
       "file": "002-sunfish",
       "name": "Sunfish",
       "sprite": "sunfish",
-      "count": 2,
+      "date": "",
+      "weight": null,
+      "length": null,
       "location": "Pine Lake, California",
-      "note": "Small, round and quick to bite."
+      "photo": "",
+      "lore": "A round-bodied panfish of warm, weedy shallows. Small, but bold enough to charge anything that drifts near its nest."
     },
     {
-      "file": "003-crappie",
+      "file": "003-sunfish",
+      "name": "Sunfish",
+      "sprite": "sunfish",
+      "date": "",
+      "weight": null,
+      "length": null,
+      "location": "Pine Lake, California",
+      "photo": "",
+      "lore": "The second of its kind from the same water. Sunfish gather in loose groups, so where one is found another is rarely far."
+    },
+    {
+      "file": "004-crappie",
       "name": "Crappie",
       "sprite": "crappie",
-      "count": 1,
+      "date": "",
+      "weight": null,
+      "length": null,
       "location": "Lake Chabot, California",
-      "note": "A speckled panfish that schools near cover."
+      "photo": "",
+      "lore": "A speckled, deep-bodied fish that schools around sunken brush and feeds most at dawn and dusk. Anglers call it papermouth, for a lip so thin a hook can tear free."
     },
     {
-      "file": "004-bass",
+      "file": "005-bass",
       "name": "Bass",
       "sprite": "bass",
-      "count": 1,
+      "date": "",
+      "weight": null,
+      "length": null,
       "location": "Lake Chabot, California",
-      "note": "A wide-mouthed ambush hunter."
+      "photo": "",
+      "lore": "An ambush hunter that holds beside cover and takes its prey in one gulp. It is the fish most lake anglers are really after."
     }
   ]
 }
