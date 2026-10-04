@@ -174,10 +174,12 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
   position: fixed; inset: 0; z-index: 5; background: var(--bg); cursor: pointer;
   display: flex; align-items: center; justify-content: center; padding: 20px; transition: opacity .4s;
 }
-#intro.done { opacity: 0; pointer-events: none; }
+#intro.done { opacity: 0; pointer-events: none; visibility: hidden; transition: opacity .4s, visibility 0s .4s; }
 #intro .win { width: min(100%, 440px); padding: 30px 20px 26px; text-align: center; animation: rise 1.2s var(--spring) backwards; }
 #intro .name { font-family: var(--display); font-size: clamp(20px, 6.5vw, 30px); line-height: 1.5; color: var(--accent); }
 #intro .tagline { color: var(--dim); margin-top: 8px; }
+#intro .start { width: auto; margin: 24px auto 0; grid-template-columns: 18px auto; padding: 10px 16px 10px 10px; font-family: var(--display); font-size: 13px; line-height: 1.7; }
+#intro .start::before { visibility: visible; animation: nudge 1.1s ease-in-out infinite; }
 #intro .press { font-family: var(--display); font-size: 11px; line-height: 1.8; margin-top: 26px; animation: blink 1.6s ease-in-out infinite; }
 
 /* phone view: the command window becomes a bar fixed to the bottom of the screen */
@@ -240,7 +242,7 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
 <div id="intro"><div class="win">
   <div class="name">HALF LIFE</div>
   <div class="tagline">Still receiving.</div>
-  <div class="press">Press any button</div>
+  <button class="opt start" id="startbtn" type="button">Start</button>
 </div></div>
 
 <script>
@@ -501,16 +503,16 @@ document.addEventListener("keydown", (e) => {
 });
 
 /* ---------- intro ---------- */
+let pendingPost = null;
 function assemble() { const st = $("#stage"); st.classList.remove("go"); void st.offsetWidth; st.classList.add("go"); }
 function endIntro() {
   if ($("#intro").classList.contains("done")) return;
   $("#intro").classList.add("done"); try { sessionStorage.setItem("intro", "1"); } catch (e) {}
   blip(1320, .08); assemble(); if (reader.hidden && view === "files") showFiles();
+  if (pendingPost) { showPost(pendingPost); pendingPost = null; }
 }
-function intro(force) {
-  let seen = false; try { seen = sessionStorage.getItem("intro") === "1"; } catch (e) {}
-  if (!force && seen) { $("#intro").classList.add("done"); assemble(); return; }
-  $("#intro").classList.remove("done");
+function intro() { /* shown on every visit: pressing Start is also what lets the browser play the music */
+  $("#intro").classList.remove("done"); $("#startbtn").focus();
 }
 $("#intro").addEventListener("click", endIntro);
 
@@ -610,7 +612,8 @@ if (!reduce) (function loop() { if (!document.hidden) drawSky(1); requestAnimati
 showFiles();
 const start = decodeURIComponent((location.hash || "").slice(1));
 const linked = start && sorted.find((p) => p.file === start);
-if (linked) { $("#intro").classList.add("done"); assemble(); showPost(linked); } else intro(false);
+pendingPost = linked || null;
+intro();
 </script>
 </body>
 </html>
