@@ -100,8 +100,7 @@ h3 { font-size: 12px; line-height: 1.7; color: var(--accent); margin-top: 8px; }
 .opt:focus-visible { outline: none; }
 .opt:focus-visible::before { animation: nudge 1.1s ease-in-out infinite; }
 @keyframes nudge { 50% { transform: translateX(-4px); } }
-.opt.locked { color: var(--off); cursor: not-allowed; }
-.opt.locked:hover, .opt.locked:focus-visible { transform: none; }
+.opt.locked { color: var(--off); cursor: default; pointer-events: none; }   /* greyed out: cannot be pointed at, selected or pressed */
 .opt[aria-pressed="true"] { color: var(--accent); }
 #menu .opt, .row .opt { font-family: var(--display); font-size: 12px; line-height: 1.7; }
 
@@ -208,8 +207,8 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
 
   <nav class="win" id="menu" aria-label="Commands">
     <button class="opt" type="button" id="m-files">Log</button>
-    <button class="opt locked" type="button" id="m-photos" aria-disabled="true" title="Not available yet">Photos</button>
-    <button class="opt locked" type="button" id="m-prints" aria-disabled="true" title="Not available yet">Shop</button>
+    <button class="opt locked" type="button" id="m-photos" disabled>Photos</button>
+    <button class="opt locked" type="button" id="m-prints" disabled>Shop</button>
     <button class="opt" type="button" id="m-about">About</button>
     <button class="opt" type="button" id="m-how">Help</button>
     <button class="opt" type="button" id="m-music" aria-pressed="true">Music Off</button>
@@ -439,7 +438,7 @@ document.addEventListener("keydown", (e) => {
   let pane = inMenu ? menu : main;
   if (side) pane = (e.key === "ArrowRight" && !inMenu) ? menu : (e.key === "ArrowLeft" && inMenu) ? main : null;
   if (!pane) return;
-  const opts = [...pane.querySelectorAll(".opt")]; if (!opts.length) return;
+  const opts = [...pane.querySelectorAll(".opt:not(.locked)")]; if (!opts.length) return;
   let i = opts.indexOf(a);
   if (side || (!inMenu && !inMain)) i = Math.max(0, opts.findIndex((o) => o.getAttribute("aria-current") === "true"));
   else i = (i + dir + opts.length) % opts.length;
