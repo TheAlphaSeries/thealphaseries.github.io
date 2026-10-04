@@ -223,7 +223,7 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
     <button class="opt locked" type="button" id="m-prints" data-locked="Not available yet." data-help="Buy prints. Not available yet.">Shop</button>
     <button class="opt" type="button" id="m-about" data-help="About this site.">About</button>
     <button class="opt" type="button" id="m-how" data-help="View controls.">Help</button>
-    <button class="opt" type="button" id="m-music" aria-pressed="false" data-help="Turn the music on or off.">Music Off</button>
+    <button class="opt" type="button" id="m-music" aria-pressed="false" data-help="Turn the music on, change track, or turn it off.">Music On</button>
   </nav>
 
   <dl class="win" id="status">
@@ -537,35 +537,57 @@ function drawSky(step) { /* pixel sparkles that float up and sway */
 }
 window.addEventListener("resize", sizeSky);
 
-/* ---------- menu music: an original looping piece of soft plucked arpeggios ---------- */
-const CHORDS = [[53, 57, 60, 64], [55, 59, 62, 64], [52, 55, 59, 62], [57, 60, 64, 67], [50, 53, 57, 60], [55, 59, 62, 65], [48, 52, 55, 59], [48, 55, 60, 64]];
-const ROLL = [[0, 0], [2, 0], [1, 0], [3, 0], [2, 12], [3, 0], [1, 12], [2, 0]];
-const STEP = 0.36;
-let musicOn = false, musicGain = null, musicTimer = null, nextNote = 0, stepNo = 0;
+/* ---------- menu music: two original looping pieces, generated in the browser ---------- */
 const hz = (m) => 440 * Math.pow(2, (m - 69) / 12);
+let musicMode = 0, musicGain = null, musicTimer = null, nextNote = 0, stepNo = 0;   /* 0 off, 1 first track, 2 second track */
 function pluck(m, t, len, vol, type) {
   const o = ac.createOscillator(), g = ac.createGain();
   o.type = type; o.frequency.value = hz(m);
   g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + len);
   o.connect(g); g.connect(musicGain); o.start(t); o.stop(t + len + 0.05);
 }
+function thump(t, vol) { /* a soft hand-drum hit */
+  const o = ac.createOscillator(), g = ac.createGain();
+  o.type = "sine"; o.frequency.setValueAtTime(120, t); o.frequency.exponentialRampToValueAtTime(48, t + 0.14);
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
+  o.connect(g); g.connect(musicGain); o.start(t); o.stop(t + 0.25);
+}
+/* track 1: soft plucked arpeggios rolling over eight chords */
+const CHORDS = [[53, 57, 60, 64], [55, 59, 62, 64], [52, 55, 59, 62], [57, 60, 64, 67], [50, 53, 57, 60], [55, 59, 62, 65], [48, 52, 55, 59], [48, 55, 60, 64]];
+const ROLL = [[0, 0], [2, 0], [1, 0], [3, 0], [2, 12], [3, 0], [1, 12], [2, 0]];
+/* track 2: a slow desert melody over a drone and a hand drum (0 = rest) */
+const TOMB = [[62, 0, 66, 67, 69, 0, 67, 66], [63, 0, 62, 0, 0, 0, 57, 0], [62, 0, 66, 67, 69, 0, 70, 69], [67, 0, 66, 0, 63, 0, 62, 0],
+              [74, 0, 72, 70, 69, 0, 70, 0], [69, 0, 67, 66, 67, 0, 63, 0], [62, 63, 66, 0, 67, 66, 63, 0], [62, 0, 0, 0, 0, 0, 0, 0]];
+const TRACKS = [
+  { step: 0.36, play(bar, s, t) {
+      const c = CHORDS[bar], r = ROLL[s];
+      pluck(c[r[0]] + 12 + r[1], t, 1.1, 0.06, "triangle");
+      if (s === 0) pluck(c[0] - 12, t, 2.6, 0.07, "sine");
+      if (s === 4 && bar % 2 === 1) pluck(c[3] + 24, t, 1.8, 0.025, "sine");
+  } },
+  { step: 0.31, play(bar, s, t) {
+      const n = TOMB[bar][s];
+      if (n) { pluck(n, t, 1.3, 0.06, "triangle"); pluck(n + 12, t, 0.5, 0.012, "sine"); }
+      if (s === 0) { pluck(38, t, 2.6, 0.09, "sine"); pluck(50, t, 2.6, 0.03, "triangle"); }
+      if (s === 4) pluck(45, t, 1.4, 0.045, "sine");
+      if (s === 0 || s === 3 || s === 6) thump(t, s === 0 ? 0.11 : 0.06);
+  } }
+];
 function musicTick() {
-  if (document.hidden) { nextNote = 0; return; }
+  if (document.hidden || !musicMode) { nextNote = 0; return; }
+  const tr = TRACKS[musicMode - 1];
   if (nextNote < ac.currentTime) nextNote = ac.currentTime + 0.05;
   while (nextNote < ac.currentTime + 0.4) {
-    const bar = Math.floor(stepNo / 8) % CHORDS.length, s = stepNo % 8, c = CHORDS[bar], r = ROLL[s];
-    pluck(c[r[0]] + 12 + r[1], nextNote, 1.1, 0.06, "triangle");
-    if (s === 0) pluck(c[0] - 12, nextNote, 2.6, 0.07, "sine");
-    if (s === 4 && bar % 2 === 1) pluck(c[3] + 24, nextNote, 1.8, 0.025, "sine");
-    nextNote += STEP; stepNo++;
+    tr.play(Math.floor(stepNo / 8) % 8, stepNo % 8, nextNote);
+    nextNote += tr.step; stepNo++;
   }
 }
-function setMusic(on, save) {
-  musicOn = on; const b = $("#m-music");
-  b.textContent = on ? "Music On" : "Music Off"; b.setAttribute("aria-pressed", String(on));
-  if (save) store.set("music", on ? "on" : "off");
+function setMusic(mode, save) { /* the button names what choosing it will do next */
+  musicMode = mode; stepNo = 0; const b = $("#m-music");
+  b.textContent = ["Music On", "Next Track", "Music Off"][mode]; b.setAttribute("aria-pressed", String(mode > 0));
+  if (save) store.set("music", String(mode));
   try {
-    if (on) {
+    if (mode) {
       ac = ac || new (window.AudioContext || window.webkitAudioContext)(); ac.resume();
       if (!musicGain) {
         const lp = ac.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 2400;
@@ -576,12 +598,15 @@ function setMusic(on, save) {
     } else if (musicGain) { clearInterval(musicTimer); musicGain.gain.setTargetAtTime(0, ac.currentTime, 0.15); }
   } catch (e) {}
 }
-$("#m-music").addEventListener("click", () => setMusic(!musicOn, true));
-if (store.get("music") === "on") { /* browsers only allow sound after a tap or key press, so resume on the first one */
-  let kicked = false;
-  const kick = () => { if (!kicked) { kicked = true; setMusic(true, false); } };
-  document.addEventListener("pointerdown", kick, { once: true, capture: true });
-  document.addEventListener("keydown", kick, { once: true, capture: true });
+$("#m-music").addEventListener("click", () => setMusic((musicMode + 1) % 3, true));
+{ /* browsers only allow sound after a tap or key press, so a remembered track resumes on the first one */
+  const saved = store.get("music"), mode = saved === "on" ? 1 : (saved === "1" || saved === "2") ? +saved : 0;
+  if (mode) {
+    let kicked = false;
+    const kick = (e) => { if (kicked) return; kicked = true; if (!(e.target.closest && e.target.closest("#m-music"))) setMusic(mode, false); };
+    document.addEventListener("pointerdown", kick, { once: true, capture: true });
+    document.addEventListener("keydown", kick, { once: true, capture: true });
+  }
 }
 
 /* ---------- start ---------- */
