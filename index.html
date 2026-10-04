@@ -1,713 +1,596 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POLYMATH ROBOTICS TERMINAL v2.77</title>
-<link href="https://fonts.googleapis.com/css2?family=VT323&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Half Life</title>
+<meta name="description" content="Half Life. Photographs and notes by Chris.">
+<meta name="theme-color" content="#000000">
+<meta property="og:title" content="Half Life">
+<meta property="og:description" content="Photographs and notes by Chris.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://halflife.studio/">
+<link rel="canonical" href="https://halflife.studio/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23000'/%3E%3Ccircle cx='16' cy='16' r='11' fill='none' stroke='%23fff' stroke-width='2'/%3E%3Cpath d='M16 5a11 11 0 0 0 0 22z' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=DotGothic16&display=swap">
 <style>
-:root {
-  --green:#20C20E; --green-dim:#0e6e08; --green-bright:#39ff14;
-  --green-glow:rgba(32,194,14,0.2); --green-bg:rgba(32,194,14,0.05);
-  --amber:#FFB000; --amber-dim:#7a5500;
-  --red:#FF3333; --red-dim:#7a1a1a;
-  --bg:#080a08; --bg-panel:#0c120c; --bg-input:#0a1a0a;
-  --border:#1a3a1a; --text:#e8e8e8; --text-dim:#888;
-  --font-terminal:'VT323','Courier New',monospace;
-  --font-read:'Barlow','Helvetica Neue',sans-serif;
-}
-*{margin:0;padding:0;box-sizing:border-box}
-html{font-size:20px}
-body{background:var(--bg);color:var(--text);font-family:var(--font-terminal);font-size:1rem;line-height:1.55;overflow-x:hidden;min-height:100vh}
-body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.12) 0px,rgba(0,0,0,.12) 1px,transparent 1px,transparent 4px);pointer-events:none;z-index:9999}
-body::after{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,.45) 100%);pointer-events:none;z-index:9998}
-#boot-screen{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:10000;display:flex;align-items:center;justify-content:center}
-#boot-text{width:90%;max-width:700px}
-#boot-text .line{display:block;opacity:0;color:var(--green);font-size:.75rem;line-height:1.8;transition:opacity .15s;letter-spacing:1px}
-#boot-text .line.visible{opacity:1}
-#boot-text .line.glow{color:var(--green-bright);text-shadow:0 0 8px var(--green)}
-.boot-cursor{display:inline-block;width:8px;height:14px;background:var(--green-bright);margin-left:4px;animation:blink 1s step-end infinite;vertical-align:middle}
-@keyframes blink{50%{opacity:0}}
-#app-root{display:none}
-#terminal-wrapper{max-width:980px;margin:0 auto;padding:20px 24px 40px}
-.header-bar{display:flex;justify-content:space-between;align-items:baseline;padding:14px 20px;border:1px solid var(--green-dim);border-bottom:2px solid var(--green);background:linear-gradient(180deg,rgba(32,194,14,.06) 0%,transparent 100%);margin-bottom:20px;flex-wrap:wrap;gap:8px}
-.header-bar .title{font-size:1.15rem;letter-spacing:3px;color:var(--green-bright)}
-.header-bar .meta{font-size:.7rem;color:var(--green-dim);letter-spacing:2px}
-.glow{text-shadow:0 0 6px rgba(32,194,14,.5)}
-.ceo-section{display:flex;gap:24px;padding:16px 20px;border:1px solid var(--border);background:var(--bg-panel);margin-bottom:20px;align-items:center;flex-wrap:wrap}
-.portrait-frame{width:180px;height:180px;border:2px solid var(--green);position:relative;flex-shrink:0;overflow:hidden;animation:glowPulse 3s ease-in-out infinite}
-.portrait-frame img{width:100%;height:100%;object-fit:cover;display:block}
-.portrait-scanline{position:absolute;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(0deg,transparent 0px,transparent 2px,rgba(0,0,0,.15) 2px,rgba(0,0,0,.15) 4px);pointer-events:none}
-.portrait-glitch{position:absolute;top:0;left:0;right:0;bottom:0;mix-blend-mode:screen;opacity:0;pointer-events:none;animation:portraitFlicker 8s ease-in-out infinite}
-.portrait-glow{position:absolute;top:0;left:0;right:0;bottom:0;animation:glowPulse 3s ease-in-out infinite;pointer-events:none}
-.portrait-corner{position:absolute;top:0;left:0;width:50%;height:40%;background:linear-gradient(135deg,rgba(8,10,8,.95) 0%,rgba(8,10,8,.7) 30%,transparent 70%);pointer-events:none;z-index:1}
-@keyframes glowPulse{0%,100%{box-shadow:0 0 8px var(--green-glow)}50%{box-shadow:0 0 30px var(--green-glow)}}
-@keyframes portraitFlicker{0%,30%,32%,66%,68%,100%{opacity:0}31%{opacity:.08}67%{opacity:.05}}
-.ceo-info{flex:1;min-width:200px}
-.ceo-info .name{font-size:1.1rem;color:var(--green-bright);letter-spacing:3px;margin-bottom:4px}
-.ceo-info .role{font-size:.7rem;color:var(--text-dim);letter-spacing:2px;margin-bottom:10px}
-.ceo-info .status-line{font-size:.75rem;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
-.week-banner{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;margin-bottom:18px;border:1px solid var(--amber-dim);background:linear-gradient(90deg,rgba(255,176,0,.06) 0%,transparent 50%,rgba(255,176,0,.06) 100%);flex-wrap:wrap;gap:8px}
-.week-banner .week-date{font-size:1.4rem;color:var(--amber);letter-spacing:4px;text-shadow:0 0 10px rgba(255,176,0,.3)}
-.week-banner .week-label{font-size:.7rem;color:var(--amber-dim);letter-spacing:2px}
-.week-banner .week-stats{font-size:.72rem;color:var(--text-dim);letter-spacing:1px;text-align:right}
-.tab-bar{display:flex;border:1px solid var(--border);border-bottom:none}
-.nav-tab{flex:1;padding:10px 8px;text-align:center;font-size:.75rem;letter-spacing:2px;color:var(--green-dim);border-right:1px solid var(--border);cursor:pointer;transition:all .15s;background:var(--bg-panel)}
-.nav-tab:last-child{border-right:none}
-.nav-tab:hover{color:var(--green);background:var(--green-bg)}
-.nav-tab.active{color:var(--green-bright);background:rgba(32,194,14,.08);border-bottom:2px solid var(--green-bright)}
-.tab-panel{display:none}
-.tab-panel.active{display:block;border:1px solid var(--border);border-top:none;padding:20px;background:var(--bg-panel)}
-.panel-box{background:var(--bg-panel);border:1px solid var(--border);padding:18px 20px;margin-bottom:18px;font-family:var(--font-read);font-size:.85rem;font-weight:300}
-.box-title{font-family:var(--font-terminal);font-size:.9rem;color:var(--green);letter-spacing:2px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
-.ascii-divider{color:var(--green-dim);font-size:.6rem;text-align:center;padding:12px 0;letter-spacing:2px;overflow:hidden}
-.status-badge{font-family:var(--font-terminal);font-size:.65rem;letter-spacing:1px;padding:2px 8px;display:inline-block}
-.status-green{color:var(--green-bright);border:1px solid var(--green-dim);background:rgba(32,194,14,.08)}
-.status-amber{color:var(--amber);border:1px solid var(--amber-dim);background:rgba(255,176,0,.08)}
-.status-red{color:var(--red);border:1px solid var(--red-dim);background:rgba(255,51,51,.08)}
-.alert-table{width:100%;border-collapse:collapse;margin-top:8px}
-.alert-table th{font-family:var(--font-terminal);font-size:.65rem;color:var(--green);letter-spacing:2px;text-align:left;padding:8px 10px;border-bottom:1px solid var(--green-dim)}
-.alert-table td{font-size:.8rem;padding:10px;border-bottom:1px solid var(--border);vertical-align:top;font-family:var(--font-read);font-weight:300}
-.submission{border:1px solid var(--border);padding:16px;margin-bottom:14px;background:rgba(0,0,0,.2)}
-.submission-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:6px}
-.submission-name{color:var(--green-bright);font-family:var(--font-terminal);font-size:.85rem;letter-spacing:2px}
-.submission-role{color:var(--text-dim);font-family:var(--font-terminal);font-size:.7rem;letter-spacing:1px}
-.field-label{font-family:var(--font-terminal);font-size:.65rem;color:var(--green);letter-spacing:2px;margin-top:10px;margin-bottom:3px}
-.field-value{color:var(--text);line-height:1.5}
-.field-value.amber{color:var(--amber)}
-.field-value.red{color:var(--red)}
-.dept-header{font-family:var(--font-terminal);font-size:.8rem;color:var(--amber);letter-spacing:3px;margin:20px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--amber-dim)}
-.dept-header:first-child{margin-top:0}
-.profile-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:14px;margin-top:12px}
-.profile-card{border:1px solid var(--border);padding:10px;text-align:center;cursor:pointer;transition:all .2s;background:rgba(0,0,0,.2)}
-.profile-card:hover{border-color:var(--green);background:var(--green-bg);box-shadow:0 0 12px var(--green-glow)}
-.profile-card .thumb{width:80px;height:80px;margin:0 auto 8px;border:1px solid var(--green-dim);overflow:hidden;position:relative}
-.profile-card .thumb img{width:100%;height:100%;object-fit:cover}
-.profile-card .card-name{font-size:.65rem;color:var(--green-bright);letter-spacing:1px;margin-bottom:2px}
-.profile-card .card-role{font-size:.5rem;color:var(--text-dim);letter-spacing:1px;line-height:1.3}
-.profile-card .card-status{margin-top:5px}
-.dept-section-title{font-family:var(--font-terminal);font-size:.75rem;color:var(--amber);letter-spacing:3px;margin:20px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--amber-dim)}
-.dept-section-title:first-of-type{margin-top:0}
-.back-btn{font-family:var(--font-terminal);font-size:.75rem;color:var(--green);letter-spacing:2px;cursor:pointer;padding:8px 0;display:inline-block;border:none;background:none}
-.back-btn:hover{color:var(--green-bright);text-shadow:0 0 6px var(--green-glow)}
-.profile-header{display:flex;gap:24px;align-items:flex-start;margin:16px 0;flex-wrap:wrap}
-.profile-portrait{width:160px;height:160px;border:2px solid var(--green);overflow:hidden;position:relative;flex-shrink:0}
-.profile-portrait img{width:100%;height:100%;object-fit:cover}
-.profile-meta{flex:1;min-width:200px}
-.profile-meta .name{font-family:var(--font-terminal);font-size:1.1rem;color:var(--green-bright);letter-spacing:3px}
-.profile-meta .role{font-size:.7rem;color:var(--text-dim);letter-spacing:2px;margin:4px 0 6px;font-family:var(--font-terminal)}
-.profile-meta .dept-tag{font-size:.6rem;color:var(--amber);letter-spacing:2px;padding:2px 8px;border:1px solid var(--amber-dim);display:inline-block;font-family:var(--font-terminal)}
-.blurb-area{margin:16px 0;padding:14px;border:1px solid var(--border);background:rgba(0,0,0,.2);font-family:var(--font-read);font-size:.85rem;font-weight:300;line-height:1.6;min-height:60px;cursor:pointer}
-.blurb-edit{width:100%;background:var(--bg-input);color:var(--text);border:1px solid var(--border);padding:12px;font-family:var(--font-read);font-size:.85rem;font-weight:300;line-height:1.6;resize:vertical;min-height:80px}
-.blurb-edit:focus{outline:none;border-color:var(--green);box-shadow:0 0 6px var(--green-glow)}
-.form-group{margin-bottom:14px}
-.form-label{display:block;font-family:var(--font-terminal);font-size:.65rem;color:var(--green);letter-spacing:2px;margin-bottom:5px}
-.form-input,.form-select,.form-textarea{width:100%;background:var(--bg-input);color:var(--text);border:1px solid var(--border);padding:8px 10px;font-family:var(--font-read);font-size:.85rem;font-weight:300}
-.form-input:focus,.form-select:focus,.form-textarea:focus{outline:none;border-color:var(--green);box-shadow:0 0 6px var(--green-glow)}
-.form-textarea{resize:vertical}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-@media(max-width:600px){.form-row{grid-template-columns:1fr}}
-.btn{font-family:var(--font-terminal);font-size:.8rem;letter-spacing:2px;color:var(--green-bright);background:transparent;border:1px solid var(--green-dim);padding:10px 28px;cursor:pointer;transition:all .15s}
-.btn:hover{background:rgba(32,194,14,.1);box-shadow:0 0 12px var(--green-glow)}
-.btn-row{display:flex;gap:12px;margin-top:16px;flex-wrap:wrap}
-.btn-amber{border-color:var(--amber-dim);color:var(--amber)}
-.btn-small{padding:6px 14px;font-size:.7rem}
-.search-row{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
-.search-row .form-input{flex:1;min-width:160px}
-.search-row .form-select{max-width:160px}
-.date-range{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
-.date-range label{font-family:var(--font-terminal);font-size:.6rem;color:var(--green-dim);letter-spacing:1px}
-.date-range input[type="date"]{background:var(--bg-input);color:var(--text);border:1px solid var(--border);padding:5px 8px;font-family:var(--font-read);font-size:.78rem}
-.date-range input[type="date"]:focus{outline:none;border-color:var(--green)}
-.archive-entry{display:flex;justify-content:space-between;padding:12px;border:1px solid var(--border);margin-bottom:8px;cursor:pointer;transition:all .15s;align-items:flex-start;gap:12px}
-.archive-entry:hover{border-color:var(--green-dim);background:var(--green-bg)}
-.archive-title{color:var(--green-bright);font-size:.8rem;letter-spacing:1px;margin-bottom:4px}
-.archive-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
-.tag{font-family:var(--font-terminal);font-size:.55rem;color:var(--text-dim);border:1px solid var(--border);padding:1px 6px;letter-spacing:1px}
-.archive-date{font-size:.75rem;color:var(--amber);letter-spacing:2px;white-space:nowrap;font-family:var(--font-terminal);padding:3px 10px;border:1px solid var(--amber-dim);background:rgba(255,176,0,.05)}
-.readme-section{margin-bottom:20px}
-.readme-section h3{font-family:var(--font-terminal);font-size:.8rem;color:var(--green);letter-spacing:2px;margin-bottom:10px}
-.readme-list{padding-left:20px;margin-top:8px}
-.readme-list li{margin-bottom:6px;line-height:1.5}
-.phase-box{border:1px solid var(--border);padding:14px;margin-bottom:10px}
-.phase-title{font-family:var(--font-terminal);font-size:.7rem;color:var(--amber);letter-spacing:2px;margin-bottom:8px}
-.footer{text-align:center;color:var(--green-dim);padding:24px 0;font-size:.8rem;letter-spacing:2px}
-.ctx-card{border:1px solid var(--border);margin-bottom:12px;background:rgba(0,0,0,.2);transition:all .2s}
-.ctx-card:hover{border-color:var(--green-dim)}
-.ctx-card.open{border-color:var(--green)}
-.ctx-card-header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;cursor:pointer;gap:10px}
-.ctx-card-header:hover{background:var(--green-bg)}
-.ctx-card-name{font-family:var(--font-terminal);font-size:.85rem;color:var(--green-bright);letter-spacing:2px}
-.ctx-card-meta{display:flex;align-items:center;gap:10px}
-.ctx-card-owner{font-family:var(--font-terminal);font-size:.6rem;color:var(--text-dim);letter-spacing:1px}
-.ctx-card-toggle{font-family:var(--font-terminal);font-size:.7rem;color:var(--green-dim);letter-spacing:1px;transition:color .15s}
-.ctx-card.open .ctx-card-toggle{color:var(--green)}
-.ctx-card-body{padding:0 18px 18px;display:none}
-.ctx-card.open .ctx-card-body{display:block;animation:ctxSlideIn .2s ease-out}
-@keyframes ctxSlideIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
-.ctx-section{margin-bottom:14px}
-.ctx-section-title{font-family:var(--font-terminal);font-size:.65rem;color:var(--amber);letter-spacing:3px;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--amber-dim)}
-.ctx-field{margin-bottom:8px}
-.ctx-field-label{font-family:var(--font-terminal);font-size:.6rem;color:var(--green);letter-spacing:2px;margin-bottom:2px}
-.ctx-field-value{font-family:var(--font-read);font-size:.82rem;font-weight:300;color:var(--text);line-height:1.5}
-.ctx-tasks{margin-top:6px}
-.ctx-task{padding:6px 10px;border:1px solid var(--border);margin-bottom:4px;font-family:var(--font-read);font-size:.78rem;font-weight:300;display:flex;align-items:center;gap:8px}
-.ctx-task-check{font-family:var(--font-terminal);font-size:.65rem;flex-shrink:0}
-.ctx-task-name{flex:1;color:var(--text)}
-.ctx-task-name.done{text-decoration:line-through;color:var(--text-dim)}
-.ctx-task-due{font-family:var(--font-terminal);font-size:.6rem;color:var(--amber);letter-spacing:1px;white-space:nowrap}
-.ctx-progress{display:flex;align-items:center;gap:10px;margin-top:4px}
-.ctx-progress-bar{flex:1;height:6px;background:var(--border)}
-.ctx-progress-fill{height:100%;transition:width .4s}
-.ctx-progress-pct{font-family:var(--font-terminal);font-size:.7rem;letter-spacing:1px}
-.ctx-two-col{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-@media(max-width:700px){.ctx-two-col{grid-template-columns:1fr}}
-.overseer-note{border:1px solid var(--green-dim);background:linear-gradient(180deg,rgba(32,194,14,.04) 0%,transparent 100%);padding:18px 20px;margin-bottom:18px}
-.overseer-note-header{display:flex;align-items:center;gap:12px;margin-bottom:10px}
-.overseer-note-label{font-family:var(--font-terminal);font-size:.7rem;color:var(--green);letter-spacing:3px}
-.overseer-note-byline{font-family:var(--font-terminal);font-size:.6rem;color:var(--green-dim);letter-spacing:1px}
-.overseer-note-body{font-family:var(--font-read);font-size:.88rem;font-weight:300;line-height:1.7;color:var(--text);white-space:pre-wrap}
-.overseer-note-empty{font-family:var(--font-terminal);font-size:.7rem;color:var(--text-dim);letter-spacing:1px;padding:12px 0;text-align:center}
-.countdown-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid var(--amber-dim);background:rgba(255,176,0,.04);margin-bottom:16px;flex-wrap:wrap}
-.countdown-label{font-family:var(--font-terminal);font-size:.65rem;color:var(--amber);letter-spacing:2px}
-.countdown-time{font-family:var(--font-terminal);font-size:.9rem;color:var(--amber);letter-spacing:3px;text-shadow:0 0 8px rgba(255,176,0,.3)}
-.countdown-closed{color:var(--red)}
-.brief-actions{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
-.clear-data-wrap{text-align:center;margin-top:8px}
-.footer{text-align:center;padding:20px;font-size:.6rem;color:var(--green-dim);letter-spacing:2px;margin-top:24px;border-top:1px solid var(--border)}
-.tool-card{border:1px solid var(--border);padding:20px;margin-bottom:16px;background:rgba(0,0,0,.2);position:relative;overflow:hidden}
-.tool-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:var(--amber)}
-.tool-card .tool-name{font-family:var(--font-terminal);font-size:1rem;color:var(--amber);letter-spacing:3px;margin-bottom:4px;padding-left:12px}
-.tool-card .tool-status{font-family:var(--font-terminal);font-size:.6rem;color:var(--text-dim);letter-spacing:2px;padding-left:12px;margin-bottom:10px}
-.tool-card .tool-desc{font-family:var(--font-read);font-size:.85rem;font-weight:300;line-height:1.6;padding-left:12px;color:var(--text)}
-.tool-card .tool-link{display:inline-block;margin-top:12px;margin-left:12px;font-family:var(--font-terminal);font-size:.7rem;letter-spacing:2px;color:var(--green-dim);border:1px solid var(--border);padding:6px 16px;cursor:not-allowed;opacity:.5}
-.memo-box{border:1px solid var(--amber-dim);padding:18px 20px;margin-top:20px;background:linear-gradient(180deg,rgba(255,176,0,.04) 0%,transparent 100%);position:relative}
-.memo-box::before{content:'INTERNAL MEMO';position:absolute;top:-8px;left:16px;background:var(--bg-panel);padding:0 8px;font-family:var(--font-terminal);font-size:.6rem;color:var(--amber);letter-spacing:2px}
-.memo-box .memo-header{font-family:var(--font-terminal);font-size:.65rem;color:var(--amber-dim);letter-spacing:1px;margin-bottom:12px;line-height:1.8}
-.memo-box .memo-body{font-family:var(--font-read);font-size:.85rem;font-weight:300;line-height:1.7;color:var(--text)}
-.memo-box .memo-sig{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);font-family:var(--font-terminal);font-size:.65rem;color:var(--green-dim);letter-spacing:2px}
-.feedback-msg{margin-top:14px;padding:12px;border:1px solid var(--green-dim);background:rgba(32,194,14,.05)}
-.feedback-msg.ok{border-color:var(--green)}
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
 </style>
 </head>
 <body>
-<div id="boot-screen"><div id="boot-text">
-  <span class="line">POLYMATH ROBOTICS TERMINAL v2.77</span>
-  <span class="line">COPYRIGHT 2077 POLYMATH ROBOTICS INC.</span>
-  <span class="line"> </span>
-  <span class="line">INITIALIZING VAULT-OS KERNEL ............ OK</span>
-  <span class="line">MEMORY CHECK: 640K .................... OK</span>
-  <span class="line">HOLOTAPE DRIVE: NONE DETECTED</span>
-  <span class="line">LOADING AUTONOMY MODULES ............... OK</span>
-  <span class="line">PERCEPTION SUBSYSTEM: ONLINE</span>
-  <span class="line">PATH PLANNER: CALIBRATED</span>
-  <span class="line">SAFETY CONTROLLER v2.3: ENGAGED</span>
-  <span class="line">GEOFENCE: ACTIVE — ALL ZONES NOMINAL</span>
-  <span class="line"> </span>
-  <span class="line">AUTHENTICATING ......................... PM_CHRIS</span>
-  <span class="line">CLEARANCE: LEVEL 4 — FULL ACCESS</span>
-  <span class="line">ROSTER LOADED: 29 PERSONNEL</span>
-  <span class="line"> </span>
-  <span class="line glow">TERMINAL READY.<span class="boot-cursor"></span></span>
-</div><div style="position:absolute;bottom:24px;width:100%;text-align:center;font-family:var(--font-terminal);font-size:.6rem;color:var(--green-dim);letter-spacing:2px;opacity:.5">CLICK ANYWHERE TO SKIP</div></div>
-<div id="app-root"></div>
+<style>
+/* Layout: a 16-bit RPG menu screen. Help window across the top, a large main window
+   (log list / config), a command window and a status window on the right.
+   An opened entry pops out over the screen as a translucent window.
+   Single dark look by choice; the window color is a Config option, as in the genre. */
+:root {
+  color-scheme: dark;
+  --win-a: #1c1c1c;       /* window gradient, top */
+  --win-b: #000000;       /* window gradient, bottom */
+  --accent: #ffffff;      /* cursor, headings */
+  --bg: color-mix(in srgb, var(--win-b) 28%, #000);            /* field behind the windows */
+  --veil: color-mix(in srgb, var(--bg) 62%, transparent);
+  --border: #f6f2ff;                                            /* window frame */
+  --border-shade: color-mix(in srgb, var(--win-a) 45%, #c4c4cc);/* inner frame line */
+  --fg: #ffffff;
+  --dim: color-mix(in srgb, var(--win-a) 22%, #fff);            /* dates, captions */
+  --off: color-mix(in srgb, var(--win-a) 48%, #fff);            /* unavailable commands */
+  --alert: #ffb0a4;
+  --hl: rgba(255, 255, 255, .13);
+  --spring: cubic-bezier(.34, 1.56, .64, 1);
+  --display: "Press Start 2P", "Courier New", monospace;
+  --body: "DotGothic16", ui-monospace, Menlo, monospace;
+}
+
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--body); font-size: 17px; line-height: 1.7;
+  padding-inline: 16px; padding-block: 20px 32px;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, .7);
+}
+#sky { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+.stage {
+  position: relative; z-index: 1;
+  max-width: 960px; margin-inline: auto;
+  display: grid; gap: 10px;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  grid-template-areas: "help help" "main menu" "main status";
+  grid-template-rows: auto auto 1fr;
+}
+.win {
+  background: linear-gradient(to bottom, var(--win-a), var(--win-b));
+  border: 3px solid var(--border); border-radius: 9px;
+  box-shadow: inset 0 0 0 2px var(--border-shade), 0 0 0 2px #000;
+  padding: 14px 16px; min-width: 0;
+}
+#help { grid-area: help; }
+#help .site { font-family: var(--display); font-size: 13px; line-height: 1.6; color: var(--accent); }
+#helptext { flex: 1 1 20ch; min-width: 0; }
+#helptext.bad { color: var(--alert); }
+#main { grid-area: main; min-height: 440px; padding: 20px 20px 22px; }
+#menu { grid-area: menu; display: flex; flex-direction: column; gap: 4px; }
+#status { grid-area: status; align-self: start; display: grid; grid-template-columns: auto 1fr; gap: 2px 14px; font-variant-numeric: tabular-nums; }
+#status dt { color: var(--dim); } #status dd { margin: 0; text-align: right; }
+dl { margin: 0; }
+
+h1, h2, h3, .label { font-family: var(--display); font-weight: 400; margin: 0; text-wrap: balance; }
+h1 { font-size: 18px; line-height: 1.6; }
+h2 { font-size: 17px; line-height: 1.6; }
+h3 { font-size: 12px; line-height: 1.7; color: var(--accent); margin-top: 8px; }
+.label { color: var(--accent); font-size: 12px; line-height: 1.6; letter-spacing: .06em; margin-bottom: 14px; }
+
+/* a selectable option: the cursor appears on hover / focus, and the row leans out on a soft spring */
+.opt {
+  display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; gap: 0 6px; align-items: baseline;
+  width: 100%; padding: 6px 4px; text-align: left;
+  background: none; border: 0; border-radius: 4px; color: inherit; font: inherit; text-shadow: inherit; cursor: pointer;
+  transition: transform .5s var(--spring);
+}
+.opt::before {
+  content: ""; width: 0; height: 0; align-self: center; visibility: hidden;
+  border-left: 10px solid var(--accent); border-top: 6px solid transparent; border-bottom: 6px solid transparent;
+  filter: drop-shadow(1px 1px 0 rgba(0, 0, 0, .7));
+}
+.opt:hover, .opt:focus-visible { transform: translateX(6px); }
+.opt:active { transform: translateX(2px) scale(.97); transition-duration: .1s; }
+.opt:hover::before, .opt:focus-visible::before, .opt[aria-current="true"]::before { visibility: visible; }
+.opt:focus-visible { outline: none; background: var(--hl); }
+.opt:focus-visible::before { animation: nudge 1.1s ease-in-out infinite; }
+@keyframes nudge { 50% { transform: translateX(-4px); } }
+.opt.locked { color: var(--off); cursor: not-allowed; }
+.opt[aria-pressed="true"] { color: var(--accent); }
+#menu .opt, .row .opt { font-family: var(--display); font-size: 12px; line-height: 1.7; }
+
+.files { display: flex; flex-direction: column; gap: 8px; }
+.file { grid-template-columns: 18px minmax(0, 1fr) auto; padding-block: 9px; }
+.file .no { color: var(--accent); font-variant-numeric: tabular-nums; }
+.file .name { font-family: var(--display); font-size: 12px; line-height: 1.8; overflow-wrap: anywhere; }
+.file .date { color: var(--dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.file .ttl { grid-column: 3 / -1; color: var(--dim); font-size: 15.5px; line-height: 1.45; overflow-wrap: anywhere; }
+.file .tag { color: var(--accent); margin-right: 10px; }
+
+/* an opened entry: translucent window that pops out over the screen */
+#reader {
+  position: fixed; inset: 0; z-index: 4; background: var(--veil);
+  display: flex; align-items: center; justify-content: center;
+  padding: calc(16px + env(safe-area-inset-top, 0px)) 16px calc(16px + env(safe-area-inset-bottom, 0px));
+}
+#readerwin {
+  width: min(100%, 720px); max-height: 100%; overflow-y: auto; padding: 22px 22px 20px;
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--win-a) 84%, transparent), color-mix(in srgb, var(--win-b) 88%, transparent));
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  box-shadow: inset 0 0 0 2px var(--border-shade), 0 0 0 2px #000, 0 18px 50px rgba(0, 0, 0, .6);
+}
+#readerwin:focus { outline: none; }
+#readerwin.pop { animation: pop .9s var(--spring); }
+@keyframes pop { from { transform: translateY(20px) scale(.76); opacity: 0; } 55% { opacity: 1; } to { transform: none; opacity: 1; } }
+.meta { color: var(--dim); font-size: 15px; margin: 0 0 8px; display: flex; flex-wrap: wrap; gap: 0 18px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.filehead { border-bottom: 2px solid rgba(255, 255, 255, .3); padding-bottom: 14px; margin-bottom: 18px; }
+.post { max-width: 60ch; display: flex; flex-direction: column; gap: 14px; }
+.post p, .post ul, .post blockquote { margin: 0; }
+.post ul { padding-left: 1.4em; list-style: square; }
+.post li::marker { color: var(--accent); }
+.post blockquote { border-left: 3px solid var(--accent); padding-left: 14px; color: var(--dim); }
+.eof { color: var(--dim); margin: 22px 0 8px; font-family: var(--display); font-size: 10px; letter-spacing: .1em; }
+.shots { display: grid; gap: 10px; }
+.shots.multi { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+figure { margin: 0; min-width: 0; }
+.shot { display: block; width: 100%; padding: 0; background: #000; border: 3px solid var(--border); border-radius: 6px; overflow: hidden; cursor: zoom-in; transition: transform .5s var(--spring); }
+.shot:hover, .shot:focus-visible { transform: scale(1.02); outline: none; }
+.shot img { display: block; width: 100%; height: auto; }
+figcaption { color: var(--dim); font-size: 15px; line-height: 1.4; margin-top: 6px; }
+#zoom { position: fixed; inset: 0; z-index: 6; background: rgba(0, 0, 0, .92); cursor: zoom-out; display: flex; flex-direction: column; gap: 10px; align-items: center; justify-content: center;
+  padding: calc(12px + env(safe-area-inset-top, 0px)) 12px calc(12px + env(safe-area-inset-bottom, 0px)); }
+#zoom img { max-width: 100%; max-height: calc(100% - 3em); min-height: 0; object-fit: contain; border: 3px solid var(--border); border-radius: 6px; }
+#zoom p { margin: 0; color: var(--dim); text-align: center; }
+.row { display: flex; flex-wrap: wrap; gap: 4px 18px; }
+.row .opt { width: auto; grid-template-columns: 18px auto; }
+.group { margin-top: 20px; }
+.sw { display: inline-block; width: 22px; height: 14px; border: 2px solid var(--border); border-radius: 3px; vertical-align: middle; margin-right: 8px; }
+.sw i { display: block; width: 6px; height: 6px; margin: 2px 0 0 12px; }
+
+/* motion: windows spring into place after the title screen; contents bounce in on every screen change */
+@keyframes rise { from { translate: 0 22px; scale: .95; opacity: 0; } to { translate: 0 0; scale: 1; opacity: 1; } }
+@keyframes slide { from { translate: -20px 0; opacity: 0; } to { translate: 0 0; opacity: 1; } }
+@keyframes glint { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.12); } }
+@keyframes blink { 50% { opacity: .2; } }
+.stage.go > .win { animation: rise 1.2s var(--spring) backwards; }
+.stage.go > #help { animation-delay: .1s; } .stage.go > #main { animation-delay: .35s; } .stage.go > #menu { animation-delay: .6s; } .stage.go > #status { animation-delay: .85s; }
+#main > *, #main .files > *, #main .group { animation: slide 1.1s var(--spring) backwards; animation-delay: calc(.25s + var(--i, 0) * 220ms); }
+#help .site { animation: glint 3.2s ease-in-out infinite; }
+#helptext::after { content: ""; display: inline-block; width: .5em; height: 1em; margin-left: 3px; vertical-align: text-bottom; background: var(--accent); opacity: 0; }
+#helptext.typing::after { opacity: 1; }
+
+/* title screen */
+#intro {
+  position: fixed; inset: 0; z-index: 5; background: var(--bg); cursor: pointer;
+  display: flex; align-items: center; justify-content: center; padding: 20px; transition: opacity .4s;
+}
+#intro.done { opacity: 0; pointer-events: none; }
+#intro .win { width: min(100%, 440px); padding: 30px 20px 26px; text-align: center; animation: rise 1.2s var(--spring) backwards; }
+#intro .name { font-family: var(--display); font-size: clamp(20px, 6.5vw, 30px); line-height: 1.5; color: var(--accent); }
+#intro .tagline { color: var(--dim); margin-top: 8px; }
+#intro .press { font-family: var(--display); font-size: 11px; line-height: 1.8; margin-top: 26px; animation: blink 1.6s ease-in-out infinite; }
+
+/* phone view: the command window becomes a bar fixed to the bottom of the screen */
+@media (max-width: 720px) {
+  body { padding-bottom: 128px; }
+  .stage { grid-template-columns: minmax(0, 1fr); grid-template-areas: "help" "main" "status"; grid-template-rows: auto; }
+  #menu {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 3; border-radius: 9px 9px 0 0;
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 4px;
+    padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px));
+  }
+  #menu .opt { grid-template-columns: 14px minmax(0, 1fr); gap: 0 4px; padding: 10px 4px; white-space: nowrap; font-size: 11px; }
+  #menu .opt:hover, #menu .opt:focus-visible { transform: none; }
+  #main { min-height: 0; padding: 16px 12px 20px; }
+  .opt { padding-block: 9px; }
+  .opt:hover, .opt:focus-visible { transform: translateX(3px); }
+  .file { grid-template-columns: 18px minmax(0, 1fr); }
+  .file .date { grid-column: 2; grid-row: 2; font-size: 14.5px; }
+  h1 { font-size: 15px; } h2 { font-size: 14px; }
+  #reader { padding: calc(8px + env(safe-area-inset-top, 0px)) 8px calc(8px + env(safe-area-inset-bottom, 0px)); }
+  #readerwin { padding: 18px 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .opt:focus-visible::before, #readerwin.pop, .stage.go > .win, #main > *, #main .files > *, #main .group, #help .site, #intro .win, #intro .press { animation: none; }
+  #intro, .opt { transition: none; }
+}
+</style>
+
+<canvas id="sky" aria-hidden="true"></canvas>
+
+<div class="stage" id="stage">
+  <div class="win" id="help">
+    <span class="site">HALF LIFE</span>
+    <span id="helptext" hidden></span>
+    <span id="helpsr" role="status" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)"></span>
+  </div>
+
+  <main class="win" id="main" tabindex="-1"></main>
+
+  <nav class="win" id="menu" aria-label="Commands">
+    <button class="opt" type="button" id="m-files" data-help="Read log entries.">Log</button>
+    <button class="opt locked" type="button" id="m-photos" data-locked="Not available yet." data-help="View photos. Not available yet.">Photos</button>
+    <button class="opt locked" type="button" id="m-prints" data-locked="Not available yet." data-help="Buy prints. Not available yet.">Shop</button>
+    <button class="opt" type="button" id="m-about" data-help="About this site.">About</button>
+    <button class="opt" type="button" id="m-config" data-help="Change settings.">Config</button>
+    <button class="opt" type="button" id="m-how" data-help="View controls.">Help</button>
+  </nav>
+
+  <dl class="win" id="status">
+    <dt>Entries</dt><dd id="count">0</dd>
+    <dt>Saved</dt><dd id="latest">-</dd>
+    <dt>Time</dt><dd id="clock">--:--:--</dd>
+  </dl>
+</div>
+
+<div id="reader" hidden><article class="win" id="readerwin" tabindex="-1" role="dialog" aria-modal="true" aria-label="Log entry"></article></div>
+
+<div id="zoom" hidden><img alt=""><p></p></div>
+
+<div id="intro"><div class="win">
+  <div class="name">HALF LIFE</div>
+  <div class="tagline">Still receiving.</div>
+  <div class="press">Press any button</div>
+</div></div>
+
 <script>
-(function(){var l=document.querySelectorAll('#boot-text .line'),b=document.getElementById('boot-screen'),a=document.getElementById('app-root'),i=0,done=false;
-function finish(){if(done)return;done=true;b.style.transition='opacity 0.3s';b.style.opacity='0';setTimeout(function(){b.style.display='none';a.style.display='block'},300);try{localStorage.setItem('pb_booted','1')}catch(e){}}
-function next(){if(done)return;if(i<l.length){l[i].classList.add('visible');i++;setTimeout(next,i===l.length?800:(i>10?80+Math.random()*40:90+Math.random()*80))}else{setTimeout(finish,600)}}
-if(localStorage.getItem('pb_booted')){l.forEach(function(x){x.classList.add('visible')});finish()}else{b.addEventListener('click',finish);setTimeout(next,400)}
-})();
-</script>
-<script type="text/babel">
-const{useState,useEffect}=React;
-const PH="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 300'%3E%3Cdefs%3E%3CradialGradient id='g' cx='50%25' cy='45%25' r='50%25'%3E%3Cstop offset='0%25' stop-color='%23163016'/%3E%3Cstop offset='100%25' stop-color='%230c120c'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect fill='url(%23g)' width='300' height='300'/%3E%3Cellipse cx='150' cy='110' rx='38' ry='45' fill='none' stroke='%2320C20E' stroke-width='1.5' opacity='.2'/%3E%3Cellipse cx='150' cy='210' rx='55' ry='35' fill='none' stroke='%2320C20E' stroke-width='1.5' opacity='.15'/%3E%3Cline x1='150' y1='155' x2='150' y2='175' stroke='%2320C20E' stroke-width='1.5' opacity='.15'/%3E%3Ctext x='150' y='175' text-anchor='middle' fill='%2320C20E' font-family='monospace' font-size='90' opacity='.5'%3E%3F%3C/text%3E%3C/svg%3E";
-const SP="data:image/jpeg;base64,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";
-const E=[
-{id:'stefan',n:'STEFAN SELTZ-AXMACHER',r:'CEO / FOUNDER',d:'Leadership',p:SP},
-{id:'ilia',n:'ILIA BARANOV',r:'CTO',d:'Leadership',p:PH},
-{id:'wally',n:'WALLY BRANDON',r:'ENGINEER',d:'Engineering',p:PH},
-{id:'michael',n:'MICHAEL BARTON-SWEENEY',r:'ENGINEER',d:'Engineering',p:PH},
-{id:'raj',n:'RAJ MUKHERJEE',r:'ENGINEER',d:'Engineering',p:PH},
-{id:'stephen',n:'STEPHEN OKAY',r:'ENGINEER',d:'Engineering',p:PH},
-{id:'quentin',n:'QUENTIN OLSON',r:'ENGINEER',d:'Engineering',p:PH},
-{id:'ismael',n:'ISMAEL DIAZ',r:'ENGINEER',d:'Engineering',p:PH},
-{id:'emerson',n:'EMERSON KNAPP',r:'ENGINEER',d:'Engineering',p:PH},
-{id:'elena',n:'ELENA TUTAL',r:'ENGINEER',d:'Engineering',p:PH},
-{id:'nikhil',n:'NIKHIL REDDY PATLOLLA',r:'ENGINEER',d:'Engineering',p:PH},
-{id:'aurnob',n:'AURNOB JAIN',r:'ENGINEER',d:'Engineering',p:PH},
-{id:'zarija',n:'ZARIJA AHMAD',r:'ENGINEER',d:'Engineering',p:PH},
-{id:'iva',n:'IVA SZIKODA',r:'ENGINEER',d:'Engineering',p:PH},
-{id:'joe',n:'JOE MCMILLAN',r:'ENGINEER',d:'Engineering',p:PH},
-{id:'carrie',n:'CARRIE CAI',r:'ENGINEER',d:'Engineering',p:PH},
-{id:'will',n:'WILL RICHARDSON',r:'ENGINEER',d:'Engineering',p:PH},
-{id:'simon',n:'SIMON EDWARDS-PARKER',r:'ENGINEER',d:'Engineering',p:PH},
-{id:'david',n:'DAVID TURATI',r:'ENGINEER',d:'Engineering',p:PH},
-{id:'ayan',n:'AYAN TORAMAN',r:'ENGINEER',d:'Engineering',p:PH},
-{id:'cameron',n:'CAMERON WALLACE',r:'ENGINEER',d:'Engineering',p:PH},
-{id:'harsha',n:'HARSHA DIGUMARTHI',r:'ENGINEER',d:'Engineering',p:PH},
-{id:'nicole',n:'NICOLE BUSALACCHI',r:'OPERATIONS',d:'Operations',p:PH},
-{id:'robert',n:'ROBERT MORRIS',r:'OPERATIONS',d:'Operations',p:PH},
-{id:'kimberly',n:'KIMBERLY NAVARRO',r:'OPERATIONS',d:'Operations',p:PH},
-{id:'ryan',n:'RYAN BAHR',r:'OPERATIONS',d:'Operations',p:PH},
-{id:'chris_m',n:'CHRIS MCCLAY',r:'OPERATIONS',d:'Operations',p:PH},
-{id:'hannah',n:'HANNAH GOSSETT',r:'OPERATIONS',d:'Operations',p:PH},
-{id:'johanna',n:'JOHANNA WAGONER',r:'OPERATIONS',d:'Operations',p:PH}
-];
-const DO=['Leadership','Engineering','Operations'];
-const CW='2077.02.28';
-const SEED={
-ilia:{status:'at-risk',accomplishment:'Completed initial bench test of u-blox F9P GNSS module. RTK fix time averaging 12.4s, accuracy ±2.1cm.',blockers:'Need CEO alignment on GNSS budget delta before Freeport SOW. $4,200/unit more for Septentrio.',decisions:'GNSS module selection. Septentrio superior but blows BOM cost by ~8%. Decision by 03.05.',nextWeek:'Septentrio bench test. Finalize safety controller v2.3 release notes. Geofence architecture review.',risks:'Path planner team at capacity. If Freeport pulls in, may need contractor.'},
-nicole:{status:'on-track',accomplishment:'Freeport-McMoRan SOW draft at 80%. Verbal commitment from VP of Innovation for 3-vehicle pilot at Morenci mine (AZ).',blockers:'Cannot finalize SOW until GNSS decision (impacts BOM pricing). → ILIA / STEFAN',nextWeek:'Finalize Freeport SOW. Follow up Komatsu HD785 lead. Schedule Codelco Chile intro call.',pipelineMetrics:'Active proposals: 3 | Verbal commits: 1 | New leads: 2 | Pipeline: ~$2.1M'},
-chris_m:{status:'at-risk',accomplishment:'Completed site prep checklist and network topology doc for Vulcan Midlothian. Bramco confirmed crane access for LiDAR mount.',blockers:'LiDAR cal failure pushing timeline. Vulcan PM requesting updated ETA Monday. → ELENA / CHRIS',decisions:'CEO approval on revised Midlothian timeline (+3 days). Deadline: 2077.03.01.',nextWeek:'Ship replacement LiDAR if RMA not resolved Tuesday. Begin Freeport pre-staging.',customerFeedback:'Mike Reeves (Vulcan Ops Mgr): "Need this machine running before March blast schedule."'},
-elena:{status:'blocked',accomplishment:'Isolated LiDAR cal bug to firmware v3.2.1 interaction with ROS wrapper. Does NOT reproduce on v3.1.8 but lacks multi-return for dust rejection.',blockers:'Velodyne non-responsive on RMA #VLP-8841 (opened 02.25). Need firmware patch or replacement unit.',decisions:'If no response by Tuesday: fall back to v3.1.8 (lose dust rejection) or ship Ouster OS1-64 (+2 days)?',nextWeek:'Continue Velodyne escalation. Prepare Ouster fallback config.'},
-emerson:{status:'on-track',accomplishment:'Completed Granite bring-up at Watsonville quarry. CAT 745 running autonomous haul cycles. 47 cycles, zero safety stops. Customer signed acceptance.',blockers:'None.',nextWeek:'Return to HQ Monday. Debrief engineering. Begin pre-trip for Vulcan Midlothian.',fieldNotes:'Dust brutal — LiDAR degradation after 4hrs. Recommend compressed air nozzle for maintenance SOP.',bringUpStatus:'GRANITE / WATSONVILLE — [COMPLETE] Accepted 02.27.'},
-quentin:{status:'on-track',accomplishment:'Merged PR #412: adaptive speed profiling for loaded/unloaded haul cycles. ~8% cycle time reduction on Watsonville route.',blockers:'None.',nextWeek:'Dynamic exclusion zones for geofence. Unit tests for PR #412 edge cases.',engMetrics:'PRs merged: 3 | Review turnaround: 1.1d avg | Coverage: 84%'},
-stephen:{status:'on-track',accomplishment:'Safety controller v2.3 passed all 114 regression tests. E-stop latency: 47ms (down from 62ms). Ready for CTO sign-off.',blockers:'None.',nextWeek:'Deploy v2.3 to Watsonville (OTA). Begin FMEA for Freeport config.'},
-kimberly:{status:'on-track',accomplishment:'Finalized BOM v3.1. Consolidated 3 PoE switch SKUs to 1 (Netgear M4250-10G2XF-PoE+). Saves $340/kit.',blockers:'None.',nextWeek:'Assemble 2 kits for Freeport. Update Airtable BOM database.'}
-};
-const BLURBS={
-stefan:'Overseer of the Vault. Keeps the lights on, the machines running, and the vision alive. Known to deliver directives from the observation deck at sunset. Preferred protocol: strategic patience.',
-ilia:'Chief architect of the autonomous mind. Speaks fluent ROS, C++, and sarcasm. Has been known to debug hardware with a multimeter in one hand and espresso in the other.',
-wally:'Polymath staff since day one. If it compiles, Wally probably touched it. Quiet until it matters — then the code speaks.',
-michael:'Full-stack wanderer. Moves between firmware and cloud like it\'s the same ZIP code. Surprisingly strong opinions about variable naming.',
-raj:'Algorithm architect. Sees the math behind the motion. Once optimized a pathfinding routine during a power outage by candlelight.',
-stephen:'Safety-first, always. If the e-stop fires in 47ms, thank Stephen. Sleeps soundly knowing every failure mode has a countermeasure.',
-quentin:'Path planning perfectionist. Makes machines move with purpose. PR merge rate: relentless. Test coverage: personal mission.',
-ismael:'Quiet force multiplier. Ships clean code and asks no questions. Known to fix bugs before anyone reports them.',
-emerson:'Boots on the ground, eyes on the machine. If it rolls autonomous in the field, Emerson was there for first contact. Dust-proof.',
-elena:'Sees what machines see — and then some. LiDAR wrangler. Firmware whisperer. The one who finds the bug everyone else missed.',
-nikhil:'Deep-diver. Give Nikhil a hard problem and come back in 48 hours — it\'ll be solved, documented, and unit-tested.',
-aurnob:'Rapid prototyper. Turns "what if we tried..." into working demos before lunch. Dangerously fast with Python.',
-zarija:'Precision-obsessed. Calibration runs cleaner after Zarija looks at it. Believes "close enough" is never close enough.',
-iva:'Systems thinker. Connects dots between subsystems nobody else notices. Asks the question that changes the whole approach.',
-joe:'Workhorse. Joe doesn\'t say much in standups but the commit log tells the story. Reliable like gravity.',
-carrie:'New blood, sharp instincts. Asks the right questions and writes code like someone who\'s been here for years.',
-will:'Debugging savant. Sixth sense for race conditions and off-by-one errors. Knows an uncomfortable amount about network protocols.',
-simon:'The integrator. If two systems need to talk, Simon builds the bridge. Clean interfaces, clear docs, no drama.',
-david:'Sensor whisperer. Can tell you what\'s wrong with a LiDAR unit from the sound it makes. Possibly not joking.',
-ayan:'Research-minded builder. Brings academic rigor to production code. Reads papers for fun. Judges you (silently) for not reading papers.',
-cameron:'Field support ace. Can troubleshoot a CAN bus issue over a satellite phone while eating lunch. Has done so.',
-harsha:'Data pipeline architect. If telemetry flows clean, Harsha made it happen. Allergic to unstructured logs.',
-nicole:'The voice of the Vault. Turns cold leads into warm handshakes. Pipeline whisperer. Once closed a deal during a site power outage.',
-robert:'Logistics mastermind. Knows where every piece of hardware is, where it\'s going, and when it\'ll get there.',
-kimberly:'Turns a pile of parts into a retrofit kit. BOM optimizer. Cable harness artist. If it plugs in or bolts on — it went through Kimberly.',
-ryan:'Process optimizer. Finds the bottleneck, removes it, documents the fix. Repeat. Spreadsheet wizard in disguise.',
-chris_m:'Keeper of the checklists, master of the timeline. If it ships on time, Chris made it happen. If late, Chris warned you two weeks ago.',
-hannah:'Comms central. Keeps information flowing between field and HQ. Nothing falls through the cracks on her watch.',
-johanna:'Regulatory navigator. Knows the compliance landscape like the back of her hand. Safety filings, permits, paperwork — handled.'
-};
-const PW='2077.02.21';
-const SEED_PREV={
-ilia:{status:'on-track',accomplishment:'Finalized Granite autonomy config. All sensor calibration within spec. Path planner v2.1 deployed to field unit.',blockers:'None.',nextWeek:'GNSS evaluation kickoff. Begin Septentrio vs u-blox bench test. Safety controller v2.3 regression.',risks:'Path planner team stretched if Freeport accelerates.'},
-nicole:{status:'on-track',accomplishment:'Vulcan Midlothian SOW signed ($1.2M). Freeport intro call completed — strong interest in 3-vehicle pilot.',blockers:'None.',nextWeek:'Begin Freeport SOW draft. Follow up Komatsu lead from MINExpo.',pipelineMetrics:'Active proposals: 2 | Verbal commits: 1 | New leads: 3 | Pipeline: ~$1.8M'},
-emerson:{status:'on-track',accomplishment:'Granite bring-up Day 3 at Watsonville. CAT 745 running supervised haul loops. 22 cycles, 1 soft stop (dust occlusion).',blockers:'None.',nextWeek:'Continue Granite bring-up through acceptance. Target Day 5 sign-off.',fieldNotes:'Dust levels high — LiDAR needs cleaning every 2 hours. Consider air nozzle for SOP.',bringUpStatus:'GRANITE / WATSONVILLE — [IN PROGRESS] Day 3 of 5.'},
-elena:{status:'on-track',accomplishment:'Multi-return LiDAR configuration deployed to Granite. Dust rejection improved 40% over single-return mode.',blockers:'None.',nextWeek:'Monitor field performance at Watsonville. Begin firmware v3.2.1 upgrade testing on bench.'},
-quentin:{status:'on-track',accomplishment:'Path planner v2.1 merged. Multi-vehicle awareness scaffolding in place. 12 unit tests added.',blockers:'None.',nextWeek:'Begin adaptive speed profiling for loaded/unloaded detection. PR review backlog.',engMetrics:'PRs merged: 4 | Review turnaround: 0.9d avg | Coverage: 82%'},
-kimberly:{status:'on-track',accomplishment:'BOM v3.0 draft circulated. Evaluating PoE switch consolidation — 3 SKUs down to 1.',blockers:'None.',nextWeek:'Finalize BOM v3.1 with switch decision. Begin kit assembly for Vulcan.'}
-};
-const OVERSEER_SEEDS={};
-OVERSEER_SEEDS[CW]='Team — strong week. Granite acceptance at Watsonville is a milestone worth celebrating. Emerson and the field crew delivered. The LiDAR situation with Elena needs resolution by Tuesday or we go with the Ouster fallback — I don\'t want Vulcan\'s timeline slipping further. Ilia, let\'s sync on the GNSS decision Monday morning. Eight percent BOM increase is real money at scale but Septentrio\'s performance delta might justify it. Bring the bench data.\n\nKimberly — nice work consolidating the switch SKUs. That kind of BOM discipline adds up.\n\nEveryone: submit your updates by Friday 17:00. No exceptions. If it\'s not in the brief, it didn\'t happen.\n\n— Stefan';
-OVERSEER_SEEDS[PW]='Granite bring-up is tracking well. Good work from Emerson and the Watsonville crew. Nicole — Vulcan signing is a big deal, well earned. Let\'s make sure Freeport gets the same energy.\n\nQuentin\'s path planner work is quietly excellent. Four PRs merged with sub-day review turnaround. That\'s the pace we need.\n\nReminder: MINExpo leads are cooling. Nicole, prioritize the top 6 follow-ups this week.\n\n— Stefan';
-const ARC=[
-{id:'BRIEF-2077.02.28',dt:'2077-02-28',dd:'2077.02.28',t:'LiDAR blocker, GNSS eval, Granite acceptance',tg:['bring-up','bug','decision','customer'],st:['red','amber','green'],c:'LiDAR firmware v3.2.1 calibration failure. GNSS evaluation underway. Granite/Watsonville complete. Freeport SOW at 80%.'},
-{id:'BRIEF-2077.02.21',dt:'2077-02-21',dd:'2077.02.21',t:'Granite bring-up Day 3, BOM v3, safety controller testing',tg:['bring-up','integration','safety'],st:['amber','green'],c:'Granite on track at Watsonville. BOM v3.0 draft circulated. Safety controller v2.3 entering regression.'},
-{id:'BRIEF-2077.02.14',dt:'2077-02-14',dd:'2077.02.14',t:'Pre-staging Granite, Vulcan SOW signed, new sales lead',tg:['bring-up','customer','sales'],st:['green'],c:'Granite pre-staging complete. Vulcan Midlothian SOW signed. Freeport intro call positive.'},
-{id:'BRIEF-2077.02.07',dt:'2077-02-07',dd:'2077.02.07',t:'Path planner refactor, safety v2.2, MINExpo follow-ups',tg:['integration','safety','sales'],st:['green'],c:'Path planner refactored for multi-vehicle. Safety v2.2 deployed OTA. 6 MINExpo leads in follow-up.'},
-{id:'BRIEF-2077.01.31',dt:'2077-01-31',dd:'2077.01.31',t:'MINExpo debrief, Lehigh Hanson complete, perception upgrade',tg:['bring-up','customer','decision'],st:['green'],c:'MINExpo: 14 qualified leads. Lehigh Hanson Cape Girardeau complete. Velodyne multi-return begun.'},
-{id:'BRIEF-2077.01.24',dt:'2077-01-24',dd:'2077.01.24',t:'MINExpo prep, Lehigh Day 4, BOM v2.9',tg:['bring-up','sales','integration'],st:['green'],c:'MINExpo booth construction. Lehigh entering validation. BOM v2.9 approved.'},
-{id:'BRIEF-2077.01.17',dt:'2077-01-17',dd:'2077.01.17',t:'Lehigh install, path planner v2, new hire onboarding',tg:['bring-up','integration'],st:['amber','green'],c:'Lehigh install in progress. Path planner v2 branch merged. Two new engineers onboarding.'},
-{id:'BRIEF-2077.01.10',dt:'2077-01-10',dd:'2077.01.10',t:'Q1 planning, Lehigh pre-staging, safety audit',tg:['decision','safety','customer'],st:['green'],c:'Q1 OKRs finalized. Lehigh pre-staging. Safety controller v2.2 audit complete.'}
+/* ---------- CHRONICLES ----------
+   Every blog post is one entry here. Body format:
+   blank line = new paragraph, "## " = heading, "- " = list item, "> " = quote. */
+const POSTS = [
+  {
+    file: "001_photo_test.log",
+    date: "2026-10-03",
+    tag: "SAMPLE",
+    title: "Photo test",
+    body: `[SAMPLE ENTRY. The pictures here are placeholders, not real photos. They show how photos sit inside a post.]
+
+A photo goes on its own line between paragraphs. It fills the width of the text and takes a caption.
+
+![One photo on its own line, with a caption](sample:1)
+
+Put two or more photo lines together and they sit side by side. Select any photo to see it large.
+
+![Left of a pair](sample:2)
+![Right of a pair](sample:3)
+
+Text carries on underneath as normal.`
+  },
+  {
+    file: "000_start.log",
+    date: "2026-10-02",
+    tag: "SAMPLE",
+    title: "First entry",
+    body: `[SAMPLE ENTRY. Chris, rewrite or delete this one. It is here so you can see how a real post reads in the window.]
+
+I nearly opened a Substack. It takes five minutes and it works.
+
+But every Substack looks like every other Substack. A place I built myself can look like whatever I want, and what I want is for it to feel like opening a save file.
+
+## What goes here
+
+- Updates, whenever I have one. No schedule.
+- Photos, once that menu unlocks.
+- Prints for sale, eventually.
+
+> Each post is a log entry. You opened one. That is the whole idea.
+
+More soon.`
+  }
 ];
 
-/* ── DATA SERVICE ── */
-const DB={
-_g(k){try{return JSON.parse(localStorage.getItem('pb_'+k))}catch{return null}},
-_s(k,v){localStorage.setItem('pb_'+k,JSON.stringify(v))},
-seed(){if(this._g('v5'))return;
-const u={};u[CW]={};Object.entries(SEED).forEach(([i,d])=>{u[CW][i]={...d,at:'2077.02.28 13:47'}});
-u[PW]={};Object.entries(SEED_PREV).forEach(([i,d])=>{u[PW][i]={...d,at:'2077.02.21 14:02'}});
-this._s('updates',u);this._s('blurbs',{...BLURBS});this._s('overseer',{...OVERSEER_SEEDS});this._s('v5',true)},
-blurb(id){return(this._g('blurbs')||{})[id]||'AWAITING PERSONNEL FILE — click to add your bio.'},
-setBlurb(id,t){const b=this._g('blurbs')||{};b[id]=t;this._s('blurbs',b)},
-updates(wk){return(this._g('updates')||{})[wk]||{}},
-submit(id,wk,d){const a=this._g('updates')||{};if(!a[wk])a[wk]={};a[wk][id]={...d,at:new Date().toISOString().replace('T',' ').substring(0,16)};this._s('updates',a)},
-weeks(){const u=this._g('updates')||{};return Object.keys(u).sort().reverse()},
-overseerNote(wk){return(this._g('overseer')||{})[wk]||''},
-setOverseerNote(wk,t){const o=this._g('overseer')||{};o[wk]=t;this._s('overseer',o)},
-clearAll(){Object.keys(localStorage).filter(k=>k.startsWith('pb_')).forEach(k=>localStorage.removeItem(k));this.seed()}
-};
-DB.seed();
+/* ---------- helpers ---------- */
+const $ = (s) => document.querySelector(s);
+const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const store = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
+const sorted = POSTS.slice().sort((a, b) => b.date.localeCompare(a.date) || a.file.localeCompare(b.file));
+const main = $("#main"), helptext = $("#helptext"), reader = $("#reader"), rwin = $("#readerwin");
+let view = "files", viewHelp = "", soundOn = store.get("sound") === "on", ac = null, current = null;
 
-/* ── COMPONENTS ── */
-function SB({s}){if(!s)return null;const m={'on-track':['ON TRACK','green'],'at-risk':['AT RISK','amber'],'blocked':['BLOCKED','red']};const[l,c]=m[s]||[s,'green'];return<span className={`status-badge status-${c}`}>[{l}]</span>}
-function PF({src,sz=180}){return<div className="portrait-frame" style={{width:sz,height:sz}}><img src={src} alt=""/><div className="portrait-scanline"></div><div className="portrait-glitch"></div><div className="portrait-glow"></div>{src===SP&&<div className="portrait-corner"></div>}</div>}
+function setHash(h) { try { history.replaceState(null, "", h ? "#" + h : location.pathname + location.search); } catch (e) {} }
+let helpTimer = null, helpNow = "";
+function help(text, bad) {
+  helptext.classList.toggle("bad", !!bad);
+  if (text === helpNow) return;
+  helpNow = text; $("#helpsr").textContent = text; clearInterval(helpTimer);
+  if (reduce) { helptext.textContent = text; return; }
+  let i = 0; helptext.textContent = ""; helptext.classList.add("typing");
+  helpTimer = setInterval(() => {
+    i += 3; helptext.textContent = text.slice(0, i);
+    if (i >= text.length) { clearInterval(helpTimer); helptext.classList.remove("typing"); }
+  }, 16);
+}
+function blip(freq, len) { /* a soft, rounded click: a sine that drops in pitch, through a low-pass */
+  if (!soundOn) return;
+  try {
+    ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+    const o = ac.createOscillator(), g = ac.createGain(), lp = ac.createBiquadFilter(), t = ac.currentTime;
+    const f = 260 + freq * .3, d = (len || .05) + .03;
+    o.type = "sine"; o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f * .55, t + d);
+    lp.type = "lowpass"; lp.frequency.value = 1400;
+    g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(.09, t + .004);
+    g.gain.exponentialRampToValueAtTime(.0001, t + d);
+    o.connect(lp); lp.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + d + .02);
+  } catch (e) {}
+}
+function opt(text, helpText, onClick, cls) {
+  const b = el("button", "opt" + (cls ? " " + cls : ""), text); b.type = "button";
+  if (helpText) b.dataset.help = helpText;
+  if (onClick) b.addEventListener("click", onClick);
+  return b;
+}
+function mark(id) { document.querySelectorAll("#menu .opt").forEach((b) => b.setAttribute("aria-current", b.id === id ? "true" : "false")); }
+function open(name, defaultHelp, menuId) { view = name; viewHelp = defaultHelp; main.textContent = ""; help(defaultHelp); mark(menuId); }
 
-/* ── BRIEF VIEW ── */
-function BriefView(){
-const[wk,setWk]=useState(CW);
-const weeks=DB.weeks();
-const up=DB.updates(wk),en=Object.entries(up),tot=E.filter(x=>x.id!=='stefan').length;
-const alerts=en.filter(([,u])=>u.status==='blocked'||u.status==='at-risk').map(([id,u])=>({e:E.find(x=>x.id===id),u}));
-const decs=en.filter(([,u])=>u.decisions?.trim()).map(([id,u])=>({e:E.find(x=>x.id===id),u}));
-const byD={};DO.forEach(d=>{byD[d]=[]});en.forEach(([id,u])=>{const x=E.find(a=>a.id===id);if(x&&byD[x.d])byD[x.d].push({e:x,u})});
-const bl=alerts.filter(a=>a.u.status==='blocked').length,ar=alerts.filter(a=>a.u.status==='at-risk').length;
-const onote=DB.overseerNote(wk);
-const[copied,setCopied]=useState(false);
-function exportMD(){
-let md='# POLYMATH ROBOTICS — WEEKLY BRIEF\n## Week of '+wk+'\n\n';
-md+=en.length+' / '+tot+' submissions';
-if(bl>0)md+=' | '+bl+' BLOCKED';
-if(ar>0)md+=' | '+ar+' AT RISK';
-md+='\n\n';
-if(onote)md+='---\n### OVERSEER\'S DISPATCH\n'+onote+'\n\n';
-if(alerts.length>0){md+='---\n### CRITICAL ALERTS & BLOCKERS\n';alerts.forEach(a=>{md+='- **['+a.u.status.toUpperCase().replace('-',' ')+']** '+(a.u.blockers&&a.u.blockers!=='None.'&&a.u.blockers!=='None'?a.u.blockers:a.u.accomplishment)+' — '+a.e?.n?.split(' ')[0]+'\n'});md+='\n'}
-if(decs.length>0){md+='---\n### PENDING DECISIONS\n';decs.forEach(d=>{md+='- '+d.u.decisions+' — '+d.e?.n?.split(' ')[0]+'\n'});md+='\n'}
-md+='---\n### COMPILED SUBMISSIONS\n\n';
-DO.forEach(dept=>{const items=byD[dept];if(!items?.length)return;md+='#### '+dept.toUpperCase()+'\n\n';
-items.forEach(({e:emp,u})=>{md+='**'+emp.n+'** — '+emp.r+' ['+u.status.toUpperCase().replace('-',' ')+']\n';
-if(u.accomplishment)md+='- Top Accomplishment: '+u.accomplishment+'\n';
-if(u.blockers&&u.blockers!=='None.'&&u.blockers!=='None')md+='- Blockers: '+u.blockers+'\n';
-if(u.decisions)md+='- Decisions: '+u.decisions+'\n';
-if(u.nextWeek)md+='- Next Week: '+u.nextWeek+'\n';
-md+='\n'})});
-try{navigator.clipboard.writeText(md);setCopied(true);setTimeout(()=>setCopied(false),2000)}catch{}}
-return<div>
-<div className="week-banner"><div><div className="week-label">WEEKLY BRIEF — COMPILED</div>
-<div style={{display:'flex',alignItems:'center',gap:12}}>
-<div className="week-date">{wk}</div>
-{weeks.length>1&&<select className="form-select" value={wk} onChange={e=>setWk(e.target.value)} style={{maxWidth:180,fontSize:'.7rem',padding:'4px 8px',background:'var(--bg-input)',color:'var(--amber)',border:'1px solid var(--amber-dim)',fontFamily:'var(--font-terminal)',letterSpacing:1}}>{weeks.map(w=><option key={w} value={w}>{w}{w===CW?' (CURRENT)':''}</option>)}</select>}
-</div></div>
-<div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:6}}>
-<div className="week-stats">{en.length} / {tot} SUBMISSIONS<br/>{bl>0&&<span style={{color:'var(--red)'}}>● {bl} BLOCKED </span>}{ar>0&&<span style={{color:'var(--amber)'}}>● {ar} AT RISK </span>}{bl===0&&ar===0&&<span style={{color:'var(--green-bright)'}}>● ALL CLEAR</span>}</div>
-<button className="btn btn-small" onClick={exportMD} style={{fontSize:'.6rem',padding:'4px 12px'}}>{copied?'[✓ COPIED]':'[ EXPORT MD ]'}</button>
-</div></div>
+/* ---------- views ---------- */
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const day = (d) => { const [y, m, dd] = d.split("-"); return MONTHS[+m - 1] + " " + +dd + ", " + y; };
+function showFiles(focusFirst) {
+  open("files", "Select an entry.", "m-files");
+  const list = el("div", "files");
+  sorted.forEach((p) => {
+    const b = opt(null, p.title, () => showPost(p), "file"); b.dataset.file = p.file;
+    b.append(el("span", "name", p.title), el("span", "date", day(p.date)));
+    b.style.setProperty("--i", list.children.length);
+    list.append(b);
+  });
+  main.append(list);
+  if (focusFirst) { const f = list.querySelector(".opt"); if (f) f.focus(); }
+}
 
-{onote&&<div className="overseer-note">
-<div className="overseer-note-header"><span className="overseer-note-label">OVERSEER'S DISPATCH — POLYMATH DISPATCH OF THE WEEK</span></div>
-<div className="overseer-note-body">{onote}</div>
-</div>}
+/* A photo line looks like  ![caption](address)  where the address is the photo's file.
+   "sample:1" draws a placeholder picture so the layout can be seen before real photos exist. */
+const PHOTO = /^!\[(.*)\]\((.+)\)$/;
+function photoSrc(src) {
+  const m = /^sample:(\d+)$/.exec(src); if (!m) return src;
+  const n = +m[1], l = 30 + (n * 17) % 30;
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="hsl(0,0%,' + (l + 40) + '%)"/><stop offset="1" stop-color="hsl(0,0%,' + l + '%)"/></linearGradient></defs>' +
+    '<rect width="600" height="400" fill="url(#g)"/><circle cx="' + (110 + (n * 130) % 380) + '" cy="110" r="36" fill="rgba(255,255,255,.8)"/>' +
+    '<path d="M0 300 L150 ' + (190 + n * 12) + ' L260 270 L400 ' + (210 - n * 10) + ' L600 290 V400 H0Z" fill="rgba(0,0,0,.45)"/>' +
+    '<text x="300" y="374" text-anchor="middle" font-family="monospace" font-size="22" fill="#fff">SAMPLE PHOTO ' + n + '</text></svg>';
+  return "data:image/svg+xml," + encodeURIComponent(svg);
+}
+function zoom(src, caption) { const z = $("#zoom"); z.querySelector("img").src = src; z.querySelector("img").alt = caption; z.querySelector("p").textContent = caption; z.hidden = false; }
+function unzoom() { $("#zoom").hidden = true; }
+function renderBody(text, into) {
+  text.split(/\n\s*\n/).forEach((block) => {
+    const lines = block.split("\n").map((l) => l.trim()).filter(Boolean);
+    if (!lines.length) return;
+    if (lines[0].startsWith("## ")) { into.append(el("h3", null, lines[0].slice(3))); lines.shift(); if (!lines.length) return; }
+    if (lines.every((l) => PHOTO.test(l))) {
+      const wrap = el("div", "shots" + (lines.length > 1 ? " multi" : ""));
+      lines.forEach((l) => {
+        const m = l.match(PHOTO), fig = el("figure"), b = el("button", "shot"), img = el("img");
+        b.type = "button"; b.dataset.help = "View photo."; img.src = photoSrc(m[2]); img.alt = m[1]; img.loading = "lazy";
+        b.append(img); b.addEventListener("click", () => zoom(img.src, m[1]));
+        fig.append(b); if (m[1]) fig.append(el("figcaption", null, m[1])); wrap.append(fig);
+      });
+      into.append(wrap);
+    } else if (lines.every((l) => l.startsWith("- "))) {
+      const ul = el("ul"); lines.forEach((l) => ul.append(el("li", null, l.slice(2)))); into.append(ul);
+    } else if (lines.every((l) => l.startsWith("> "))) {
+      into.append(el("blockquote", null, lines.map((l) => l.slice(2)).join(" ")));
+    } else into.append(el("p", null, lines.join(" ")));
+  });
+}
 
-{alerts.length>0&&<div className="panel-box"><div className="box-title glow">⚠ CRITICAL ALERTS &amp; BLOCKERS</div><table className="alert-table"><thead><tr><th>STATUS</th><th>ITEM</th><th>OWNER</th></tr></thead><tbody>
-{alerts.map(a=><tr key={a.e?.id}><td><SB s={a.u.status}/></td><td>{a.u.blockers&&a.u.blockers!=='None.'&&a.u.blockers!=='None'?a.u.blockers:a.u.accomplishment}</td><td style={{whiteSpace:'nowrap'}}>{a.e?.n?.split(' ')[0]}</td></tr>)}
-</tbody></table></div>}
-{(()=>{const missing=E.filter(x=>x.id!=='stefan'&&!up[x.id]);return missing.length>0?<div className="panel-box"><div className="box-title" style={{color:'var(--amber)'}}>⏳ AWAITING SUBMISSION ({missing.length})</div><div style={{display:'flex',flexWrap:'wrap',gap:'8px'}}>{missing.map(m=><span key={m.id} style={{fontFamily:'var(--font-terminal)',fontSize:'.6rem',letterSpacing:1,color:'var(--text-dim)',border:'1px solid var(--border)',padding:'3px 10px'}}>{m.n.split(' ')[0]} {m.n.split(' ').slice(-1)[0][0]}.</span>)}</div></div>:null})()}
-{decs.length>0&&<div className="panel-box"><div className="box-title glow">📋 PENDING DECISIONS</div><table className="alert-table"><thead><tr><th>DECISION</th><th>OWNER</th></tr></thead><tbody>
-{decs.map(d=><tr key={d.e?.id}><td>{d.u.decisions}</td><td style={{whiteSpace:'nowrap'}}>{d.e?.n?.split(' ')[0]}</td></tr>)}
-</tbody></table></div>}
-<div className="ascii-divider">════════════════════════════════════════════════════════════════════════</div>
-<div className="panel-box"><div className="box-title glow">COMPILED SUBMISSIONS — WEEK OF {wk}</div>
-{DO.map(dept=>{const items=byD[dept];if(!items?.length)return null;return<div key={dept}><div className="dept-header">▸ {dept.toUpperCase()}</div>
-{items.map(({e:emp,u})=><div className="submission" key={emp.id}><div className="submission-header"><div><span className="submission-name">{emp.n}</span><span className="submission-role"> — {emp.r}</span></div><SB s={u.status}/></div>
-{u.accomplishment&&<><div className="field-label">TOP ACCOMPLISHMENT:</div><div className="field-value">{u.accomplishment}</div></>}
-{u.blockers&&u.blockers!=='None.'&&u.blockers!=='None'&&<><div className="field-label">BLOCKERS:</div><div className={`field-value ${u.status==='blocked'?'red':u.status==='at-risk'?'amber':''}`}>{u.blockers}</div></>}
-{u.decisions&&<><div className="field-label">DECISIONS NEEDED:</div><div className="field-value amber">{u.decisions}</div></>}
-{u.nextWeek&&<><div className="field-label">NEXT WEEK FOCUS:</div><div className="field-value">{u.nextWeek}</div></>}
-{u.risks&&<><div className="field-label">RISK NOTE:</div><div className="field-value amber">{u.risks}</div></>}
-{u.fieldNotes&&<><div className="field-label">FIELD NOTES:</div><div className="field-value">{u.fieldNotes}</div></>}
-{u.customerFeedback&&<><div className="field-label">CUSTOMER FEEDBACK:</div><div className="field-value">{u.customerFeedback}</div></>}
-{u.bringUpStatus&&<><div className="field-label">BRING-UP STATUS:</div><div className="field-value">{u.bringUpStatus}</div></>}
-{u.pipelineMetrics&&<><div className="field-label">PIPELINE METRICS:</div><div className="field-value">{u.pipelineMetrics}</div></>}
-{u.engMetrics&&<><div className="field-label">ENGINEERING METRICS:</div><div className="field-value">{u.engMetrics}</div></>}
-</div>)}</div>})}
-</div>
+function showPost(p) {
+  if (view !== "files") showFiles();
+  current = p; setHash(p.file); help(p.title);
+  rwin.textContent = "";
+  const head = el("div", "filehead"), meta = el("p", "meta");
+  meta.append(el("span", null, day(p.date)));
+  head.append(meta, el("h2", null, p.title));
+  const body = el("div", "post"); renderBody(p.body, body);
+  const nav = el("div", "row group"), i = sorted.indexOf(p);
+  nav.append(opt("Back", "Return to the log.", closePost));
+  if (sorted[i + 1]) nav.append(opt("Next", "Next: " + sorted[i + 1].title, () => showPost(sorted[i + 1])));
+  rwin.append(head, body, nav);
+  reader.hidden = false; document.body.style.overflow = "hidden";
+  rwin.classList.remove("pop"); void rwin.offsetWidth; rwin.classList.add("pop");
+  rwin.scrollTop = 0; rwin.focus();
+}
+function closePost() {
+  if (reader.hidden) return;
+  reader.hidden = true; document.body.style.overflow = ""; setHash(""); help(viewHelp);
+  const back = current && main.querySelector('[data-file="' + current.file + '"]');
+  current = null; if (back) back.focus();
+}
+reader.addEventListener("click", (e) => { if (e.target === reader) closePost(); });
 
-</div>}
-
-/* ── ROSTER ── */
-function Grid({onSel}){const up=DB.updates(CW);return<div className="panel-box">
-<div className="box-title glow">TEAM ROSTER — SELECT YOUR PROFILE</div>
-<div style={{color:'var(--text-dim)',marginBottom:16,fontFamily:'var(--font-read)',fontSize:'.82rem',fontWeight:300}}>Click your portrait to view profile, edit blurb, and submit weekly update. {E.length} personnel.</div>
-{DO.map(dept=>{const ms=E.filter(x=>x.d===dept);return<div key={dept}>
-<div className="dept-section-title">▸ {dept.toUpperCase()} ({ms.length})</div>
-<div className="profile-grid">{ms.map(emp=>{const has=!!up[emp.id];return<div className="profile-card" key={emp.id} onClick={()=>onSel(emp.id)}>
-<div className="thumb"><img src={emp.p} alt=""/><div className="portrait-scanline"></div></div>
-<div className="card-name">{emp.n.split(' ')[0]}</div><div className="card-role">{emp.r}</div>
-{emp.id!=='stefan'&&<div className="card-status">{has?<SB s={up[emp.id].status}/>:<span style={{fontFamily:'var(--font-terminal)',fontSize:'.55rem',color:'var(--text-dim)'}}>[ — ]</span>}</div>}
-</div>})}</div></div>})}
-</div>}
-
-function Detail({eid,onBack,onRef}){
-const emp=E.find(x=>x.id===eid);
-const[blurb,setBlurb]=useState(DB.blurb(eid));
-const[ed,setEd]=useState(false);
-const[fb,setFb]=useState(null);
-const ex=DB.updates(CW)[eid];
-const[status,setStatus]=useState(ex?.status||'');
-const[acc,setAcc]=useState(ex?.accomplishment||'');
-const[blk,setBlk]=useState(ex?.blockers||'');
-const[dec,setDec]=useState(ex?.decisions||'');
-const[nw,setNw]=useState(ex?.nextWeek||'');
-const[risk,setRisk]=useState(ex?.risks||'');
-const[fn,setFn]=useState(ex?.fieldNotes||'');
-const[cf,setCf]=useState(ex?.customerFeedback||'');
-const[bu,setBu]=useState(ex?.bringUpStatus||'');
-const[pm,setPm]=useState(ex?.pipelineMetrics||'');
-const[em,setEm]=useState(ex?.engMetrics||'');
-const[onote,setOnote]=useState(DB.overseerNote(CW));
-const[oSaved,setOSaved]=useState(false);
-const[cdown,setCdown]=useState('');
-useEffect(()=>{
-const tick=()=>{const now=new Date();const fri=new Date(now);fri.setDate(fri.getDate()+(5-fri.getDay()+7)%7);fri.setHours(17,0,0,0);if(fri<=now)fri.setDate(fri.getDate()+7);const diff=fri-now;const h=Math.floor(diff/3600000);const m=Math.floor((diff%3600000)/60000);const s=Math.floor((diff%60000)/1000);setCdown(h+'H '+String(m).padStart(2,'0')+'M '+String(s).padStart(2,'0')+'S')};
-tick();const iv=setInterval(tick,1000);return()=>clearInterval(iv)},[]);
-function savB(){DB.setBlurb(eid,blurb);setEd(false)}
-function savO(){DB.setOverseerNote(CW,onote);setOSaved(true);setTimeout(()=>setOSaved(false),2000);if(onRef)onRef()}
-function sub(){if(!status||!acc||!nw){setFb({t:'err',m:'STATUS, ACCOMPLISHMENT, and NEXT WEEK required.'});return}
-const d={status,accomplishment:acc,blockers:blk,decisions:dec,nextWeek:nw,risks:risk,fieldNotes:fn,customerFeedback:cf,bringUpStatus:bu,pipelineMetrics:pm,engMetrics:em};
-Object.keys(d).forEach(k=>{if(!d[k])delete d[k]});DB.submit(eid,CW,d);setFb({t:'ok',m:'UPDATE SUBMITTED — will appear in compiled brief.'});if(onRef)onRef()}
-return<div><button className="back-btn" onClick={onBack}>◂ BACK TO ROSTER</button>
-<div className="panel-box"><div className="profile-header">
-<div className="profile-portrait"><img src={emp.p} alt=""/><div className="portrait-scanline"></div><div className="portrait-glow"></div>{emp.p===SP&&<div className="portrait-corner"></div>}</div>
-<div className="profile-meta"><div className="name">{emp.n}</div><div className="role">POLYMATH ROBOTICS — {emp.r}</div><div className="dept-tag">{emp.d.toUpperCase()}</div></div>
-</div>
-<div className="field-label" style={{marginTop:16}}>PERSONNEL FILE — BIO:</div>
-{ed?<div><textarea className="blurb-edit" value={blurb} onChange={e=>setBlurb(e.target.value)} rows={4}/><div className="btn-row" style={{marginTop:8}}><button className="btn btn-small" onClick={savB}>[ SAVE ]</button><button className="btn btn-small btn-amber" onClick={()=>{setBlurb(DB.blurb(eid));setEd(false)}}>[ CANCEL ]</button></div></div>
-:<div className="blurb-area" onClick={()=>setEd(true)}>{blurb}<div style={{marginTop:8,fontFamily:'var(--font-terminal)',fontSize:'.6rem',color:'var(--green-dim)',letterSpacing:1}}>▸ CLICK TO EDIT</div></div>}
-</div>
-{emp.id==='stefan'?<div className="panel-box"><div className="box-title glow">OVERSEER'S DISPATCH — WEEK OF {CW}</div>
-<div style={{color:'var(--text-dim)',fontFamily:'var(--font-read)',fontSize:'.8rem',fontWeight:300,marginBottom:12}}>Your response appears at the top of the compiled brief. Write as much as you want — the team reads this.</div>
-<textarea className="form-textarea" rows={8} value={onote} onChange={e=>setOnote(e.target.value)} placeholder="Address the team. Acknowledge wins, flag concerns, set direction for next week. No length limit." style={{minHeight:120,resize:'vertical'}}/>
-<div className="btn-row" style={{marginTop:10}}><button className="btn" onClick={savO}>{oSaved?'[✓ DISPATCH SAVED]':'[ SAVE DISPATCH ]'}</button></div>
-</div>
-:<div className="panel-box"><div className="box-title glow">SUBMIT UPDATE — WEEK OF {CW}</div>
-<div className="countdown-bar"><span className="countdown-label">SUBMISSION WINDOW CLOSES IN:</span><span className="countdown-time">{cdown}</span></div>
-{ex&&<div style={{color:'var(--amber)',fontFamily:'var(--font-terminal)',fontSize:'.7rem',letterSpacing:1,marginBottom:12}}>⚠ EXISTING SUBMISSION — editing overwrites</div>}
-<div className="form-group"><label className="form-label">STATUS *</label><select className="form-select" value={status} onChange={e=>setStatus(e.target.value)}><option value="">— SELECT —</option><option value="on-track">🟢 ON TRACK</option><option value="at-risk">🟡 AT RISK</option><option value="blocked">🔴 BLOCKED</option></select></div>
-<div className="form-group"><label className="form-label">TOP ACCOMPLISHMENT *</label><textarea className="form-textarea" rows={2} value={acc} onChange={e=>setAcc(e.target.value)} placeholder="What shipped or moved forward?"/></div>
-<div className="form-group"><label className="form-label">BLOCKERS</label><textarea className="form-textarea" rows={2} value={blk} onChange={e=>setBlk(e.target.value)} placeholder="What's stopping progress? Tag owner."/></div>
-<div className="form-group"><label className="form-label">DECISIONS NEEDED</label><textarea className="form-textarea" rows={2} value={dec} onChange={e=>setDec(e.target.value)} placeholder="Decision pending? Who? Deadline?"/></div>
-<div className="form-group"><label className="form-label">NEXT WEEK FOCUS *</label><textarea className="form-textarea" rows={2} value={nw} onChange={e=>setNw(e.target.value)} placeholder="Top 1-3 priorities next week."/></div>
-<div className="ascii-divider">──────── OPTIONAL ────────</div>
-<div className="form-group"><label className="form-label">RISKS / WATCH ITEMS</label><textarea className="form-textarea" rows={2} value={risk} onChange={e=>setRisk(e.target.value)} placeholder="What might become a problem?"/></div>
-<div className="form-group"><label className="form-label">FIELD NOTES</label><textarea className="form-textarea" rows={2} value={fn} onChange={e=>setFn(e.target.value)} placeholder="Learnings, SOP suggestions."/></div>
-<div className="form-group"><label className="form-label">CUSTOMER FEEDBACK</label><textarea className="form-textarea" rows={2} value={cf} onChange={e=>setCf(e.target.value)} placeholder="Direct quotes preferred."/></div>
-<div className="form-row"><div className="form-group"><label className="form-label">BRING-UP STATUS</label><input className="form-input" value={bu} onChange={e=>setBu(e.target.value)} placeholder="SITE — [STATUS]"/></div><div className="form-group"><label className="form-label">PIPELINE METRICS</label><input className="form-input" value={pm} onChange={e=>setPm(e.target.value)} placeholder="Proposals / pipeline"/></div></div>
-<div className="form-group"><label className="form-label">ENGINEERING METRICS</label><input className="form-input" value={em} onChange={e=>setEm(e.target.value)} placeholder="PRs / coverage / uptime"/></div>
-<div className="btn-row"><button className="btn" onClick={sub}>[ SUBMIT UPDATE ]</button></div>
-{fb&&<div className={`feedback-msg ${fb.t==='ok'?'ok':''}`}><span className={fb.t==='ok'?'glow':''} style={{fontFamily:'var(--font-terminal)',fontSize:'.75rem',letterSpacing:1,color:fb.t==='err'?'var(--red)':'var(--green-bright)'}}>{fb.t==='ok'?'✓':'✗'} {fb.m}</span></div>}
-</div>}
-</div>}
-
-/* ── ARCHIVE ── */
-function ArchView(){
-const[s,setS]=useState('');const[tp,setTp]=useState('');const[sf,setSf]=useState('');const[df,setDf]=useState('');const[dt,setDt]=useState('');
-const f=ARC.filter(e=>{const q=s.toLowerCase();return(!q||[e.t,e.c,e.id].some(x=>x.toLowerCase().includes(q)))&&(!tp||e.tg.includes(tp))&&(!sf||e.st.includes(sf))&&(!df||e.dt>=df)&&(!dt||e.dt<=dt)});
-return<div className="panel-box">
-<div className="box-title glow">BRIEF ARCHIVE — SEARCHABLE KNOWLEDGE BASE</div>
-<div style={{color:'var(--text-dim)',marginBottom:14,fontFamily:'var(--font-read)',fontSize:'.82rem',fontWeight:300}}>{ARC.length} BRIEFS ON FILE</div>
-<div className="search-row">
-<input className="form-input" placeholder="SEARCH: keyword, vehicle, customer..." value={s} onChange={e=>setS(e.target.value)}/>
-<select className="form-select" value={tp} onChange={e=>setTp(e.target.value)} style={{maxWidth:150}}><option value="">ALL TOPICS</option><option value="bring-up">BRING-UP</option><option value="bug">BUG</option><option value="decision">DECISION</option><option value="customer">CUSTOMER</option><option value="integration">INTEGRATION</option><option value="safety">SAFETY</option><option value="sales">SALES</option></select>
-<select className="form-select" value={sf} onChange={e=>setSf(e.target.value)} style={{maxWidth:140}}><option value="">ALL STATUS</option><option value="red">🔴 BLOCKED</option><option value="amber">🟡 AT RISK</option><option value="green">🟢 ON TRACK</option></select>
-</div>
-<div className="date-range"><label>DATE RANGE:</label><input type="date" value={df} onChange={e=>setDf(e.target.value)}/><span style={{color:'var(--green-dim)'}}>→</span><input type="date" value={dt} onChange={e=>setDt(e.target.value)}/>{(df||dt)&&<button className="btn btn-small btn-amber" onClick={()=>{setDf('');setDt('')}}>CLEAR</button>}</div>
-{f.length===0?<div style={{color:'var(--text-dim)',padding:24,textAlign:'center'}}>NO MATCHING RECORDS</div>:
-f.map(e=><div className="archive-entry" key={e.id}><div><div className="archive-title">{e.id}: {e.t}</div><div className="archive-tags">{e.tg.map(t=><span className="tag" key={t}>{t.toUpperCase()}</span>)}{e.st.map(x=><span className={`status-badge status-${x}`} key={x}>{x==='red'?'🔴':x==='amber'?'🟡':'🟢'}</span>)}</div><div style={{color:'var(--text-dim)',fontSize:'.75rem',marginTop:5,fontFamily:'var(--font-read)',fontWeight:300}}>{e.c}</div></div><div className="archive-date">{e.dd}</div></div>)}
-</div>}
-
-/* ── README ── */
-function Readme(){return<div className="panel-box">
-<div className="box-title glow">README.TXT — FRIDAY BRIEF GUIDE</div>
-<div style={{color:'var(--text-dim)',marginBottom:16,fontFamily:'var(--font-read)',fontSize:'.82rem',fontWeight:300}}>CLASSIFICATION: INTERNAL | AUTHOR: PM_CHRIS | v2.0</div>
-<div className="readme-section"><h3>&gt; HOW TO USE</h3><div style={{paddingLeft:14,fontFamily:'var(--font-read)',fontSize:'.85rem',fontWeight:300,lineHeight:1.6}}>
-<strong style={{color:'var(--amber)'}}>1.</strong> Go to <strong style={{color:'var(--green-bright)'}}>TEAM ROSTER</strong>. Find your portrait. Click it.<br/>
-<strong style={{color:'var(--amber)'}}>2.</strong> Edit your <strong style={{color:'var(--green-bright)'}}>bio/blurb</strong> (click to edit — just for fun, let people know who you are).<br/>
-<strong style={{color:'var(--amber)'}}>3.</strong> Fill out your <strong style={{color:'var(--green-bright)'}}>weekly update</strong> below your bio. Submit. Done.<br/>
-<strong style={{color:'var(--amber)'}}>4.</strong> Submitted updates auto-compile into the <strong style={{color:'var(--green-bright)'}}>WEEKLY BRIEF</strong> on Tab 1.<br/>
-<strong style={{color:'var(--amber)'}}>5.</strong> View anyone's profile. We're all adults. Don't be weird.
-</div></div>
-<div className="readme-section"><h3>&gt; ROLLOUT</h3>
-<div className="phase-box"><div className="phase-title">PHASE 1: PILOT</div><ul className="readme-list"><li>Brief runs parallel with Friday meeting</li><li>Submit by Thursday EOD</li><li>PM compiles by Friday 10:00</li></ul></div>
-<div className="phase-box"><div className="phase-title">PHASE 2: ADJUST</div><ul className="readme-list"><li>Incorporate feedback, trim unused fields</li><li>Friday meeting optional — Stefan decides by 10:30</li></ul></div>
-<div className="phase-box"><div className="phase-title">PHASE 3: FULL SEND</div><ul className="readme-list"><li>Meeting off calendar by default</li><li>Deadline: Friday 14:00. Stefan reads at 14:01.</li><li>Archive accumulates. Search everything.</li></ul></div>
-</div>
-<div className="readme-section"><h3>&gt; FAILURE MODES</h3><table className="alert-table"><thead><tr><th>MODE</th><th>SIGNAL</th><th>FIX</th></tr></thead><tbody>
-<tr><td>Low submission</td><td>&lt;80% by deadline</td><td>PM reminder T-2hrs. Simplify template.</td></tr>
-<tr><td>Gaming it</td><td>"All good" every week</td><td>Stefan calls it out. PM follows up 1:1.</td></tr>
-<tr><td>Brief ignored</td><td>No Overseer's Note 2+ wks</td><td>PM escalates: fix or kill it.</td></tr>
-</tbody></table></div>
-</div>}
-
-/* ── TOOLS ── */
-function ToolsView(){return<div>
-<div className="panel-box">
-<div className="box-title glow">POLYMATH TOOLCHAIN — CONNECTED SYSTEMS</div>
-<div style={{color:'var(--text-dim)',marginBottom:16,fontFamily:'var(--font-read)',fontSize:'.82rem',fontWeight:300}}>Internal tools and utilities linked to the Friday Brief terminal. Access requires LEVEL 3+ clearance.</div>
-
-<div className="tool-card">
-<div className="tool-name">POLYGLOT</div>
-<div className="tool-status">[STATUS: PENDING INTEGRATION] — ETA: TBD</div>
-<div className="tool-desc">Polymath's multi-system translation layer. Handles the hard work of making our autonomy stack speak the same language as every OEM's proprietary CAN protocols, sensor interfaces, and control systems. If a CAT 745 needs to talk to a Komatsu HD785's brain, Polyglot is the interpreter.</div>
-<div className="tool-link">[ LAUNCH POLYGLOT — OFFLINE ]</div>
-</div>
-
-<div className="tool-card">
-<div className="tool-name">POLYNET</div>
-<div className="tool-status">[STATUS: PENDING INTEGRATION] — ETA: TBD</div>
-<div className="tool-desc">Polymath's network infrastructure management and field deployment toolkit. Topology mapping, switch configuration, PoE allocation, and real-time diagnostics for every site we operate. One dashboard for every cable, port, and packet on every machine in the fleet.</div>
-<div className="tool-link">[ LAUNCH POLYNET — OFFLINE ]</div>
-</div>
-</div>
-
-<div className="memo-box">
-<div className="memo-header">
-TO: ALL POLYMATH PERSONNEL<br/>
-FROM: PM_CHRIS<br/>
-RE: TOOLCHAIN INTEGRATION TIMELINE<br/>
-DATE: {CW}
-</div>
-<div className="memo-body">
-Polymath staff — the tools listed above are being wired into this terminal. When integration is complete, you'll be able to launch Polyglot and Polynet directly from this interface without switching between twelve browser tabs like it's 2024.
-<br/><br/>
-For now, these are placeholders. The harness is being routed and the connections are being pinned out. When each tool comes online, the status will flip from OFFLINE to ACTIVE and you'll get a direct launch link right here.
-<br/><br/>
-If you have other internal tools you think should live here, drop a note in your weekly update or ping me directly. The goal is one terminal, everything accessible. No more scavenger hunts through your bookmarks bar.
-</div>
-<div className="memo-sig">— PM_CHRIS, PROJECT MANAGER<br/>CLEARANCE: LEVEL 4 | VAULT-TECH TERMINAL ADMINISTRATOR</div>
-</div>
-</div>}
-
-/* ── CONTEXT MAP ── */
-const PROJECTS=[
-{id:'autonomy',name:'AUTONOMY STACK',status:'on-track',owner:'ILIA BARANOV',
-summary:'Core autonomous operation software for retrofitted construction vehicles. Handles perception, planning, and control for CAT 745s, Komatsu HD785s, and other heavy equipment.',
-phase:'Production — Active customer deployments',
-lastUpdate:'Speed profiling PR #412 merged. Adaptive loaded/unloaded detection now live. Geofence boundary testing underway for pit wall operations.',
-risks:'Sensor fusion latency on loaded haul cycles. Geofence edge cases near pit walls still under validation.',
-asana:[
-{name:'Adaptive speed profiling — loaded vs unloaded',done:true,due:'2077.02.25'},
-{name:'Geofence boundary refinement for pit operations',done:false,due:'2077.03.05'},
-{name:'LiDAR point cloud filtering — dust suppression',done:false,due:'2077.03.10'},
-{name:'Emergency stop response time audit',done:true,due:'2077.02.20'}
-],milestone:'V2.8 Release — Target: 2077.03.15',completion:68},
-
-{id:'polyglot',name:'POLYGLOT',status:'at-risk',owner:'ENGINEERING TEAM',
-summary:'Multi-system translation layer. Makes our autonomy stack talk to every OEM\'s proprietary CAN protocols, sensor interfaces, and control systems.',
-phase:'Development — Protocol mapping in progress',
-lastUpdate:'CAT protocol adapter 90% complete. Komatsu adapter blocked on missing CAN documentation — reverse-engineering 3 signal groups manually.',
-risks:'Komatsu CAN documentation incomplete. Reverse-engineering required. Volvo adapter not yet started.',
-asana:[
-{name:'CAT 745 CAN protocol adapter',done:true,due:'2077.02.22'},
-{name:'Komatsu HD785 signal group reverse-eng',done:false,due:'2077.03.12'},
-{name:'Volvo A40G protocol mapping',done:false,due:'2077.03.20'},
-{name:'Protocol adapter unit test suite',done:false,due:'2077.03.08'}
-],milestone:'Multi-OEM Support — Target: 2077.03.25',completion:41},
-
-{id:'polynet',name:'POLYNET',status:'on-track',owner:'PM_CHRIS',
-summary:'Network infrastructure management and field deployment toolkit. Topology mapping, switch config, PoE allocation, and real-time diagnostics for every customer site.',
-phase:'Design — Architecture finalized, build starting',
-lastUpdate:'PoE calculator and switch selection SOP complete. Network diagram templates built in Mermaid. Planet switch firmware bug on VLAN trunking — workaround deployed.',
-risks:'Planet switch firmware bug on VLAN trunking. Vendor notified, workaround in place but not permanent.',
-asana:[
-{name:'PoE budget calculator — Apps Script',done:true,due:'2077.02.18'},
-{name:'Switch selection SOP document',done:true,due:'2077.02.20'},
-{name:'Network topology Mermaid templates',done:true,due:'2077.02.24'},
-{name:'Real-time port diagnostics dashboard',done:false,due:'2077.03.18'},
-{name:'VLAN auto-config for site deployments',done:false,due:'2077.03.22'}
-],milestone:'Site Toolkit V1 — Target: 2077.03.30',completion:55},
-
-{id:'fieldops',name:'FIELD OPS',status:'blocked',owner:'PM_CHRIS + APPS ENGINEERS',
-summary:'Customer site deployment operations. The "Bring Up" process: multi-day on-site work to retrofit vehicles and bring autonomous operation online.',
-phase:'Active — Deployments ongoing',
-lastUpdate:'Master Deployment Checklist v2 complete. Three-phase Bring Up SOP documented. Site 7 blocked on Velodyne RMA. Site 4 rain delays being rescheduled.',
-risks:'Velodyne RMA #VLP-8841 stalled (opened 02.25). Blocking sensor install at Site 7. Rain delays at Site 4 pushing timeline.',
-asana:[
-{name:'Site 7 — Velodyne sensor RMA follow-up',done:false,due:'2077.03.01'},
-{name:'Site 4 — Rain delay reschedule',done:false,due:'2077.03.03'},
-{name:'Master Deployment Checklist v2',done:true,due:'2077.02.26'},
-{name:'Bring Up SOP — Phase 1/2/3 documentation',done:true,due:'2077.02.27'},
-{name:'Site 8 — Pre-deployment survey',done:false,due:'2077.03.08'}
-],milestone:'Q1 Target: 4 sites online',completion:50},
-
-{id:'brief',name:'FRIDAY BRIEF TERMINAL',status:'on-track',owner:'PM_CHRIS',
-summary:'This terminal. Replaces Friday all-hands with async weekly submissions compiled into a single brief for leadership review.',
-phase:'Demo — Presenting to CTO for approval',
-lastUpdate:'All tabs functional. Seed data loaded. Boot sequence, archive search, tools placeholder, context map all working. Ready for demo.',
-risks:'Adoption risk — people need to actually use it. Fallout theme is the hook to get buy-in.',
-asana:[
-{name:'Weekly Brief terminal — full build',done:true,due:'2077.02.28'},
-{name:'Demo prep — CTO presentation',done:false,due:'2077.03.01'},
-{name:'Rollout plan — Phase 1 pilot with Engineering',done:false,due:'2077.03.07'},
-{name:'Slack integration for submission reminders',done:false,due:'2077.03.14'}
-],milestone:'CTO Approval + Pilot Launch',completion:45}
+/* id, name, gradient top, gradient bottom, accent */
+const COLOURS = [
+  ["blackout", "Blackout", "#1c1c1c", "#000000", "#ffffff"],
+  ["amethyst", "Amethyst", "#7434c8", "#1c0647", "#ffd95a"],
+  ["twilight", "Twilight", "#8a3fd0", "#0b2a7a", "#8fe9ff"],
+  ["sapphire", "Sapphire", "#2233b0", "#050a5e", "#ffd95a"],
+  ["lagoon", "Lagoon", "#178a98", "#0a1f5c", "#ffe58a"],
+  ["emerald", "Emerald", "#1c6a48", "#04200f", "#ffe58a"],
+  ["moss", "Moss", "#5f7a22", "#0f2a1c", "#fff2b0"],
+  ["ember", "Ember", "#c2591f", "#3d0a0a", "#fff0b8"],
+  ["ruby", "Ruby", "#96213f", "#2a0512", "#ffd95a"],
+  ["sunset", "Sunset", "#c2416b", "#3a1060", "#ffd95a"],
+  ["rose", "Rose", "#b8478c", "#3a0a3a", "#bff3ff"],
+  ["orchid", "Orchid", "#9a4fd6", "#5a0f4a", "#b8ffd9"],
+  ["midnight", "Midnight", "#26306e", "#05050f", "#9fd0ff"],
+  ["onyx", "Onyx", "#4a5266", "#12151c", "#ffd95a"],
+  ["mono", "Parchment", "#7a6a4a", "#2a2014", "#ffe9b0"]
 ];
+let winId = "blackout", sparkle = "#ffffff";
+function setColour(c) {
+  const t = COLOURS.find(([id]) => id === c) || COLOURS[0], r = document.documentElement.style;
+  winId = t[0]; sparkle = t[4];
+  r.setProperty("--win-a", t[2]); r.setProperty("--win-b", t[3]); r.setProperty("--accent", t[4]);
+  store.set("win2", winId);
+}
+function showConfig() {
+  open("config", "Change settings.", "m-config");
+  main.append(el("p", "label", "Config"));
+  const cur = winId;
+  const g1 = el("div", "group"); g1.append(el("h3", null, "Window Color"));
+  const r1 = el("div", "row");
+  COLOURS.forEach(([id, name, ca, cb, cc]) => {
+    const b = opt(null, "Window color: " + name + ".", () => { setColour(id); showConfig(); main.querySelector('[data-c="' + id + '"]').focus(); });
+    const lab = el("span"), sw = el("span", "sw"), dot = el("i");
+    sw.style.background = "linear-gradient(" + ca + "," + cb + ")"; dot.style.background = cc; sw.append(dot);
+    lab.append(sw, document.createTextNode(name)); b.append(lab);
+    b.dataset.c = id; b.setAttribute("aria-pressed", String(id === cur)); r1.append(b);
+  });
+  g1.append(r1);
+  const g2 = el("div", "group"); g2.append(el("h3", null, "Cursor Sound"));
+  const r2 = el("div", "row");
+  [["on", "On"], ["off", "Off"]].forEach(([id, name]) => {
+    const b = opt(name, "Cursor sound: " + name + ".", () => { soundOn = id === "on"; store.set("sound", id); showConfig(); main.querySelector('[data-s="' + id + '"]').focus(); blip(1320); });
+    b.dataset.s = id; b.setAttribute("aria-pressed", String((id === "on") === soundOn)); r2.append(b);
+  });
+  g2.append(r2);
+  const g3 = el("div", "group"); g3.append(el("h3", null, "System"));
+  const r3 = el("div", "row");
+  r3.append(opt("Title Screen", "Return to the title screen.", () => intro(true)), opt("Back", "Return to the log.", () => showFiles(true)));
+  g3.append(r3);
+  main.append(g1, g2, g3);
+}
 
-function ContextMap(){
-const[open,setOpen]=useState(null);
-const sc=s=>s==='on-track'?'var(--green)':s==='at-risk'?'var(--amber)':'var(--red)';
-const scDim=s=>s==='on-track'?'var(--green-dim)':s==='at-risk'?'var(--amber-dim)':'var(--red-dim)';
-const toggle=id=>setOpen(open===id?null:id);
-return<div>
-<div className="panel-box">
-<div className="box-title glow">PROJECT CONTEXT MAP</div>
-<div style={{color:'var(--text-dim)',fontFamily:'var(--font-read)',fontSize:'.8rem',fontWeight:300,marginBottom:4}}>Quick-read project status. Click any project to expand full context + Asana tasks.</div>
-</div>
+function showAbout() {
+  open("about", "About this site.", "m-about");
+  main.append(el("p", "label", "About"));
+  const body = el("div", "post");
+  renderBody(`[DRAFT. Chris, replace this with your own words.]
 
-{PROJECTS.map(p=>{
-const isOpen=open===p.id;
-const done=p.asana.filter(t=>t.done).length;
-return<div key={p.id} className={`ctx-card${isOpen?' open':''}`}>
-<div className="ctx-card-header" onClick={()=>toggle(p.id)}>
-<div style={{display:'flex',alignItems:'center',gap:12,flexWrap:'wrap'}}>
-<span className="ctx-card-name">{p.name}</span>
-<span className="status-badge" style={{color:sc(p.status),borderColor:scDim(p.status),background:'transparent'}}>[{p.status.toUpperCase().replace('-',' ')}]</span>
-</div>
-<div className="ctx-card-meta">
-<span className="ctx-card-owner">{p.owner}</span>
-<span className="ctx-card-toggle">{isOpen?'[ ▴ COLLAPSE ]':'[ ▾ EXPAND ]'}</span>
-</div>
-</div>
-<div className="ctx-card-body">
-<div className="ctx-section">
-<div className="ctx-section-title">WHAT'S HAPPENING</div>
-<div className="ctx-field"><div className="ctx-field-label">SUMMARY</div><div className="ctx-field-value">{p.summary}</div></div>
-<div className="ctx-field"><div className="ctx-field-label">PHASE</div><div className="ctx-field-value">{p.phase}</div></div>
-<div className="ctx-field"><div className="ctx-field-label">LATEST UPDATE</div><div className="ctx-field-value">{p.lastUpdate}</div></div>
-<div className="ctx-field"><div className="ctx-field-label">RISKS / BLOCKERS</div><div className="ctx-field-value" style={{color:p.status==='blocked'?'var(--red)':p.status==='at-risk'?'var(--amber)':'var(--text)'}}>{p.risks}</div></div>
-</div>
-<div className="ctx-section">
-<div className="ctx-section-title">ASANA TASKS ({done}/{p.asana.length} COMPLETE)</div>
-<div className="ctx-progress">
-<div className="ctx-progress-bar"><div className="ctx-progress-fill" style={{width:p.completion+'%',background:sc(p.status),boxShadow:'0 0 6px '+sc(p.status)}}/></div>
-<span className="ctx-progress-pct" style={{color:sc(p.status)}}>{p.completion}%</span>
-</div>
-<div style={{fontSize:'.7rem',fontFamily:'var(--font-terminal)',color:'var(--amber)',letterSpacing:1,margin:'8px 0 10px'}}>{p.milestone}</div>
-<div className="ctx-tasks">
-{p.asana.map((t,i)=><div key={i} className="ctx-task">
-<span className="ctx-task-check" style={{color:t.done?'var(--green)':'var(--text-dim)'}}>{t.done?'[✓]':'[  ]'}</span>
-<span className={`ctx-task-name${t.done?' done':''}`}>{t.name}</span>
-<span className="ctx-task-due">{t.due}</span>
-</div>)}
-</div>
-</div>
-</div>
-</div>})}
-</div>}
+Half Life is where I keep photographs and notes.
 
-/* ── APP ── */
-function App(){
-const[tab,setTab]=useState('brief');const[prof,setProf]=useState(null);const[rk,setRk]=useState(0);
-const[confirmClear,setConfirmClear]=useState(false);
-const tabs=[{id:'brief',l:'[1] WEEKLY BRIEF'},{id:'submit',l:'[2] TEAM ROSTER'},{id:'archive',l:'[3] ARCHIVE'},{id:'context',l:'[4] CONTEXT MAP'},{id:'tools',l:'[5] TOOLS'},{id:'readme',l:'[6] README'}];
-useEffect(()=>{const h=e=>{if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName))return;const m={'1':'brief','2':'submit','3':'archive','4':'context','5':'tools','6':'readme'};if(m[e.key]){setTab(m[e.key]);setProf(null);e.preventDefault()}};document.addEventListener('keydown',h);return()=>document.removeEventListener('keydown',h)},[]);
-const st=E[0];
-return<div id="terminal-wrapper">
-<div className="header-bar"><div className="title glow">POLYMATH ROBOTICS — FRIDAY BRIEF</div><div className="meta">TERMINAL v2.77 | {CW} | PM_CHRIS</div></div>
-{tab==='brief'&&<div className="ceo-section"><PF src={st.p} sz={180}/><div className="ceo-info"><div className="name">OVERSEER {st.n.split(' ')[0]}</div><div className="role">POLYMATH ROBOTICS — {st.r}</div><div className="status-line"><span className="status-badge status-green">[STATUS: ACTIVE]</span><span>BRIEF RECIPIENT | MEETING AUTHORITY</span></div></div></div>}
-<div className="tab-bar">{tabs.map(t=><div key={t.id} className={`nav-tab ${tab===t.id?'active':''}`} onClick={()=>{setTab(t.id);setProf(null)}}>{t.l}</div>)}</div>
-<div className={`tab-panel ${tab==='brief'?'active':''}`}><BriefView key={rk}/></div>
-<div className={`tab-panel ${tab==='submit'?'active':''}`}>{prof?<Detail eid={prof} onBack={()=>setProf(null)} onRef={()=>setRk(k=>k+1)}/>:<Grid onSel={setProf}/>}</div>
-<div className={`tab-panel ${tab==='archive'?'active':''}`}><ArchView/></div>
-<div className={`tab-panel ${tab==='context'?'active':''}`}><ContextMap/></div>
-<div className={`tab-panel ${tab==='tools'?'active':''}`}><ToolsView/></div>
-<div className={`tab-panel ${tab==='readme'?'active':''}`}><Readme/></div>
-<div className="footer">═══ POLYMATH ROBOTICS TERMINAL v2.77 — VAULT-TECH APPROVED ═══<br/>PROPERTY OF POLYMATH ROBOTICS INC.
-<div className="clear-data-wrap">{confirmClear?<span><span style={{color:'var(--red)',marginRight:8}}>CONFIRM: This resets all data to factory seed.</span><button className="btn btn-small" style={{color:'var(--red)',borderColor:'var(--red-dim)',marginRight:6}} onClick={()=>{DB.clearAll();setConfirmClear(false);setRk(k=>k+1);setProf(null)}}>[ YES — PURGE ]</button><button className="btn btn-small" onClick={()=>setConfirmClear(false)}>[ CANCEL ]</button></span>:<button className="btn btn-small btn-amber" onClick={()=>setConfirmClear(true)} style={{fontSize:'.55rem',padding:'3px 10px'}}>[ CLEAR DATA — FACTORY RESET ]</button>}</div>
-</div>
-</div>}
-ReactDOM.createRoot(document.getElementById('app-root')).render(<App/>);
+## The name
+
+Write a line or two here on what Half Life means to you.
+
+## Who
+
+Write a line or two here on who you are and what you shoot.
+
+## Contact
+
+Add how people can reach you.`, body);
+  const nav = el("div", "row group"); nav.append(opt("Back", "Return to the log.", () => showFiles(true)));
+  main.append(body, nav);
+}
+
+function showControls() {
+  open("controls", "View controls.", "m-how");
+  main.append(el("p", "label", "Help"));
+  const body = el("div", "post");
+  renderBody(`## Touch or mouse
+
+Select an entry to open it. Select Back, or tap outside the window, to close it.
+
+## Keyboard
+
+- Up / Down: move cursor
+- Left / Right: switch window
+- Enter: confirm
+- Esc: cancel`, body);
+  const nav = el("div", "row group"); nav.append(opt("Back", "Return to the log.", () => showFiles(true)));
+  main.append(body, nav);
+}
+
+/* ---------- menu + input ---------- */
+$("#m-files").addEventListener("click", () => showFiles(true));
+$("#m-about").addEventListener("click", showAbout);
+$("#m-config").addEventListener("click", showConfig);
+$("#zoom").addEventListener("click", unzoom);
+$("#m-how").addEventListener("click", showControls);
+document.querySelectorAll("#menu .locked").forEach((b) => b.addEventListener("click", () => { help(b.dataset.locked, true); blip(160, .16); }));
+
+const helpFor = (t) => t.closest && t.closest("[data-help]");
+document.addEventListener("focusin", (e) => { const o = helpFor(e.target); if (o) { help(o.dataset.help); blip(880, .04); } });
+document.addEventListener("mouseover", (e) => { const o = helpFor(e.target); if (o) help(o.dataset.help); });
+document.addEventListener("mouseout", (e) => { const o = helpFor(e.target); if (o && !o.contains(e.relatedTarget) && reader.hidden) help(viewHelp); });
+document.addEventListener("click", (e) => { const o = e.target.closest && e.target.closest(".opt:not(.locked)"); if (o) blip(1320, .06); });
+
+document.addEventListener("keydown", (e) => {
+  if (!$("#intro").classList.contains("done")) { endIntro(); return; }
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (!$("#zoom").hidden) { if (e.key === "Escape" || e.key === "Enter" || e.key === " ") { unzoom(); e.preventDefault(); } return; }
+  const reading = !reader.hidden;
+  if (e.key === "Escape") { if (reading) { closePost(); blip(440); } else if (view !== "files") { showFiles(true); blip(440); } return; }
+  const dir = { ArrowDown: 1, ArrowUp: -1 }[e.key];
+  const side = e.key === "ArrowLeft" || e.key === "ArrowRight";
+  if (!dir && !side) return;
+  const a = document.activeElement;
+  if (reading) {
+    const opts = [...rwin.querySelectorAll(".opt")], i = opts.indexOf(a);
+    if (side && opts.length) { opts[(Math.max(i, 0) + (e.key === "ArrowRight" ? 1 : -1) + opts.length) % opts.length].focus(); e.preventDefault(); }
+    return; /* Up and Down scroll the entry */
+  }
+  const inMenu = $("#menu").contains(a), inMain = main.contains(a) && a !== main;
+  let pane = inMenu ? $("#menu") : main;
+  if (side) pane = (e.key === "ArrowRight" && !inMenu) ? $("#menu") : (e.key === "ArrowLeft" && inMenu) ? main : null;
+  if (!pane) return;
+  const opts = [...pane.querySelectorAll(".opt")]; if (!opts.length) return;
+  let i = opts.indexOf(a);
+  if (side || (!inMenu && !inMain)) i = Math.max(0, opts.findIndex((o) => o.getAttribute("aria-current") === "true"));
+  else i = (i + dir + opts.length) % opts.length;
+  opts[i].focus(); e.preventDefault();
+});
+
+/* ---------- intro ---------- */
+function assemble() { const st = $("#stage"); st.classList.remove("go"); void st.offsetWidth; st.classList.add("go"); }
+function endIntro() {
+  if ($("#intro").classList.contains("done")) return;
+  $("#intro").classList.add("done"); try { sessionStorage.setItem("intro", "1"); } catch (e) {}
+  blip(1320, .08); assemble(); if (reader.hidden && view === "files") showFiles();
+}
+function intro(force) {
+  let seen = false; try { seen = sessionStorage.getItem("intro") === "1"; } catch (e) {}
+  if (!force && seen) { $("#intro").classList.add("done"); assemble(); return; }
+  $("#intro").classList.remove("done");
+}
+$("#intro").addEventListener("click", endIntro);
+
+/* ---------- drifting sparkles ---------- */
+const sky = $("#sky"), sx = sky.getContext("2d");
+let motes = [];
+function sizeSky() {
+  sky.width = window.innerWidth; sky.height = window.innerHeight;
+  const n = Math.round(Math.min(90, sky.width * sky.height / 14000));
+  motes = Array.from({ length: n }, () => ({ x: Math.random() * sky.width, y: Math.random() * sky.height,
+    s: Math.random() < .25 ? 3 : 2, v: .12 + Math.random() * .35, p: Math.random() * 6.28, gold: Math.random() < .35 }));
+  drawSky(0);
+}
+function drawSky(step) { /* pixel sparkles that float up and sway */
+  sx.clearRect(0, 0, sky.width, sky.height);
+  for (const m of motes) {
+    m.y -= m.v * step; m.p += .02 * step; m.x += Math.sin(m.p) * .25 * step;
+    if (m.y < -4) { m.y = sky.height + 4; m.x = Math.random() * sky.width; }
+    sx.globalAlpha = .25 + .55 * (.5 + .5 * Math.sin(m.p * 2));
+    sx.fillStyle = m.gold ? sparkle : "#ffffff";
+    sx.fillRect(Math.round(m.x), Math.round(m.y), m.s, m.s);
+  }
+  sx.globalAlpha = 1;
+}
+window.addEventListener("resize", sizeSky);
+
+/* ---------- start ---------- */
+$("#count").textContent = sorted.length;
+$("#latest").textContent = sorted[0] ? day(sorted[0].date).split(",")[0] : "-";
+const tick = () => { $("#clock").textContent = new Date().toTimeString().slice(0, 8); };
+tick(); setInterval(tick, 1000);
+setColour(store.get("win2") || "blackout");
+sizeSky();
+if (!reduce) (function loop() { if (!document.hidden) drawSky(1); requestAnimationFrame(loop); })();
+showFiles();
+const start = decodeURIComponent((location.hash || "").slice(1));
+const linked = start && sorted.find((p) => p.file === start);
+if (linked) { $("#intro").classList.add("done"); assemble(); showPost(linked); } else intro(false);
 </script>
 </body>
 </html>
