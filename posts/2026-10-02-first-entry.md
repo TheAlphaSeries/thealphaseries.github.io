@@ -1,5 +1,5 @@
 ---
-title: Test TEST TesT
+title: Entry 000001
 date: 2026-10-02
 ---
 Hi folks,
