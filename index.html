@@ -578,8 +578,9 @@ function unlockAudio(e) {   /* must run inside a tap, click or key press */
   if (!AudioEngine || (!ac && !musicOn)) return;
   try {
     if (!ac) {
-      /* iPhones mute this kind of sound when the ring switch is on silent unless the page says it is playing media */
-      if (navigator.audioSession) { try { navigator.audioSession.type = "playback"; } catch (err) {} }
+      /* "ambient" tells phones this is background sound: it plays alongside a visitor's own music
+         instead of stopping it, and stays quiet when the phone's ring switch is on silent */
+      if (navigator.audioSession) { try { navigator.audioSession.type = "ambient"; } catch (err) {} }
       ac = new AudioEngine(); unlockedBy = (e && e.type) || "button";
       const soften = ac.createBiquadFilter(); soften.type = "lowpass"; soften.frequency.value = 2400;
       bus = ac.createGain(); bus.gain.value = 0; bus.connect(soften); soften.connect(ac.destination);
