@@ -2,8 +2,8 @@
 name: Crappie
 sprite: crappie
 date: 
-weight: 
-length: 
+weight: ""
+length: ""
 location: Lake Chabot, California
 photo: 
 ---

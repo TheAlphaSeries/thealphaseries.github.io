@@ -2,8 +2,8 @@
 name: Catfish
 sprite: catfish
 date: 
-weight: 
-length: 
+weight: ""
+length: ""
 location: 
 photo: 
 ---

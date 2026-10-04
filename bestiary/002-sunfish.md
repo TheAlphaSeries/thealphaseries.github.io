@@ -2,8 +2,8 @@
 name: Sunfish
 sprite: sunfish
 date: 
-weight: 
-length: 
+weight: ""
+length: ""
 location: Pine Lake, California
 photo: 
 ---

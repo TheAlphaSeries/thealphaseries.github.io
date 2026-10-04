@@ -2,8 +2,8 @@
 name: Bass
 sprite: bass
 date: 
-weight: 
-length: 
+weight: ""
+length: ""
 location: Lake Chabot, California
 photo: 
 ---
