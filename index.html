@@ -579,7 +579,7 @@ function setMusic(mode, save) { /* the button names what choosing it will do nex
   if (save) store.set("music", String(mode));
   try {
     if (mode) {
-      ac = ac || new (window.AudioContext || window.webkitAudioContext)(); ac.resume();
+      ac = ac || new (window.AudioContext || window.webkitAudioContext)(); { const r = ac.resume(); if (r && r.catch) r.catch(() => {}); }
       if (!musicGain) {
         const lp = ac.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 2400;
         musicGain = ac.createGain(); musicGain.gain.value = 0; musicGain.connect(lp); lp.connect(ac.destination);
@@ -590,14 +590,13 @@ function setMusic(mode, save) { /* the button names what choosing it will do nex
   } catch (e) {}
 }
 $("#m-music").addEventListener("click", () => setMusic(musicMode ? 0 : 1, true));
-{ /* browsers only allow sound after a tap or key press, so a remembered track resumes on the first one */
-  const saved = store.get("music"), mode = (saved === "on" || saved === "1" || saved === "2") ? 1 : 0;
-  if (mode) {
-    let kicked = false;
-    const kick = (e) => { if (kicked) return; kicked = true; if (!(e.target.closest && e.target.closest("#m-music"))) setMusic(mode, false); };
-    document.addEventListener("pointerdown", kick, { once: true, capture: true });
-    document.addEventListener("keydown", kick, { once: true, capture: true });
-  }
+/* On by default. Browsers hold sound until the first tap or key press, so for most visitors it starts
+   when they press through the title screen. A visitor who turns it off stays off. */
+if (store.get("music") !== "0") {
+  setMusic(1, false);
+  const wake = () => { if (musicMode && ac && ac.state !== "running") { const r = ac.resume(); if (r && r.catch) r.catch(() => {}); } };
+  document.addEventListener("pointerdown", wake, { capture: true });
+  document.addEventListener("keydown", wake, { capture: true });
 }
 
 /* ---------- start ---------- */
