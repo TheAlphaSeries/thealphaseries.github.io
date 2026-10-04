@@ -497,6 +497,7 @@ const STEP = 0.31;   /* seconds per step */
 const AudioEngine = window.AudioContext || window.webkitAudioContext;
 let musicOn = store.get("music3") !== "0";
 let ac = null, bus = null, musicTimer = null, nextNote = 0, stepNo = 0;
+let audioError = "", unlockedBy = "";   /* kept for the ?debug readout */
 
 function note(midi, t, len, vol, type) {
   const o = ac.createOscillator(), g = ac.createGain();
@@ -519,11 +520,13 @@ function playStep(bar, s, t) {
 }
 function schedule() {   /* queue the next fraction of a second of notes; runs ten times a second */
   if (!ac || ac.state !== "running" || !musicOn || document.hidden) { nextNote = 0; return; }
-  if (nextNote < ac.currentTime) nextNote = ac.currentTime + 0.06;
-  while (nextNote < ac.currentTime + 0.4) {
-    playStep(Math.floor(stepNo / 8) % MELODY.length, stepNo % 8, nextNote);
-    nextNote += STEP; stepNo++;
-  }
+  try {
+    if (nextNote < ac.currentTime) nextNote = ac.currentTime + 0.06;
+    while (nextNote < ac.currentTime + 0.4) {
+      playStep(Math.floor(stepNo / 8) % MELODY.length, stepNo % 8, nextNote);
+      nextNote += STEP; stepNo++;
+    }
+  } catch (err) { audioError = "schedule: " + err; }
 }
 function syncMusic() {   /* make the button and the sound match musicOn; safe to call at any time */
   const b = $("#m-music");
@@ -535,18 +538,20 @@ function syncMusic() {   /* make the button and the sound match musicOn; safe to
   clearInterval(musicTimer); musicTimer = null;
   if (musicOn) { stepNo = 0; nextNote = 0; musicTimer = setInterval(schedule, 100); schedule(); }
 }
-function unlockAudio() {   /* must run inside a tap, click or key press */
+function unlockAudio(e) {   /* must run inside a tap, click or key press */
   if (!AudioEngine || (!ac && !musicOn)) return;
   try {
     if (!ac) {
-      ac = new AudioEngine();
+      /* iPhones mute this kind of sound when the ring switch is on silent unless the page says it is playing media */
+      if (navigator.audioSession) { try { navigator.audioSession.type = "playback"; } catch (err) {} }
+      ac = new AudioEngine(); unlockedBy = (e && e.type) || "button";
       const soften = ac.createBiquadFilter(); soften.type = "lowpass"; soften.frequency.value = 2400;
       bus = ac.createGain(); bus.gain.value = 0; bus.connect(soften); soften.connect(ac.destination);
       const wake = ac.createBufferSource(); wake.buffer = ac.createBuffer(1, 1, 22050); wake.connect(ac.destination); wake.start(0);   /* a silent sample: wakes audio on iPhones */
       syncMusic();
     }
-    if (ac.state !== "running") { const r = ac.resume(); if (r && r.then) r.then(schedule, () => {}); }
-  } catch (e) {}
+    if (ac.state !== "running") { const r = ac.resume(); if (r && r.then) r.then(schedule, (err) => { audioError = "resume: " + err; }); }
+  } catch (err) { audioError = String(err); }
 }
 ["click", "touchend", "mousedown", "keydown"].forEach((type) => document.addEventListener(type, unlockAudio, { capture: true, passive: true }));
 document.addEventListener("visibilitychange", schedule);
@@ -554,6 +559,26 @@ $("#m-music").addEventListener("click", () => {
   musicOn = !musicOn; store.set("music3", musicOn ? "1" : "0");
   syncMusic(); unlockAudio();
 });
+
+/* Add ?debug to the address (halflife.studio/?debug) to show a live readout of the sound system. */
+if (/[?&]debug\b/.test(location.search)) {
+  const box = el("pre"); box.style.cssText = "position:fixed;left:8px;top:8px;z-index:9;margin:0;padding:8px 10px;background:#000;color:#fff;border:2px solid #fff;font:12px/1.5 monospace;white-space:pre-wrap;max-width:calc(100vw - 16px);text-shadow:none;pointer-events:none";
+  document.body.append(box);
+  setInterval(() => {
+    box.textContent = [
+      "SOUND DEBUG",
+      "saved choice: " + store.get("music3"),
+      "music wanted: " + musicOn,
+      "engine: " + (ac ? ac.state : "not created") + (unlockedBy ? " (created on " + unlockedBy + ")" : ""),
+      "engine clock: " + (ac ? ac.currentTime.toFixed(2) : "-"),
+      "steps played: " + stepNo,
+      "volume: " + (bus ? bus.gain.value.toFixed(2) : "-"),
+      "audio session: " + (navigator.audioSession ? navigator.audioSession.type : "n/a"),
+      "error: " + (audioError || "none"),
+      navigator.userAgent.replace(/^Mozilla\/5\.0 /, "")
+    ].join("\n");
+  }, 300);
+}
 
 /* ==========================================================================
    8. START
