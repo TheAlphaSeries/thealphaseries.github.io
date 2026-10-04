@@ -128,9 +128,14 @@ h3 { font-size: 12px; line-height: 1.7; color: var(--accent); margin-top: 8px; }
 .meta { color: var(--dim); font-size: 15px; margin: 0 0 8px; display: flex; flex-wrap: wrap; gap: 0 18px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .filehead { border-bottom: 2px solid rgba(255, 255, 255, .3); padding-bottom: 14px; margin-bottom: 18px; }
 .post { max-width: 62ch; display: flex; flex-direction: column; gap: 16px; font-family: var(--read); font-size: 20px; line-height: 1.6; text-shadow: 0 1px 1px rgba(0, 0, 0, .5); }
-.post p, .post ul, .post blockquote { margin: 0; }
+.post p, .post ul, .post ol, .post blockquote { margin: 0; }
 .post ul { padding-left: 1.4em; list-style: square; }
+.post ol { padding-left: 1.6em; }
 .post li::marker { color: var(--accent); }
+.post a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.post code { font-family: var(--body); font-size: .85em; }
+.post hr { width: 100%; border: 0; border-top: 2px solid rgba(255, 255, 255, .3); margin: 6px 0; }
+.sub { color: var(--dim); margin: 14px 0 0 24px; }
 .post blockquote { border-left: 3px solid var(--accent); padding-left: 18px; color: var(--fg); font-style: italic; font-size: 23px; line-height: 1.5; }
 .shots { display: grid; gap: 10px; }
 .shots.multi { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -230,51 +235,14 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
 <script>
 /* ==========================================================================
    1. LOG ENTRIES
-   Every blog post is one entry here. `file` is the entry's permanent id and
-   its link (halflife.studio/#file). Body format: a blank line starts a new
-   paragraph, "## " a heading, "- " a list item, "> " a quote, and
-   ![caption](address) a photo ("sample:1" draws a placeholder picture).
+   Entries are not written in this file. Each one is its own file in the
+   posts/ folder (made with the editor at app.pagescms.org), photos live in
+   photos/, and the About text is pages/about.md. scripts/build-index.mjs
+   gathers them into posts.json, which this page loads when it opens.
    ========================================================================== */
-const POSTS = [
-  {
-    file: "001_photo_test.log",
-    date: "2026-10-03",
-    title: "Photo test",
-    body: `[SAMPLE ENTRY. The pictures here are placeholders, not real photos. They show how photos sit inside a post.]
-
-A photo goes on its own line between paragraphs. It fills the width of the text and takes a caption.
-
-![One photo on its own line, with a caption](sample:1)
-
-Put two or more photo lines together and they sit side by side. Select any photo to see it large.
-
-![Left of a pair](sample:2)
-![Right of a pair](sample:3)
-
-Text carries on underneath as normal.`
-  },
-  {
-    file: "000_start.log",
-    date: "2026-10-02",
-    title: "First entry",
-    body: `[SAMPLE ENTRY. Chris, rewrite or delete this one. It is here so you can see how a real post reads in the window.]
-
-I nearly opened a Substack. It takes five minutes and it works.
-
-But every Substack looks like every other Substack. A place I built myself can look like whatever I want, and what I want is for it to feel like opening a save file.
-
-## What goes here
-
-- Updates, whenever I have one. No schedule.
-- Photos, once that menu unlocks.
-- Prints for sale, eventually.
-
-> Each post is a log entry. You opened one. That is the whole idea.
-
-More soon.`
-  }
-];
-const ABOUT = `> Half Life is a permanent state of change. Nothing holds its shape for long. Time moves, places shift, people become someone else, and so do you. You are still conscious, still moving, still wanting, and the only way through is to move with it.`;
+let ABOUT = "";          /* the About text, loaded from posts.json */
+let sorted = [];         /* the entries, newest first, loaded from posts.json */
+let loadNote = "Loading...";   /* shown in the log while there is nothing to list */
 const HELP = `## Touch or mouse
 
 Select an entry to open it. Select Back, or tap outside the window, to close it.
@@ -297,8 +265,7 @@ const store = {   /* the visitor's saved choices; storage can be blocked, so nev
   set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
 };
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const day = (d) => { const [y, m, dd] = d.split("-"); return MONTHS[+m - 1] + " " + +dd + ", " + y; };
-const sorted = POSTS.slice().sort((a, b) => b.date.localeCompare(a.date) || b.file.localeCompare(a.file));   /* newest first */
+const day = (d) => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(d || ""); return m ? MONTHS[+m[2] - 1] + " " + +m[3] + ", " + m[1] : ""; };
 
 const stage = $("#stage"), main = $("#main"), menu = $("#menu"), reader = $("#reader"), rwin = $("#readerwin"), zoomBox = $("#zoom"), introBox = $("#intro");
 let view = "files";      /* which screen the main window shows: files, about or help */
@@ -332,6 +299,7 @@ function showFiles(focusFirst) {
     list.append(b);
   });
   main.append(list);
+  if (!sorted.length) main.append(el("p", "sub", loadNote));
   if (focusFirst) { const f = list.querySelector(".opt"); if (f) f.focus(); }
 }
 function showPage(name, menuId, label, text) {
@@ -340,37 +308,71 @@ function showPage(name, menuId, label, text) {
   main.append(el("p", "label", label), body, backRow());
 }
 
-/* ----- entry text ----- */
-const PHOTO = /^!\[(.*)\]\((.+)\)$/;
-function photoSrc(src) {
-  const m = /^sample:(\d+)$/.exec(src); if (!m) return src;
-  const n = +m[1], l = 30 + (n * 17) % 30;
-  const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="hsl(0,0%,' + (l + 40) + '%)"/><stop offset="1" stop-color="hsl(0,0%,' + l + '%)"/></linearGradient></defs>' +
-    '<rect width="600" height="400" fill="url(#g)"/><circle cx="' + (110 + (n * 130) % 380) + '" cy="110" r="36" fill="rgba(255,255,255,.8)"/>' +
-    '<path d="M0 300 L150 ' + (190 + n * 12) + ' L260 270 L400 ' + (210 - n * 10) + ' L600 290 V400 H0Z" fill="rgba(0,0,0,.45)"/>' +
-    '<text x="300" y="374" text-anchor="middle" font-family="monospace" font-size="22" fill="#fff">SAMPLE PHOTO ' + n + '</text></svg>';
-  return "data:image/svg+xml," + encodeURIComponent(svg);
+/* ----- entry text -----
+   Entries are written in Markdown, which is what the editor saves: blank line = new paragraph,
+   # heading, - or 1. lists, > quote, **bold**, *italic*, [link](address), ![caption](photo).
+   Everything is built as page elements, never pasted in as raw HTML. */
+const IMG = /!\[([^\]]*)\]\(([^)\s]+)(?:\s+"[^"]*")?\)/;
+const INLINE = /\\([\\`*_\[\]()!#>.+-])|!\[([^\]]*)\]\(([^)\s]+)(?:\s+"[^"]*")?\)|\[([^\]]+)\]\(([^)\s]+)(?:\s+"[^"]*")?\)|\*\*(.+?)\*\*|__(.+?)__|\*([^*\s][^*]*)\*|(?<![A-Za-z0-9])_([^_\s][^_]*)_(?![A-Za-z0-9])|`([^`]+)`/;
+const safeUrl = (u) => (/^(https?:|mailto:|\/|\.\/|#)/i.test(u) || !/^[a-z][a-z0-9+.-]*:/i.test(u)) ? u : "#";
+function photo(src, caption) {
+  const fig = el("figure"), b = el("button", "shot"), img = el("img");
+  b.type = "button"; b.setAttribute("aria-label", "Enlarge photo" + (caption ? ": " + caption : ""));
+  img.src = safeUrl(src); img.alt = caption || ""; img.loading = "lazy";
+  b.append(img); b.addEventListener("click", () => zoom(img.src, caption || "", b));
+  fig.append(b); if (caption) fig.append(el("figcaption", null, caption));
+  return fig;
+}
+function inline(text, into) {   /* bold, italic, links and code inside a line */
+  const re = new RegExp(INLINE.source, "g");
+  let last = 0, m;
+  while ((m = re.exec(text))) {
+    if (m.index > last) into.append(text.slice(last, m.index));
+    if (m[1]) into.append(m[1]);
+    else if (m[3]) into.append(photo(m[3], m[2]));
+    else if (m[5]) { const a = el("a"); inline(m[4], a); a.href = safeUrl(m[5]); a.target = "_blank"; a.rel = "noopener"; into.append(a); }
+    else if (m[6] || m[7]) { const b = el("strong"); inline(m[6] || m[7], b); into.append(b); }
+    else if (m[8] || m[9]) { const i = el("em"); inline(m[8] || m[9], i); into.append(i); }
+    else if (m[10]) into.append(el("code", null, m[10]));
+    last = re.lastIndex;
+  }
+  if (last < text.length) into.append(text.slice(last));
 }
 function renderBody(text, into) {
-  text.split(/\n\s*\n/).forEach((block) => {
-    const lines = block.split("\n").map((l) => l.trim()).filter(Boolean);
+  String(text || "").replace(/\r/g, "").split(/\n\s*\n/).forEach((block) => {
+    let lines = block.split("\n").map((l) => l.trimEnd()).filter((l) => l.trim());
     if (!lines.length) return;
-    if (lines[0].startsWith("## ")) { into.append(el("h3", null, lines.shift().slice(3))); if (!lines.length) return; }
-    if (lines.every((l) => PHOTO.test(l))) {
-      const wrap = el("div", "shots" + (lines.length > 1 ? " multi" : ""));
-      lines.forEach((l) => {
-        const m = l.match(PHOTO), fig = el("figure"), b = el("button", "shot"), img = el("img");
-        b.type = "button"; b.setAttribute("aria-label", "Enlarge photo" + (m[1] ? ": " + m[1] : ""));
-        img.src = photoSrc(m[2]); img.alt = m[1]; img.loading = "lazy";
-        b.append(img); b.addEventListener("click", () => zoom(img.src, m[1], b));
-        fig.append(b); if (m[1]) fig.append(el("figcaption", null, m[1])); wrap.append(fig);
+    const head = /^\s*#{1,6}\s+(.*)$/.exec(lines[0]);
+    if (head) { const h = el("h3"); inline(head[1].replace(/\s+#+\s*$/, ""), h); into.append(h); lines = lines.slice(1); if (!lines.length) return; }
+    const flat = lines.map((l) => l.trim());
+    if (flat.length === 1 && /^(-{3,}|\*{3,}|_{3,})$/.test(flat[0])) { into.append(el("hr")); return; }
+    const joined = flat.join(" ");
+    if (joined.replace(new RegExp(IMG.source, "g"), "").trim() === "") {   /* nothing but photos: lay them out as a set */
+      const shots = [...joined.matchAll(new RegExp(IMG.source, "g"))];
+      const wrap = el("div", "shots" + (shots.length > 1 ? " multi" : ""));
+      shots.forEach((m) => wrap.append(photo(m[2], m[1])));
+      into.append(wrap); return;
+    }
+    const bullet = /^[-*+]\s+/, number = /^\d+[.)]\s+/;
+    if (bullet.test(flat[0]) || number.test(flat[0])) {
+      const marker = bullet.test(flat[0]) ? bullet : number, list = el(marker === bullet ? "ul" : "ol");
+      let li = null;
+      flat.forEach((l) => {
+        if (marker.test(l)) { li = el("li"); inline(l.replace(marker, ""), li); list.append(li); }
+        else if (li) { li.append(" "); inline(l, li); }
       });
-      into.append(wrap);
-    } else if (lines.every((l) => l.startsWith("- "))) {
-      const ul = el("ul"); lines.forEach((l) => ul.append(el("li", null, l.slice(2)))); into.append(ul);
-    } else if (lines.every((l) => l.startsWith("> "))) {
-      into.append(el("blockquote", null, lines.map((l) => l.slice(2)).join(" ")));
-    } else into.append(el("p", null, lines.join(" ")));
+      into.append(list); return;
+    }
+    if (flat.every((l) => l.startsWith(">"))) {
+      const q = el("blockquote"); inline(flat.map((l) => l.replace(/^>\s?/, "")).join(" "), q); into.append(q); return;
+    }
+    const para = el("p");
+    lines.forEach((l, i) => {   /* a line ending in two spaces or a backslash is a deliberate line break */
+      const hard = /( {2,}|\\)$/.test(l);
+      inline(l.replace(/( {2,}|\\)$/, "").trim(), para);
+      if (i < lines.length - 1) para.append(hard ? el("br") : " ");
+    });
+    into.append(para);
   });
 }
 
@@ -582,17 +584,29 @@ if (/[?&]debug\b/.test(location.search)) {
 /* ==========================================================================
    8. START
    ========================================================================== */
-$("#count").textContent = sorted.length;
-$("#latest").textContent = sorted[0] ? day(sorted[0].date).split(",")[0] : "-";
 const tick = () => { $("#clock").textContent = new Date().toTimeString().slice(0, 8); };
 tick(); setInterval(tick, 1000);
 sizeSky();
 if (!reduceMotion) (function loop() { if (!document.hidden) drawSky(1); requestAnimationFrame(loop); })();
 syncMusic();
 showFiles();
-const linkId = decodeURIComponent((location.hash || "").slice(1));
-pendingPost = sorted.find((p) => p.file === linkId) || null;
 syncLayers();
+(async function loadEntries() {   /* fetch the entry list; the title screen is up while this happens */
+  try {
+    const r = await fetch("posts.json", { cache: "no-cache" });
+    if (!r.ok) throw new Error("status " + r.status);
+    const data = await r.json();
+    ABOUT = data.about || "";
+    sorted = (data.posts || []).filter((p) => p && p.file).sort((a, b) => String(b.date).localeCompare(String(a.date)) || b.file.localeCompare(a.file));
+    loadNote = "No entries yet.";
+  } catch (e) { loadNote = "Could not load the log. Refresh to try again."; }
+  $("#count").textContent = sorted.length;
+  $("#latest").textContent = sorted[0] ? day(sorted[0].date).split(",")[0] || "-" : "-";
+  const linkId = decodeURIComponent((location.hash || "").slice(1));
+  pendingPost = sorted.find((p) => p.file === linkId) || null;
+  if (view === "files" && reader.hidden) showFiles(introBox.classList.contains("done"));
+  if (pendingPost && introBox.classList.contains("done")) { showPost(pendingPost); pendingPost = null; }
+})();
 $("#startbtn").focus();
 </script>
 </body>

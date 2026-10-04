@@ -1,0 +1,41 @@
+# Settings for the editor at app.pagescms.org.
+# Entries are saved as files in posts/, photos in photos/.
+media:
+  input: photos
+  output: /photos
+  rename: safe
+  categories: [image]
+content:
+  - name: posts
+    label: Log entries
+    type: collection
+    path: posts
+    format: yaml-frontmatter
+    filename: "{year}-{month}-{day}-{primary}.md"
+    fields:
+      - name: title
+        label: Title
+        type: string
+        required: true
+      - name: date
+        label: Date
+        type: date
+        required: true
+        options:
+          format: yyyy-MM-dd
+      - name: body
+        label: Entry
+        type: rich-text
+        options:
+          format: markdown
+  - name: about
+    label: About page
+    type: file
+    path: pages/about.md
+    format: yaml-frontmatter
+    fields:
+      - name: body
+        label: About text
+        type: rich-text
+        options:
+          format: markdown
