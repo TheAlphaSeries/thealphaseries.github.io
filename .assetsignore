@@ -8,6 +8,7 @@
 node_modules
 scripts
 posts
+bestiary
 pages
 wrangler.jsonc
 README.md

@@ -38,10 +38,20 @@ if (existsSync("posts")) {
   }
 }
 posts.sort((a, b) => b.date.localeCompare(a.date) || b.file.localeCompare(a.file));
+// The bestiary: one file per creature in bestiary/, listed in file-name order.
+const bestiary = [];
+if (existsSync("bestiary")) {
+  for (const name of readdirSync("bestiary").sort()) {
+    if (!name.endsWith(".md")) continue;
+    const { meta, body } = parse(readFileSync("bestiary/" + name, "utf8"));
+    bestiary.push({ file: name.replace(/\.md$/, ""), name: String(meta.name || name.replace(/\.md$/, "")), sprite: String(meta.sprite || "fish"),
+      count: Math.max(0, parseInt(meta.count, 10) || 0), location: String(meta.location || ""), note: body });
+  }
+}
 const about = existsSync("pages/about.md") ? parse(readFileSync("pages/about.md", "utf8")).body : "";
 // "source" records where this copy of the list was built, which helps when checking the site.
 const source = process.env.GITHUB_ACTIONS ? "github" : (process.env.WORKERS_CI || process.env.WORKERS_CI_BUILD_UUID) ? "cloudflare" : "other";
-writeFileSync("posts.json", JSON.stringify({ source, about, posts }, null, 2) + "\n");
+writeFileSync("posts.json", JSON.stringify({ source, about, posts, bestiary }, null, 2) + "\n");
 // A small stamp, written only at publish time, to confirm this script ran there.
 if (!process.env.GITHUB_ACTIONS) writeFileSync("build.json", JSON.stringify({ source, entries: posts.length, built: new Date().toISOString() }) + "\n");
 console.log("posts.json: " + posts.length + " entries");

@@ -1,5 +1,5 @@
 {
-  "source": "github",
+  "source": "other",
   "about": "> Half Life is a permanent state of change. Nothing holds its shape for long. Time moves, places shift, people become someone else, and so do you. You are still conscious, still moving, still wanting, and the only way through is to move with it.",
   "posts": [
     {
@@ -7,6 +7,40 @@
       "title": "Entry 000001",
       "date": "2026-10-02",
       "body": "Hello,\n\nFor some considerable time I have entertained the notion that I ought to have a website. The reasons for this conviction remain somewhat obscure, but the conviction itself has proved remarkably durable. At last, through a combination of industry, vanity, and an unexpected abundance of free time, the thing now exists.\n\nMy present scheme is to begin with several long and shamelessly retrospective accounts of the year thus far: projects undertaken with varying degrees of competence, places visited, objects made, and other episodes which, through the generous distortions of memory, now seem worthy of documentation.\n\nWhether any of this will prove useful to anyone is doubtful. Fortunately, usefulness was never among the requirements.\n\nOnce I have exhausted accounts of the recent past, I shall concern myself with the future."
+    }
+  ],
+  "bestiary": [
+    {
+      "file": "001-rainbow-trout",
+      "name": "Rainbow Trout",
+      "sprite": "trout",
+      "count": 1,
+      "location": "Pine Lake, California",
+      "note": "A cold-water fish with a pink stripe along its side."
+    },
+    {
+      "file": "002-sunfish",
+      "name": "Sunfish",
+      "sprite": "sunfish",
+      "count": 2,
+      "location": "Pine Lake, California",
+      "note": "Small, round and quick to bite."
+    },
+    {
+      "file": "003-crappie",
+      "name": "Crappie",
+      "sprite": "crappie",
+      "count": 1,
+      "location": "Lake Chabot, California",
+      "note": "A speckled panfish that schools near cover."
+    },
+    {
+      "file": "004-bass",
+      "name": "Bass",
+      "sprite": "bass",
+      "count": 1,
+      "location": "Lake Chabot, California",
+      "note": "A wide-mouthed ambush hunter."
     }
   ]
 }

@@ -3,7 +3,7 @@ name: Build entry index
 on:
   push:
     branches: [main]
-    paths: ["posts/**", "pages/**", "scripts/build-index.mjs"]
+    paths: ["posts/**", "pages/**", "bestiary/**", "scripts/build-index.mjs"]
 permissions:
   contents: write
 jobs:

@@ -104,6 +104,20 @@ h3 { font-size: 12px; line-height: 1.7; color: var(--accent); margin-top: 8px; }
 .opt[aria-pressed="true"] { color: var(--accent); }
 #menu .opt, .row .opt { font-family: var(--display); font-size: 12px; line-height: 1.7; }
 
+.tally { color: var(--dim); margin: -6px 0 14px 24px; font-variant-numeric: tabular-nums; }
+.beasts { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 18px; align-items: start; }
+.beastlist { display: flex; flex-direction: column; gap: 4px; }
+.beast { grid-template-columns: 18px 3ch minmax(0, 1fr) auto; }
+.beast .num { color: var(--dim); font-variant-numeric: tabular-nums; }
+.beast .name { font-family: var(--display); font-size: 12px; line-height: 1.8; overflow-wrap: anywhere; }
+.beast .qty { color: var(--dim); font-variant-numeric: tabular-nums; }
+.beast[aria-pressed="true"]::before { visibility: visible; }
+.beastcard { border: 3px solid var(--border); border-radius: 9px; box-shadow: inset 0 0 0 2px var(--border-shade); padding: 14px 16px 16px; min-width: 0; }
+.beastcard.pop { animation: pop .5s var(--spring); }
+.fishpic { display: block; width: 100%; max-width: 228px; height: auto; margin: 0 auto 10px; image-rendering: pixelated; }
+.facts { display: grid; grid-template-columns: auto 1fr; gap: 2px 14px; margin: 10px 0 0; }
+.facts dt { color: var(--dim); } .facts dd { margin: 0; }
+.note { margin: 10px 0 0; font-family: var(--read); font-size: 19px; font-style: italic; line-height: 1.45; text-shadow: 0 1px 1px rgba(0, 0, 0, .5); }
 .files { display: flex; flex-direction: column; gap: 8px; }
 .file { grid-template-columns: 18px minmax(0, 1fr) auto; padding-block: 9px; }
 .file.chosen { animation: chosen .12s steps(1) 2; }
@@ -181,7 +195,8 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
 
 /* phone view: the command window becomes a bar fixed to the bottom of the screen */
 @media (max-width: 720px) {
-  body { padding-bottom: 128px; }
+  body { padding-bottom: 170px; }
+  .beasts { grid-template-columns: minmax(0, 1fr); }
   .stage { grid-template-columns: minmax(0, 1fr); grid-template-areas: "help" "main" "status"; grid-template-rows: auto; }
   #menu {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 3; border-radius: 9px 9px 0 0;
@@ -200,7 +215,7 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
   #readerwin { padding: 18px 14px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .opt:focus-visible::before, .file.chosen, #readerwin.pop, .stage.go > .win, #main > *, #main .files > *, #main .group, #titlebar .site, #intro .win, #intro .start::before { animation: none; }
+  .opt:focus-visible::before, .file.chosen, .beastcard.pop, #readerwin.pop, .stage.go > .win, #main > *, #main .files > *, #main .group, #titlebar .site, #intro .win, #intro .start::before { animation: none; }
   #intro, .opt, #sprite { transition: none; }
 }
 </style>
@@ -214,6 +229,7 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
 
   <nav class="win" id="menu" aria-label="Commands">
     <button class="opt" type="button" id="m-files">Log</button>
+    <button class="opt" type="button" id="m-bestiary">Bestiary</button>
     <button class="opt locked" type="button" id="m-photos" disabled>Photos</button>
     <button class="opt locked" type="button" id="m-prints" disabled>Shop</button>
     <button class="opt" type="button" id="m-about">About</button>
@@ -250,6 +266,7 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
    gathers them into posts.json, which this page loads when it opens.
    ========================================================================== */
 let ABOUT = "";          /* the About text, loaded from posts.json */
+let BESTIARY = [];       /* the creatures, loaded from posts.json */
 let sorted = [];         /* the entries, newest first, loaded from posts.json */
 let loadNote = "Loading...";   /* shown in the log while there is nothing to list */
 const HELP = `## Touch or mouse
@@ -277,7 +294,7 @@ const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
 const day = (d) => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(d || ""); return m ? MONTHS[+m[2] - 1] + " " + +m[3] + ", " + m[1] : ""; };
 
 const stage = $("#stage"), main = $("#main"), menu = $("#menu"), reader = $("#reader"), rwin = $("#readerwin"), zoomBox = $("#zoom"), introBox = $("#intro");
-let view = "files";      /* which screen the main window shows: files, about or help */
+let view = "files";      /* which screen the main window shows: files, bestiary, about or help */
 let current = null;      /* the entry open in the pop-out window, if any */
 
 function setHash(h) { try { history.replaceState(null, "", h ? "#" + h : location.pathname + location.search); } catch (e) {} }
@@ -318,6 +335,44 @@ function showPage(name, menuId, label, text) {
   openScreen(name, menuId);
   const body = el("div", "post"); renderBody(text, body);
   main.append(el("p", "label", label), body, backRow());
+}
+
+/* ----- the bestiary: a list of creatures on the left, the chosen one's details on the right ----- */
+const FISH_SIZE = [38, 22];
+const FISH = { "trout": { "pal": { "B": "#5d6b3a", "M": "#b9c2bd", "L": "#e9e9df", "F": "#7c8458", "T": "#6c7548", "P": "#d9788c", "D": "#2e3320", "o": "#2b2b34", "e": "#050505", "w": "#f4f4f4" }, "rows": [ "......................................", "......................................", "......................................", "......................................", "...o................o.................", "..oTo.............ooFoo...............", "..oTTo......o...ooFFFFFoo.............", "..oTTTo....oFoooBBBBDBDBBooooo........", "..oTTTTo.ooDBBBDBBBBBBDBDBBBBBoo......", "..oTTTTToBBBBBDBDDBBBDDDBDBBDwBBo.....", "..oTTTTTDDMMMMMDMMMMDMMMMMMDDeMMMo....", "...oTTTMMPPPPPPPPPPPPPPPPPPPPPMMMMo...", "..oTTTTTMMMMMMMMMMMMMMMMMMMMMMMMDo....", "..oTTTTToLLLLLLLLLLLLLLLLLLLLLLLo.....", "..oTTTTo.ooLLLLLLLLLLLLLLLLLLLoo......", "..oTTTo....oooFFLLLLLLLLLFFooo........", "..oTTo........oFFFooooooFFo...........", "..oTo..........oFo......oo............", "...o............o.....................", "......................................", "......................................", "......................................" ] }, "sunfish": { "pal": { "B": "#35504a", "M": "#5d8f86", "L": "#e2903c", "F": "#3f6058", "T": "#3f6058", "P": "#2b4640", "D": "#0d1418", "o": "#2b2b34", "e": "#050505", "w": "#f4f4f4" }, "rows": [ "......................................", "......................................", "...................o..................", "................oooFooo...............", "........o......oFFBBBBBoo.............", ".......oTo....oFBBPBBPBBBo............", ".......oTTo...oPBBPBBPBBBBo...........", ".......oTTTo.oBPBBPBBPBBBBBo..........", ".......oTTTToBBPBBPBBPBBBBBBo.........", ".......oTTTTTMMPMMPMMPMMMwMMo.........", ".......oTTTTTMMPMMPMMPMMDeMMo.........", ".......oTTTTMMMPMMPMMPMMDMMMMo........", ".......oTTTTTMMPMMPMMPMMLLLDo.........", ".......oTTTTTMMMMMMMLLLLLLLLo.........", ".......oTTTToMMMMMMMLLLLLLLLo.........", ".......oTTTo.oMMMMMMLLLLLLLo..........", ".......oTTo...oMMMMMLLLLLLo...........", ".......oTo....oFMMMMLLLLLo............", "........o......oFFMMLLLoo.............", "................ooFoooo...............", "..................o...................", "......................................" ] }, "crappie": { "pal": { "B": "#566350", "M": "#b4bfb0", "L": "#e4e8dc", "F": "#7b8872", "T": "#7b8872", "P": "#b4bfb0", "D": "#1c211b", "o": "#2b2b34", "e": "#050505", "w": "#f4f4f4" }, "rows": [ "......................................", ".................oo...................", "................oFFo..................", "...............oFFDFo.................", "......o......ooFFFFFFooo..............", ".....oTo....oFFFFBDBBBBBooo...........", ".....oTTo..oFFBBBDBBBBBBBBBo..........", ".....oTTTo..oDBDBBBBBBDBBBBBo.........", ".....oTTTTooBBBBBBDBBBBBBBBBBo........", ".....oTTTTTMMMMMMMMMMMMMMMwMMMo.......", ".....oTDTTTMMMDMMMMMMMMMMMeMMMo.......", "......oTTTMMMMDMMDMMMMMMMMMMMMMo......", ".....oTTTDTDMMMMMDMMMMMDMDMMMDo.......", ".....oTTTTTMMMMMMMMMDMMMDMMMMMo.......", ".....oTTTTooLLLLLLLLLLLLLLLLLo........", ".....oDTTo..oLLLLLLLLLLLLLLLo.........", ".....oDTo..oFFLLLLLLLLLLLLLo..........", ".....oTo....oFDFFLLLLLLLooo...........", "......o......oFFFFFFoooo..............", "..............oDFFFo..................", "...............oFFo...................", "................oo...................." ] }, "bass": { "pal": { "B": "#3f5b33", "M": "#8fa56b", "L": "#e4e7d0", "F": "#55713f", "T": "#4b6638", "P": "#24331f", "D": "#1a2616", "o": "#2b2b34", "e": "#050505", "w": "#f4f4f4" }, "rows": [ "......................................", "......................................", "......................................", "..............oo......o...............", "...o.........oFFo...ooFoo.............", "..oTo.......oFFFFoooFFFFFo............", "..oTTo.....oFFFFBBBBBBBBBFooo.........", "..oTTTo...ooBBBBBBBBBBBBBBBBBoo.......", "..oTTTToooBBBBBBBBBBBBBBBBBBBBBoo.....", "..oTTTTTBBBBBBBBBBBBBBBBBBBBBwBBBo....", "..oTTTTTPMMPPPPPMMPMMMPPMPPMPeMMMo....", "...oTTTMPPPPPPPPPPPPPPPPPPPPPMMMMMo...", "..oTTTTTMMMMMMMMMPMMMPMPMPMPPMDDDo....", "..oTTTTTMMMMMMMMMMMMMMMMMMMMMMMMMo....", "..oTTTToooLLLLLLLLLLLLLLLLLLLLLoo.....", "..oTTTo...ooLLLLLLLLLLLLLLLLLoo.......", "..oTTo......ooFFLLLLLLLLLFooo.........", "..oTo.........oFFFoooooFFo............", "...o...........oFo.....oo.............", "................o.....................", "......................................", "......................................" ] }, "fish": { "pal": { "B": "#55555f", "M": "#9a9aa6", "L": "#d6d6de", "F": "#6c6c78", "T": "#6c6c78", "P": "#9a9aa6", "D": "#2a2a32", "o": "#2b2b34", "e": "#050505", "w": "#f4f4f4" }, "rows": [ "......................................", "......................................", "......................................", "...................oo.................", ".....o............oFFo................", "....oTo.........ooFFFFoo..............", "....oTTo.....oooFBBBBBBBoooo..........", "....oTTTo..ooBBBBBBBBBBBBBBBoo........", "....oTTTTooBBBBBBBBBBBBBBBBBBBo.......", "....oTTTTTBBBBBBBBBBBBBBBBBwBBBo......", "....oTTTTTMMMMMMMMMMMMMMMMMeMMMo......", ".....oTTTMMMMMMMMMMMMMMMMMMMMMMMo.....", "....oTTTTTMMMMMMMMMMMMMMMMMMMMDo......", "....oTTTTTMMMMMMMMMMMMMMMMMMMMMo......", "....oTTTTooLLLLLLLLLLLLLLLLLLLo.......", "....oTTTo..ooLLLLLLLLLLLLLLLoo........", "....oTTo.....oooFLLLLLLLoooo..........", "....oTo.........ooFooooo..............", ".....o............o...................", "......................................", "......................................", "......................................" ] } };
+function drawFish(canvas, kind) {
+  const f = FISH[kind] || FISH.fish, c = canvas.getContext("2d");
+  canvas.width = FISH_SIZE[0]; canvas.height = FISH_SIZE[1];
+  f.rows.forEach((row, y) => { for (let x = 0; x < row.length; x++) { const col = f.pal[row[x]]; if (col) { c.fillStyle = col; c.fillRect(x, y, 1, 1); } } });
+}
+function showBestiary(focusFirst) {
+  openScreen("bestiary", "m-bestiary");
+  const total = BESTIARY.reduce((n, b) => n + b.count, 0);
+  main.append(el("p", "label", "Bestiary"));
+  if (!BESTIARY.length) { main.append(el("p", "sub", loadNote === "Loading..." ? loadNote : "Nothing recorded yet."), backRow()); return; }
+  main.append(el("p", "tally", BESTIARY.length + " kinds  /  " + total + " caught"));
+  const wrap = el("div", "beasts"), list = el("div", "beastlist"), card = el("div", "beastcard");
+  const show = (b, btn) => {
+    list.querySelectorAll(".opt").forEach((o) => o.setAttribute("aria-pressed", String(o === btn)));
+    card.textContent = "";
+    const pic = el("canvas", "fishpic"); pic.setAttribute("aria-hidden", "true"); drawFish(pic, b.sprite);
+    const facts = el("dl", "facts");
+    facts.append(el("dt", null, "Caught"), el("dd", null, String(b.count)));
+    if (b.location) facts.append(el("dt", null, "Where"), el("dd", null, b.location));
+    card.append(pic, el("h2", null, b.name), facts);
+    if (b.note) card.append(el("p", "note", b.note));
+    card.classList.remove("pop"); void card.offsetWidth; card.classList.add("pop");
+  };
+  BESTIARY.forEach((b, i) => {
+    const btn = opt(null, () => show(b, btn), "beast");
+    btn.addEventListener("focus", () => { if (btn.getAttribute("aria-pressed") !== "true") show(b, btn); });   /* moving the cursor shows that creature */
+    btn.append(el("span", "num", String(i + 1).padStart(3, "0")), el("span", "name", b.name), el("span", "qty", "x" + b.count));
+    btn.style.setProperty("--i", i);
+    list.append(btn);
+  });
+  wrap.append(list, card); main.append(wrap, backRow());
+  show(BESTIARY[0], list.querySelector(".opt"));
+  if (focusFirst) list.querySelector(".opt").focus();
 }
 
 /* ----- entry text -----
@@ -426,6 +481,7 @@ zoomBox.addEventListener("click", unzoom);
    4. MENU AND KEYBOARD
    ========================================================================== */
 $("#m-files").addEventListener("click", () => showFiles(true));
+$("#m-bestiary").addEventListener("click", () => showBestiary(true));
 $("#m-about").addEventListener("click", () => showPage("about", "m-about", "About", ABOUT));
 $("#m-how").addEventListener("click", () => showPage("help", "m-how", "Help", HELP));
 
@@ -633,6 +689,7 @@ syncLayers();
     if (!r.ok) throw new Error("status " + r.status);
     const data = await r.json();
     ABOUT = data.about || "";
+    BESTIARY = Array.isArray(data.bestiary) ? data.bestiary : [];
     sorted = (data.posts || []).filter((p) => p && p.file).sort((a, b) => String(b.date).localeCompare(String(a.date)) || b.file.localeCompare(a.file));
     loadNote = "No entries yet.";
   } catch (e) { loadNote = "Could not load the log. Refresh to try again."; }
@@ -641,6 +698,7 @@ syncLayers();
   const linkId = decodeURIComponent((location.hash || "").slice(1));
   pendingPost = sorted.find((p) => p.file === linkId) || null;
   if (view === "files" && reader.hidden) showFiles(introBox.classList.contains("done"));
+  if (view === "bestiary") showBestiary();
   if (pendingPost && introBox.classList.contains("done")) { showPost(pendingPost); pendingPost = null; }
 })();
 startSprite();
