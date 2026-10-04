@@ -578,7 +578,7 @@ function musicTick() {
 function setMusic(mode, save) { /* the button names what choosing it will do next */
   musicMode = mode; stepNo = 0; const b = $("#m-music");
   b.textContent = ["Music On", "Music Off"][mode]; b.setAttribute("aria-pressed", String(mode > 0));
-  if (save) store.set("music", String(mode));
+  if (save) store.set("music3", String(mode));
   try {
     if (mode) {
       ac = ac || new (window.AudioContext || window.webkitAudioContext)(); { const r = ac.resume(); if (r && r.catch) r.catch(() => {}); }
@@ -594,7 +594,7 @@ function setMusic(mode, save) { /* the button names what choosing it will do nex
 $("#m-music").addEventListener("click", () => setMusic(musicMode ? 0 : 1, true));
 /* On by default. Browsers hold sound until the first tap or key press, so for most visitors it starts
    when they press through the title screen. A visitor who turns it off stays off. */
-if (store.get("music") !== "0") {
+if (store.get("music3") !== "0") {
   setMusic(1, false);
   const wake = () => { if (musicMode && ac && ac.state !== "running") { const r = ac.resume(); if (r && r.catch) r.catch(() => {}); } };
   document.addEventListener("pointerdown", wake, { capture: true });
