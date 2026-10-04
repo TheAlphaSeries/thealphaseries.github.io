@@ -10,19 +10,20 @@ function unquote(v) {
 }
 // Splits a file into its header (title, date) and its text.
 function parse(text) {
-  const m = /^---\r?\n([\s\S]*?)\r?\n?---[ \t]*(?:\r?\n|$)([\s\S]*)$/.exec(text);
+  text = text.replace(/^\uFEFF/, "").replace(/^\s*\n/, "");
+  // The header sits between two lines that are exactly "---"; dashes inside a title do not end it.
+  const m = /^---[ \t]*\r?\n(?:([\s\S]*?)\r?\n)?---[ \t]*(?:\r?\n|$)([\s\S]*)$/.exec(text);
   const meta = {};
   if (!m) return { meta, body: text.trim() };
-  const lines = m[1].split(/\r?\n/);
+  const lines = (m[1] || "").split(/\r?\n/);
   for (let i = 0; i < lines.length; i++) {
     const k = /^([A-Za-z_][\w-]*):\s*(.*)$/.exec(lines[i]);
     if (!k) continue;
     let value = k[2];
-    if (/^[>|][+-]?$/.test(value.trim())) {            // a long value wrapped over several indented lines
-      const parts = [];
-      while (i + 1 < lines.length && /^\s+\S/.test(lines[i + 1])) parts.push(lines[++i].trim());
-      value = parts.join(value.trim().startsWith("|") ? "\n" : " ");
-    } else value = unquote(value);
+    const block = /^[>|][+-]?$/.test(value.trim());       // a long value wrapped over several indented lines
+    const parts = block ? [] : [value.trim()];
+    while (i + 1 < lines.length && /^\s+\S/.test(lines[i + 1])) parts.push(lines[++i].trim());
+    value = block ? parts.join(value.trim().startsWith("|") ? "\n" : " ") : unquote(parts.join(" "));
     meta[k[1]] = value;
   }
   return { meta, body: m[2].trim() };
