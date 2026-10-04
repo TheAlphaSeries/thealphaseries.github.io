@@ -1,5 +1,5 @@
 ---
-title: First entry
+title: Test TEST TesT
 date: 2026-10-02
 ---
 [SAMPLE ENTRY. Chris, rewrite or delete this one. It is here so you can see how a real post reads in the window.]
