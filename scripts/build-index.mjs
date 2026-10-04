@@ -49,6 +49,7 @@ if (existsSync("bestiary")) {
     const day = /^\d{4}-\d{2}-\d{2}/.exec(String(meta.date || ""));
     bestiary.push({ file: name.replace(/\.md$/, ""), name: String(meta.name || name.replace(/\.md$/, "")), sprite: String(meta.sprite || "fish"),
       date: day ? day[0] : "", weight: num(meta.weight), length: num(meta.length), location: String(meta.location || ""),
+      rarity: String(meta.rarity || "").toLowerCase(), catch_rate: num(meta.catch_rate), fight: num(meta.fight), lure: String(meta.lure || ""),
       photo: String(meta.photo || ""), lore: body });
   }
 }

@@ -5,6 +5,10 @@ date:
 weight: ""
 length: ""
 location: Lake Chabot, California
+rarity: uncommon
+catch_rate: "35"
+fight: "2"
+lure: ""
 photo: 
 ---
 A pale, speckled fish of retiring habit, which gathers among sunken thickets with others of its kind and conducts its affairs chiefly at dawn and dusk. Its mouth is thin as wet parchment and tears at the least insistence, whence the vulgar name of papermouth.

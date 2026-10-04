@@ -117,6 +117,10 @@ h3 { font-size: 12px; line-height: 1.7; color: var(--accent); margin-top: 8px; }
 .fishpic { display: block; width: 100%; max-width: 320px; height: auto; margin: 0 auto 10px; image-rendering: pixelated; }
 .facts { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 14px; margin: 10px 0 0; }
 .facts dt { color: var(--dim); } .facts dd { margin: 0; }
+.pips { display: inline-flex; gap: 3px; margin-right: 10px; vertical-align: 1px; }
+.pips i { width: 9px; height: 9px; border: 2px solid currentColor; opacity: .35; }
+.pips i.on { background: currentColor; opacity: 1; }
+.rarity.common { color: #c9c9d2; } .rarity.uncommon { color: #7fd68a; } .rarity.rare { color: #6fb7ff; } .rarity.epic { color: #c79bff; } .rarity.legendary { color: #ffd257; }
 .fishbtn { display: block; width: 100%; padding: 0; margin: 0; background: none; border: 0; color: inherit; font: inherit; text-shadow: inherit; cursor: zoom-in; transition: transform .5s var(--spring); }
 .fishbtn:hover, .fishbtn:focus-visible { transform: scale(1.04); outline: none; }
 .fishbtn .hint { display: block; text-align: center; color: var(--dim); font-size: 14px; margin: -4px 0 8px; }
@@ -414,6 +418,12 @@ function drawFish(canvas, kind) {
   c.putImageData(out, 0, 0);
 }
 function swim(canvas, kind) { drawFish(canvas, kind); }   /* a still picture: no movement */
+const RARITY = { common: ["Common", 1], uncommon: ["Uncommon", 2], rare: ["Rare", 3], epic: ["Epic", 4], legendary: ["Legendary", 5] };   /* name and how many pips of five */
+function pips(filled, cls) {   /* a row of five small squares, some lit, like a stat in a game menu */
+  const row = el("span", "pips" + (cls ? " " + cls : "")); row.setAttribute("aria-hidden", "true");
+  for (let i = 1; i <= 5; i++) row.append(el("i", i <= filled ? "on" : null));
+  return row;
+}
 function showBestiary(focusFirst) {
   openScreen("bestiary", "m-bestiary");
   main.append(el("p", "label", "Bestiary"));
@@ -433,9 +443,13 @@ function showBestiary(focusFirst) {
       open.append(pic, el("span", "hint", "View photo")); open.addEventListener("click", () => zoom(safeUrl(b.photo), b.name, open));
       card.append(open);
     } else card.append(pic);
-    const facts = el("dl", "facts"), fact = (k, v) => facts.append(el("dt", null, k), el("dd", null, v));
+    const facts = el("dl", "facts"), fact = (k, v, extra) => { const dd = el("dd", null, v); if (extra) dd.prepend(extra); facts.append(el("dt", null, k), dd); return dd; };
+    if (b.rarity) fact("Rarity", RARITY[b.rarity][0], pips(RARITY[b.rarity][1])).className = "rarity " + b.rarity;
+    if (b.catch_rate) fact("Catch rate", b.catch_rate + "%");
+    if (b.fight) fact("Fight", b.fight + " / 5", pips(b.fight));
     fact("Weight", b.weight ? b.weight + " lb" : "-");
     fact("Length", b.length ? b.length + " in" : "-");
+    if (b.lure) fact("Caught on", b.lure);
     if (b.location) fact("Where", b.location);
     if (b.date) fact("Caught", day(b.date));
     card.append(el("h2", null, b.name), facts);
@@ -788,7 +802,9 @@ function linkedPost() {   /* the entry named after # in the address, if there is
     ABOUT = text(data.about);
     BESTIARY = (Array.isArray(data.bestiary) ? data.bestiary : []).filter((b) => b && typeof b === "object").map((b) => ({
       name: text(b.name).trim() || "Unknown", sprite: text(b.sprite) || "fish", date: text(b.date), weight: amount(b.weight), length: amount(b.length),
-      location: text(b.location), photo: text(b.photo), lore: text(b.lore) }));
+      location: text(b.location), photo: text(b.photo), lore: text(b.lore),
+      rarity: Object.prototype.hasOwnProperty.call(RARITY, text(b.rarity)) ? text(b.rarity) : "", lure: text(b.lure),
+      catch_rate: Math.min(100, amount(b.catch_rate) || 0) || null, fight: Math.min(5, Math.round(amount(b.fight) || 0)) || null }));
     sorted = (Array.isArray(data.posts) ? data.posts : []).filter((p) => p && typeof p === "object" && text(p.file)).map((p) => ({
       file: text(p.file), title: text(p.title) || text(p.file), date: text(p.date), body: text(p.body) }))
       .sort((a, b) => b.date.localeCompare(a.date) || b.file.localeCompare(a.file));
