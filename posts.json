@@ -33,17 +33,6 @@
       "lore": "A round-bodied panfish of warm, weedy shallows. Small, but bold enough to charge anything that drifts near its nest."
     },
     {
-      "file": "003-sunfish",
-      "name": "Sunfish",
-      "sprite": "sunfish",
-      "date": "",
-      "weight": null,
-      "length": null,
-      "location": "Pine Lake, California",
-      "photo": "",
-      "lore": "The second of its kind from the same water. Sunfish gather in loose groups, so where one is found another is rarely far."
-    },
-    {
       "file": "004-crappie",
       "name": "Crappie",
       "sprite": "crappie",
