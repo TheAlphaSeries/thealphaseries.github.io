@@ -24,10 +24,10 @@ img { max-width: 100%; }
 </head>
 <body>
 <style>
-/* Layout: a 16-bit RPG menu screen. Help window across the top, a large main window
-   (log list / config), a command window and a status window on the right.
-   An opened entry pops out over the screen as a translucent window.
-   Single dark look by choice; the window color is a Config option, as in the genre. */
+/* Layout: a 16-bit RPG menu screen. Title bar across the top, a large main window
+   (log list / About / Help), a command window and a status window on the right.
+   A title screen with a Start button covers it first; an opened entry pops out as a
+   translucent window. Single black look by choice. */
 :root {
   color-scheme: dark;
   --win-a: #1c1c1c;       /* window gradient, top */
@@ -40,7 +40,6 @@ img { max-width: 100%; }
   --fg: #ffffff;
   --dim: color-mix(in srgb, var(--win-a) 22%, #fff);            /* dates, captions */
   --off: color-mix(in srgb, var(--win-a) 48%, #fff);            /* unavailable commands */
-  --alert: #ffb0a4;
   --hl: rgba(255, 255, 255, .13);
   --spring: cubic-bezier(.34, 1.56, .64, 1);
   --display: "Press Start 2P", "Courier New", monospace;
@@ -71,18 +70,15 @@ body {
   box-shadow: inset 0 0 0 2px var(--border-shade), 0 0 0 2px #000;
   padding: 14px 16px; min-width: 0;
 }
-#help { grid-area: help; }
-#help .site { font-family: var(--display); font-size: 13px; line-height: 1.6; color: var(--accent); }
-#helptext { flex: 1 1 20ch; min-width: 0; }
-#helptext.bad { color: var(--alert); }
+#titlebar { grid-area: help; }
+#titlebar .site { font-family: var(--display); font-size: 13px; line-height: 1.6; color: var(--accent); }
 #main { grid-area: main; min-height: 440px; padding: 20px 20px 22px; }
 #menu { grid-area: menu; display: flex; flex-direction: column; gap: 4px; }
 #status { grid-area: status; align-self: start; display: grid; grid-template-columns: auto 1fr; gap: 2px 14px; font-variant-numeric: tabular-nums; }
 #status dt { color: var(--dim); } #status dd { margin: 0; text-align: right; }
 dl { margin: 0; }
 
-h1, h2, h3, .label { font-family: var(--display); font-weight: 400; margin: 0; text-wrap: balance; }
-h1 { font-size: 18px; line-height: 1.6; }
+h2, h3, .label { font-family: var(--display); font-weight: 400; margin: 0; text-wrap: balance; }
 h2 { font-size: 17px; line-height: 1.6; }
 h3 { font-size: 12px; line-height: 1.7; color: var(--accent); margin-top: 8px; }
 .label { color: var(--accent); font-size: 12px; line-height: 1.6; letter-spacing: .06em; margin-bottom: 14px; }
@@ -106,16 +102,14 @@ h3 { font-size: 12px; line-height: 1.7; color: var(--accent); margin-top: 8px; }
 .opt:focus-visible::before { animation: nudge 1.1s ease-in-out infinite; }
 @keyframes nudge { 50% { transform: translateX(-4px); } }
 .opt.locked { color: var(--off); cursor: not-allowed; }
+.opt.locked:hover, .opt.locked:focus-visible { transform: none; }
 .opt[aria-pressed="true"] { color: var(--accent); }
 #menu .opt, .row .opt { font-family: var(--display); font-size: 12px; line-height: 1.7; }
 
 .files { display: flex; flex-direction: column; gap: 8px; }
 .file { grid-template-columns: 18px minmax(0, 1fr) auto; padding-block: 9px; }
-.file .no { color: var(--accent); font-variant-numeric: tabular-nums; }
 .file .name { font-family: var(--display); font-size: 12px; line-height: 1.8; overflow-wrap: anywhere; }
 .file .date { color: var(--dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.file .ttl { grid-column: 3 / -1; color: var(--dim); font-size: 15.5px; line-height: 1.45; overflow-wrap: anywhere; }
-.file .tag { color: var(--accent); margin-right: 10px; }
 
 /* an opened entry: translucent window that pops out over the screen */
 #reader {
@@ -139,7 +133,6 @@ h3 { font-size: 12px; line-height: 1.7; color: var(--accent); margin-top: 8px; }
 .post ul { padding-left: 1.4em; list-style: square; }
 .post li::marker { color: var(--accent); }
 .post blockquote { border-left: 3px solid var(--accent); padding-left: 18px; color: var(--fg); font-style: italic; font-size: 23px; line-height: 1.5; }
-.eof { color: var(--dim); margin: 22px 0 8px; font-family: var(--display); font-size: 10px; letter-spacing: .1em; }
 .shots { display: grid; gap: 10px; }
 .shots.multi { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 figure { margin: 0; min-width: 0; }
@@ -154,20 +147,15 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
 .row { display: flex; flex-wrap: wrap; gap: 4px 18px; }
 .row .opt { width: auto; grid-template-columns: 18px auto; }
 .group { margin-top: 20px; }
-.sw { display: inline-block; width: 22px; height: 14px; border: 2px solid var(--border); border-radius: 3px; vertical-align: middle; margin-right: 8px; }
-.sw i { display: block; width: 6px; height: 6px; margin: 2px 0 0 12px; }
 
 /* motion: windows spring into place after the title screen; contents bounce in on every screen change */
 @keyframes rise { from { translate: 0 22px; scale: .95; opacity: 0; } to { translate: 0 0; scale: 1; opacity: 1; } }
 @keyframes slide { from { translate: -20px 0; opacity: 0; } to { translate: 0 0; opacity: 1; } }
 @keyframes glint { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.12); } }
-@keyframes blink { 50% { opacity: .2; } }
 .stage.go > .win { animation: rise 1.2s var(--spring) backwards; }
-.stage.go > #help { animation-delay: .1s; } .stage.go > #main { animation-delay: .35s; } .stage.go > #menu { animation-delay: .6s; } .stage.go > #status { animation-delay: .85s; }
+.stage.go > #titlebar { animation-delay: .1s; } .stage.go > #main { animation-delay: .35s; } .stage.go > #menu { animation-delay: .6s; } .stage.go > #status { animation-delay: .85s; }
 #main > *, #main .files > *, #main .group { animation: slide 1.1s var(--spring) backwards; animation-delay: calc(.25s + var(--i, 0) * 220ms); }
-#help .site { animation: glint 3.2s ease-in-out infinite; }
-#helptext::after { content: ""; display: inline-block; width: .5em; height: 1em; margin-left: 3px; vertical-align: text-bottom; background: var(--accent); opacity: 0; }
-#helptext.typing::after { opacity: 1; }
+#titlebar .site { animation: glint 3.2s ease-in-out infinite; }
 
 /* title screen */
 #intro {
@@ -180,7 +168,6 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
 #intro .tagline { color: var(--dim); margin-top: 8px; }
 #intro .start { width: auto; margin: 24px auto 0; grid-template-columns: 18px auto; padding: 10px 16px 10px 10px; font-family: var(--display); font-size: 13px; line-height: 1.7; }
 #intro .start::before { visibility: visible; animation: nudge 1.1s ease-in-out infinite; }
-#intro .press { font-family: var(--display); font-size: 11px; line-height: 1.8; margin-top: 26px; animation: blink 1.6s ease-in-out infinite; }
 
 /* phone view: the command window becomes a bar fixed to the bottom of the screen */
 @media (max-width: 720px) {
@@ -198,12 +185,12 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
   .opt:hover, .opt:focus-visible { transform: translateX(3px); }
   .file { grid-template-columns: 18px minmax(0, 1fr); }
   .file .date { grid-column: 2; grid-row: 2; font-size: 14.5px; }
-  h1 { font-size: 15px; } h2 { font-size: 14px; }
+  h2 { font-size: 14px; }
   #reader { padding: calc(8px + env(safe-area-inset-top, 0px)) 8px calc(8px + env(safe-area-inset-bottom, 0px)); }
   #readerwin { padding: 18px 14px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .opt:focus-visible::before, #readerwin.pop, .stage.go > .win, #main > *, #main .files > *, #main .group, #help .site, #intro .win, #intro .press { animation: none; }
+  .opt:focus-visible::before, #readerwin.pop, .stage.go > .win, #main > *, #main .files > *, #main .group, #titlebar .site, #intro .win, #intro .start::before { animation: none; }
   #intro, .opt { transition: none; }
 }
 </style>
@@ -211,21 +198,17 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
 <canvas id="sky" aria-hidden="true"></canvas>
 
 <div class="stage" id="stage">
-  <div class="win" id="help">
-    <span class="site">HALF LIFE</span>
-    <span id="helptext" hidden></span>
-    <span id="helpsr" role="status" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)"></span>
-  </div>
+  <div class="win" id="titlebar"><span class="site">HALF LIFE</span></div>
 
   <main class="win" id="main" tabindex="-1"></main>
 
   <nav class="win" id="menu" aria-label="Commands">
-    <button class="opt" type="button" id="m-files" data-help="Read log entries.">Log</button>
-    <button class="opt locked" type="button" id="m-photos" data-locked="Not available yet." data-help="View photos. Not available yet.">Photos</button>
-    <button class="opt locked" type="button" id="m-prints" data-locked="Not available yet." data-help="Buy prints. Not available yet.">Shop</button>
-    <button class="opt" type="button" id="m-about" data-help="About this site.">About</button>
-    <button class="opt" type="button" id="m-how" data-help="View controls.">Help</button>
-    <button class="opt" type="button" id="m-music" aria-pressed="false" data-help="Turn the music on or off.">Music On</button>
+    <button class="opt" type="button" id="m-files">Log</button>
+    <button class="opt locked" type="button" id="m-photos" aria-disabled="true" title="Not available yet">Photos</button>
+    <button class="opt locked" type="button" id="m-prints" aria-disabled="true" title="Not available yet">Shop</button>
+    <button class="opt" type="button" id="m-about">About</button>
+    <button class="opt" type="button" id="m-how">Help</button>
+    <button class="opt" type="button" id="m-music" aria-pressed="true">Music Off</button>
   </nav>
 
   <dl class="win" id="status">
@@ -246,14 +229,17 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
 </div></div>
 
 <script>
-/* ---------- CHRONICLES ----------
-   Every blog post is one entry here. Body format:
-   blank line = new paragraph, "## " = heading, "- " = list item, "> " = quote. */
+/* ==========================================================================
+   1. LOG ENTRIES
+   Every blog post is one entry here. `file` is the entry's permanent id and
+   its link (halflife.studio/#file). Body format: a blank line starts a new
+   paragraph, "## " a heading, "- " a list item, "> " a quote, and
+   ![caption](address) a photo ("sample:1" draws a placeholder picture).
+   ========================================================================== */
 const POSTS = [
   {
     file: "001_photo_test.log",
     date: "2026-10-03",
-    tag: "SAMPLE",
     title: "Photo test",
     body: `[SAMPLE ENTRY. The pictures here are placeholders, not real photos. They show how photos sit inside a post.]
 
@@ -271,7 +257,6 @@ Text carries on underneath as normal.`
   {
     file: "000_start.log",
     date: "2026-10-02",
-    tag: "SAMPLE",
     title: "First entry",
     body: `[SAMPLE ENTRY. Chris, rewrite or delete this one. It is here so you can see how a real post reads in the window.]
 
@@ -290,69 +275,73 @@ But every Substack looks like every other Substack. A place I built myself can l
 More soon.`
   }
 ];
+const ABOUT = `> Half Life is a permanent state of change. Nothing holds its shape for long. Time moves, places shift, people become someone else, and so do you. You are still conscious, still moving, still wanting, and the only way through is to move with it.`;
+const HELP = `## Touch or mouse
 
-/* ---------- helpers ---------- */
+Select an entry to open it. Select Back, or tap outside the window, to close it.
+
+## Keyboard
+
+- Up / Down: move cursor
+- Left / Right: switch window
+- Enter: confirm
+- Esc: cancel`;
+
+/* ==========================================================================
+   2. HELPERS
+   ========================================================================== */
 const $ = (s) => document.querySelector(s);
 const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
-const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-const store = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
-const sorted = POSTS.slice().sort((a, b) => b.date.localeCompare(a.date) || a.file.localeCompare(b.file));
-const main = $("#main"), helptext = $("#helptext"), reader = $("#reader"), rwin = $("#readerwin");
-let view = "files", viewHelp = "", soundOn = false, ac = null, current = null;
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const store = {   /* the visitor's saved choices; storage can be blocked, so never let it throw */
+  get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+};
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const day = (d) => { const [y, m, dd] = d.split("-"); return MONTHS[+m - 1] + " " + +dd + ", " + y; };
+const sorted = POSTS.slice().sort((a, b) => b.date.localeCompare(a.date) || b.file.localeCompare(a.file));   /* newest first */
+
+const stage = $("#stage"), main = $("#main"), menu = $("#menu"), reader = $("#reader"), rwin = $("#readerwin"), zoomBox = $("#zoom"), introBox = $("#intro");
+let view = "files";      /* which screen the main window shows: files, about or help */
+let current = null;      /* the entry open in the pop-out window, if any */
 
 function setHash(h) { try { history.replaceState(null, "", h ? "#" + h : location.pathname + location.search); } catch (e) {} }
-let helpTimer = null, helpNow = "";
-function help(text, bad) {
-  helptext.classList.toggle("bad", !!bad);
-  if (text === helpNow) return;
-  helpNow = text; $("#helpsr").textContent = text; clearInterval(helpTimer);
-  if (reduce) { helptext.textContent = text; return; }
-  let i = 0; helptext.textContent = ""; helptext.classList.add("typing");
-  helpTimer = setInterval(() => {
-    i += 3; helptext.textContent = text.slice(0, i);
-    if (i >= text.length) { clearInterval(helpTimer); helptext.classList.remove("typing"); }
-  }, 16);
-}
-function blip(freq, len) { /* a soft, rounded click: a sine that drops in pitch, through a low-pass */
-  if (!soundOn) return;
-  try {
-    ac = ac || new (window.AudioContext || window.webkitAudioContext)();
-    const o = ac.createOscillator(), g = ac.createGain(), lp = ac.createBiquadFilter(), t = ac.currentTime;
-    const f = 260 + freq * .3, d = (len || .05) + .03;
-    o.type = "sine"; o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f * .55, t + d);
-    lp.type = "lowpass"; lp.frequency.value = 1400;
-    g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(.09, t + .004);
-    g.gain.exponentialRampToValueAtTime(.0001, t + d);
-    o.connect(lp); lp.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + d + .02);
-  } catch (e) {}
-}
-function opt(text, helpText, onClick, cls) {
+function opt(text, onClick, cls) {   /* a selectable menu option */
   const b = el("button", "opt" + (cls ? " " + cls : ""), text); b.type = "button";
-  if (helpText) b.dataset.help = helpText;
   if (onClick) b.addEventListener("click", onClick);
   return b;
 }
-function mark(id) { document.querySelectorAll("#menu .opt").forEach((b) => b.setAttribute("aria-current", b.id === id ? "true" : "false")); }
-function open(name, defaultHelp, menuId) { view = name; viewHelp = defaultHelp; main.textContent = ""; help(defaultHelp); mark(menuId); }
+/* Anything layered on top (title screen, open entry, enlarged photo) makes the menu behind it unreachable. */
+function syncLayers() { stage.inert = !introBox.classList.contains("done") || !reader.hidden || !zoomBox.hidden; }
 
-/* ---------- views ---------- */
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const day = (d) => { const [y, m, dd] = d.split("-"); return MONTHS[+m - 1] + " " + +dd + ", " + y; };
+/* ==========================================================================
+   3. SCREENS
+   ========================================================================== */
+function openScreen(name, menuId) {
+  view = name; main.textContent = "";
+  menu.querySelectorAll(".opt").forEach((b) => { if (b.id !== "m-music") b.setAttribute("aria-current", String(b.id === menuId)); });
+}
+function backRow() { const nav = el("div", "row group"); nav.append(opt("Back", () => showFiles(true))); return nav; }
+
 function showFiles(focusFirst) {
-  open("files", "Select an entry.", "m-files");
+  openScreen("files", "m-files");
   const list = el("div", "files");
-  sorted.forEach((p) => {
-    const b = opt(null, p.title, () => showPost(p), "file"); b.dataset.file = p.file;
+  sorted.forEach((p, i) => {
+    const b = opt(null, () => showPost(p), "file"); b.dataset.file = p.file;
     b.append(el("span", "name", p.title), el("span", "date", day(p.date)));
-    b.style.setProperty("--i", list.children.length);
+    b.style.setProperty("--i", i);
     list.append(b);
   });
   main.append(list);
   if (focusFirst) { const f = list.querySelector(".opt"); if (f) f.focus(); }
 }
+function showPage(name, menuId, label, text) {
+  openScreen(name, menuId);
+  const body = el("div", "post"); renderBody(text, body);
+  main.append(el("p", "label", label), body, backRow());
+}
 
-/* A photo line looks like  ![caption](address)  where the address is the photo's file.
-   "sample:1" draws a placeholder picture so the layout can be seen before real photos exist. */
+/* ----- entry text ----- */
 const PHOTO = /^!\[(.*)\]\((.+)\)$/;
 function photoSrc(src) {
   const m = /^sample:(\d+)$/.exec(src); if (!m) return src;
@@ -363,19 +352,18 @@ function photoSrc(src) {
     '<text x="300" y="374" text-anchor="middle" font-family="monospace" font-size="22" fill="#fff">SAMPLE PHOTO ' + n + '</text></svg>';
   return "data:image/svg+xml," + encodeURIComponent(svg);
 }
-function zoom(src, caption) { const z = $("#zoom"); z.querySelector("img").src = src; z.querySelector("img").alt = caption; z.querySelector("p").textContent = caption; z.hidden = false; }
-function unzoom() { $("#zoom").hidden = true; }
 function renderBody(text, into) {
   text.split(/\n\s*\n/).forEach((block) => {
     const lines = block.split("\n").map((l) => l.trim()).filter(Boolean);
     if (!lines.length) return;
-    if (lines[0].startsWith("## ")) { into.append(el("h3", null, lines[0].slice(3))); lines.shift(); if (!lines.length) return; }
+    if (lines[0].startsWith("## ")) { into.append(el("h3", null, lines.shift().slice(3))); if (!lines.length) return; }
     if (lines.every((l) => PHOTO.test(l))) {
       const wrap = el("div", "shots" + (lines.length > 1 ? " multi" : ""));
       lines.forEach((l) => {
         const m = l.match(PHOTO), fig = el("figure"), b = el("button", "shot"), img = el("img");
-        b.type = "button"; b.dataset.help = "View photo."; img.src = photoSrc(m[2]); img.alt = m[1]; img.loading = "lazy";
-        b.append(img); b.addEventListener("click", () => zoom(img.src, m[1]));
+        b.type = "button"; b.setAttribute("aria-label", "Enlarge photo" + (m[1] ? ": " + m[1] : ""));
+        img.src = photoSrc(m[2]); img.alt = m[1]; img.loading = "lazy";
+        b.append(img); b.addEventListener("click", () => zoom(img.src, m[1], b));
         fig.append(b); if (m[1]) fig.append(el("figcaption", null, m[1])); wrap.append(fig);
       });
       into.append(wrap);
@@ -387,113 +375,68 @@ function renderBody(text, into) {
   });
 }
 
+/* ----- the pop-out entry window ----- */
 function showPost(p) {
   if (view !== "files") showFiles();
-  current = p; setHash(p.file); help(p.title);
+  current = p; setHash(p.file);
   rwin.textContent = "";
   const head = el("div", "filehead"), meta = el("p", "meta");
   meta.append(el("span", null, day(p.date)));
   head.append(meta, el("h2", null, p.title));
   const body = el("div", "post"); renderBody(p.body, body);
-  const nav = el("div", "row group"), i = sorted.indexOf(p);
-  nav.append(opt("Back", "Return to the log.", closePost));
-  if (sorted[i + 1]) nav.append(opt("Next", "Next: " + sorted[i + 1].title, () => showPost(sorted[i + 1])));
+  const nav = el("div", "row group"), next = sorted[sorted.indexOf(p) + 1];
+  nav.append(opt("Back", closePost));
+  if (next) nav.append(opt("Next", () => showPost(next)));
   rwin.append(head, body, nav);
-  reader.hidden = false; document.body.style.overflow = "hidden";
+  reader.hidden = false; document.body.style.overflow = "hidden"; syncLayers();
   rwin.classList.remove("pop"); void rwin.offsetWidth; rwin.classList.add("pop");
   rwin.scrollTop = 0; rwin.focus();
 }
 function closePost() {
   if (reader.hidden) return;
-  reader.hidden = true; document.body.style.overflow = ""; setHash(""); help(viewHelp);
+  reader.hidden = true; document.body.style.overflow = ""; setHash(""); syncLayers();
   const back = current && main.querySelector('[data-file="' + current.file + '"]');
   current = null; if (back) back.focus();
 }
 reader.addEventListener("click", (e) => { if (e.target === reader) closePost(); });
 
-/* id, name, gradient top, gradient bottom, accent */
-const COLOURS = [
-  ["blackout", "Blackout", "#1c1c1c", "#000000", "#ffffff"],
-  ["amethyst", "Amethyst", "#7434c8", "#1c0647", "#ffd95a"],
-  ["twilight", "Twilight", "#8a3fd0", "#0b2a7a", "#8fe9ff"],
-  ["sapphire", "Sapphire", "#2233b0", "#050a5e", "#ffd95a"],
-  ["lagoon", "Lagoon", "#178a98", "#0a1f5c", "#ffe58a"],
-  ["emerald", "Emerald", "#1c6a48", "#04200f", "#ffe58a"],
-  ["moss", "Moss", "#5f7a22", "#0f2a1c", "#fff2b0"],
-  ["ember", "Ember", "#c2591f", "#3d0a0a", "#fff0b8"],
-  ["ruby", "Ruby", "#96213f", "#2a0512", "#ffd95a"],
-  ["sunset", "Sunset", "#c2416b", "#3a1060", "#ffd95a"],
-  ["rose", "Rose", "#b8478c", "#3a0a3a", "#bff3ff"],
-  ["orchid", "Orchid", "#9a4fd6", "#5a0f4a", "#b8ffd9"],
-  ["midnight", "Midnight", "#26306e", "#05050f", "#9fd0ff"],
-  ["onyx", "Onyx", "#4a5266", "#12151c", "#ffd95a"],
-  ["mono", "Parchment", "#7a6a4a", "#2a2014", "#ffe9b0"]
-];
-let winId = "blackout", sparkle = "#ffffff";
-function setColour(c) {
-  const t = COLOURS.find(([id]) => id === c) || COLOURS[0], r = document.documentElement.style;
-  winId = t[0]; sparkle = t[4];
-  r.setProperty("--win-a", t[2]); r.setProperty("--win-b", t[3]); r.setProperty("--accent", t[4]);
-  store.set("win2", winId);
+/* ----- an enlarged photo ----- */
+let zoomFrom = null;
+function zoom(src, caption, from) {
+  zoomBox.querySelector("img").src = src; zoomBox.querySelector("img").alt = caption; zoomBox.querySelector("p").textContent = caption;
+  zoomFrom = from || null; zoomBox.hidden = false; syncLayers();
 }
-function showAbout() {
-  open("about", "About this site.", "m-about");
-  main.append(el("p", "label", "About"));
-  const body = el("div", "post");
-  renderBody(`> Half Life is a permanent state of change. Nothing holds its shape for long. Time moves, places shift, people become someone else, and so do you. You are still conscious, still moving, still wanting, and the only way through is to move with it.`, body);
-  const nav = el("div", "row group"); nav.append(opt("Back", "Return to the log.", () => showFiles(true)));
-  main.append(body, nav);
-}
+function unzoom() { zoomBox.hidden = true; syncLayers(); if (zoomFrom) zoomFrom.focus(); zoomFrom = null; }
+zoomBox.addEventListener("click", unzoom);
 
-function showControls() {
-  open("controls", "View controls.", "m-how");
-  main.append(el("p", "label", "Help"));
-  const body = el("div", "post");
-  renderBody(`## Touch or mouse
-
-Select an entry to open it. Select Back, or tap outside the window, to close it.
-
-## Keyboard
-
-- Up / Down: move cursor
-- Left / Right: switch window
-- Enter: confirm
-- Esc: cancel`, body);
-  const nav = el("div", "row group"); nav.append(opt("Back", "Return to the log.", () => showFiles(true)));
-  main.append(body, nav);
-}
-
-/* ---------- menu + input ---------- */
+/* ==========================================================================
+   4. MENU AND KEYBOARD
+   ========================================================================== */
 $("#m-files").addEventListener("click", () => showFiles(true));
-$("#m-about").addEventListener("click", showAbout);
-$("#zoom").addEventListener("click", unzoom);
-$("#m-how").addEventListener("click", showControls);
-document.querySelectorAll("#menu .locked").forEach((b) => b.addEventListener("click", () => { help(b.dataset.locked, true); blip(160, .16); }));
-
-const helpFor = (t) => t.closest && t.closest("[data-help]");
-document.addEventListener("focusin", (e) => { const o = helpFor(e.target); if (o) { help(o.dataset.help); blip(880, .04); } });
-document.addEventListener("mouseover", (e) => { const o = helpFor(e.target); if (o) help(o.dataset.help); });
-document.addEventListener("mouseout", (e) => { const o = helpFor(e.target); if (o && !o.contains(e.relatedTarget) && reader.hidden) help(viewHelp); });
-document.addEventListener("click", (e) => { const o = e.target.closest && e.target.closest(".opt:not(.locked)"); if (o) blip(1320, .06); });
+$("#m-about").addEventListener("click", () => showPage("about", "m-about", "About", ABOUT));
+$("#m-how").addEventListener("click", () => showPage("help", "m-how", "Help", HELP));
 
 document.addEventListener("keydown", (e) => {
-  if (!$("#intro").classList.contains("done")) { endIntro(); return; }
   if (e.metaKey || e.ctrlKey || e.altKey) return;
-  if (!$("#zoom").hidden) { if (e.key === "Escape" || e.key === "Enter" || e.key === " ") { unzoom(); e.preventDefault(); } return; }
+  if (!introBox.classList.contains("done")) {   /* title screen: Enter or Space starts */
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); endIntro(); }
+    return;
+  }
+  if (!zoomBox.hidden) { if (e.key === "Escape" || e.key === "Enter" || e.key === " ") { e.preventDefault(); unzoom(); } return; }
   const reading = !reader.hidden;
-  if (e.key === "Escape") { if (reading) { closePost(); blip(440); } else if (view !== "files") { showFiles(true); blip(440); } return; }
+  if (e.key === "Escape") { if (reading) closePost(); else if (view !== "files") showFiles(true); return; }
   const dir = { ArrowDown: 1, ArrowUp: -1 }[e.key];
   const side = e.key === "ArrowLeft" || e.key === "ArrowRight";
   if (!dir && !side) return;
   const a = document.activeElement;
-  if (reading) {
+  if (reading) {   /* Left and Right move between Back and Next; Up and Down scroll the entry */
     const opts = [...rwin.querySelectorAll(".opt")], i = opts.indexOf(a);
     if (side && opts.length) { opts[(Math.max(i, 0) + (e.key === "ArrowRight" ? 1 : -1) + opts.length) % opts.length].focus(); e.preventDefault(); }
-    return; /* Up and Down scroll the entry */
+    return;
   }
-  const inMenu = $("#menu").contains(a), inMain = main.contains(a) && a !== main;
-  let pane = inMenu ? $("#menu") : main;
-  if (side) pane = (e.key === "ArrowRight" && !inMenu) ? $("#menu") : (e.key === "ArrowLeft" && inMenu) ? main : null;
+  const inMenu = menu.contains(a), inMain = main.contains(a) && a !== main;
+  let pane = inMenu ? menu : main;
+  if (side) pane = (e.key === "ArrowRight" && !inMenu) ? menu : (e.key === "ArrowLeft" && inMenu) ? main : null;
   if (!pane) return;
   const opts = [...pane.querySelectorAll(".opt")]; if (!opts.length) return;
   let i = opts.indexOf(a);
@@ -502,118 +445,131 @@ document.addEventListener("keydown", (e) => {
   opts[i].focus(); e.preventDefault();
 });
 
-/* ---------- intro ---------- */
-let pendingPost = null;
-function assemble() { const st = $("#stage"); st.classList.remove("go"); void st.offsetWidth; st.classList.add("go"); }
+/* ==========================================================================
+   5. TITLE SCREEN
+   Shown on every visit. Pressing Start is also the tap browsers require
+   before a page may play sound, so it is what starts the music.
+   ========================================================================== */
+let pendingPost = null;   /* an entry named in the link, opened once Start is pressed */
 function endIntro() {
-  if ($("#intro").classList.contains("done")) return;
-  $("#intro").classList.add("done"); try { sessionStorage.setItem("intro", "1"); } catch (e) {}
-  blip(1320, .08); assemble(); if (reader.hidden && view === "files") showFiles();
+  if (introBox.classList.contains("done")) return;
+  introBox.classList.add("done"); syncLayers();
+  stage.classList.remove("go"); void stage.offsetWidth; stage.classList.add("go");   /* replay the windows' entrance */
+  showFiles(true);
   if (pendingPost) { showPost(pendingPost); pendingPost = null; }
 }
-function intro() { /* shown on every visit: pressing Start is also what lets the browser play the music */
-  $("#intro").classList.remove("done"); $("#startbtn").focus();
-}
-$("#intro").addEventListener("click", endIntro);
+introBox.addEventListener("click", endIntro);
 
-/* ---------- drifting sparkles ---------- */
+/* ==========================================================================
+   6. DRIFTING SPARKLES (background)
+   ========================================================================== */
 const sky = $("#sky"), sx = sky.getContext("2d");
 let motes = [];
 function sizeSky() {
   sky.width = window.innerWidth; sky.height = window.innerHeight;
   const n = Math.round(Math.min(90, sky.width * sky.height / 14000));
   motes = Array.from({ length: n }, () => ({ x: Math.random() * sky.width, y: Math.random() * sky.height,
-    s: Math.random() < .25 ? 3 : 2, v: .12 + Math.random() * .35, p: Math.random() * 6.28, gold: Math.random() < .35 }));
+    s: Math.random() < .25 ? 3 : 2, v: .12 + Math.random() * .35, p: Math.random() * 6.28 }));
   drawSky(0);
 }
-function drawSky(step) { /* pixel sparkles that float up and sway */
-  sx.clearRect(0, 0, sky.width, sky.height);
+function drawSky(step) {
+  sx.clearRect(0, 0, sky.width, sky.height); sx.fillStyle = "#ffffff";
   for (const m of motes) {
     m.y -= m.v * step; m.p += .02 * step; m.x += Math.sin(m.p) * .25 * step;
     if (m.y < -4) { m.y = sky.height + 4; m.x = Math.random() * sky.width; }
     sx.globalAlpha = .25 + .55 * (.5 + .5 * Math.sin(m.p * 2));
-    sx.fillStyle = m.gold ? sparkle : "#ffffff";
     sx.fillRect(Math.round(m.x), Math.round(m.y), m.s, m.s);
   }
   sx.globalAlpha = 1;
 }
 window.addEventListener("resize", sizeSky);
 
-/* ---------- menu music: an original looping piece, generated in the browser ---------- */
-const hz = (m) => 440 * Math.pow(2, (m - 69) / 12);
-let musicMode = 0, musicGain = null, musicTimer = null, nextNote = 0, stepNo = 0;   /* 0 off, 1 playing */
-function pluck(m, t, len, vol, type) {
+/* ==========================================================================
+   7. MUSIC
+   An original looping piece made in the browser (no audio file): a slow
+   melody over a drone and a hand drum. On unless the visitor turned it off.
+   Browsers only allow sound to start from inside a tap, click or key press,
+   so the audio engine is created there (unlockAudio), never at page load.
+   ========================================================================== */
+const MELODY = [[62, 0, 66, 67, 69, 0, 67, 66], [63, 0, 62, 0, 0, 0, 57, 0], [62, 0, 66, 67, 69, 0, 70, 69], [67, 0, 66, 0, 63, 0, 62, 0],
+                [74, 0, 72, 70, 69, 0, 70, 0], [69, 0, 67, 66, 67, 0, 63, 0], [62, 63, 66, 0, 67, 66, 63, 0], [62, 0, 0, 0, 0, 0, 0, 0]];   /* 8 bars of 8 steps; 0 = rest */
+const STEP = 0.31;   /* seconds per step */
+const AudioEngine = window.AudioContext || window.webkitAudioContext;
+let musicOn = store.get("music3") !== "0";
+let ac = null, bus = null, musicTimer = null, nextNote = 0, stepNo = 0;
+
+function note(midi, t, len, vol, type) {
   const o = ac.createOscillator(), g = ac.createGain();
-  o.type = type; o.frequency.value = hz(m);
+  o.type = type; o.frequency.value = 440 * Math.pow(2, (midi - 69) / 12);
   g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + len);
-  o.connect(g); g.connect(musicGain); o.start(t); o.stop(t + len + 0.05);
+  o.connect(g); g.connect(bus); o.start(t); o.stop(t + len + 0.05);
 }
-function thump(t, vol) { /* a soft hand-drum hit */
+function drum(t, vol) {
   const o = ac.createOscillator(), g = ac.createGain();
   o.type = "sine"; o.frequency.setValueAtTime(120, t); o.frequency.exponentialRampToValueAtTime(48, t + 0.14);
   g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
-  o.connect(g); g.connect(musicGain); o.start(t); o.stop(t + 0.25);
+  o.connect(g); g.connect(bus); o.start(t); o.stop(t + 0.25);
 }
-/* a slow desert melody over a drone and a hand drum (0 = rest) */
-const TOMB = [[62, 0, 66, 67, 69, 0, 67, 66], [63, 0, 62, 0, 0, 0, 57, 0], [62, 0, 66, 67, 69, 0, 70, 69], [67, 0, 66, 0, 63, 0, 62, 0],
-              [74, 0, 72, 70, 69, 0, 70, 0], [69, 0, 67, 66, 67, 0, 63, 0], [62, 63, 66, 0, 67, 66, 63, 0], [62, 0, 0, 0, 0, 0, 0, 0]];
-const TRACKS = [
-  { step: 0.31, play(bar, s, t) {
-      const n = TOMB[bar][s];
-      if (n) { pluck(n, t, 1.3, 0.06, "triangle"); pluck(n + 12, t, 0.5, 0.012, "sine"); }
-      if (s === 0) { pluck(38, t, 2.6, 0.09, "sine"); pluck(50, t, 2.6, 0.03, "triangle"); }
-      if (s === 4) pluck(45, t, 1.4, 0.045, "sine");
-      if (s === 0 || s === 3 || s === 6) thump(t, s === 0 ? 0.11 : 0.06);
-  } }
-];
-function musicTick() {
-  if (document.hidden || !musicMode) { nextNote = 0; return; }
-  const tr = TRACKS[musicMode - 1];
-  if (nextNote < ac.currentTime) nextNote = ac.currentTime + 0.05;
+function playStep(bar, s, t) {
+  const n = MELODY[bar][s];
+  if (n) { note(n, t, 1.3, 0.06, "triangle"); note(n + 12, t, 0.5, 0.012, "sine"); }
+  if (s === 0) { note(38, t, 2.6, 0.09, "sine"); note(50, t, 2.6, 0.03, "triangle"); }   /* drone */
+  if (s === 4) note(45, t, 1.4, 0.045, "sine");
+  if (s === 0 || s === 3 || s === 6) drum(t, s === 0 ? 0.11 : 0.06);
+}
+function schedule() {   /* queue the next fraction of a second of notes; runs ten times a second */
+  if (!ac || ac.state !== "running" || !musicOn || document.hidden) { nextNote = 0; return; }
+  if (nextNote < ac.currentTime) nextNote = ac.currentTime + 0.06;
   while (nextNote < ac.currentTime + 0.4) {
-    tr.play(Math.floor(stepNo / 8) % 8, stepNo % 8, nextNote);
-    nextNote += tr.step; stepNo++;
+    playStep(Math.floor(stepNo / 8) % MELODY.length, stepNo % 8, nextNote);
+    nextNote += STEP; stepNo++;
   }
 }
-function setMusic(mode, save) { /* the button names what choosing it will do next */
-  musicMode = mode; stepNo = 0; const b = $("#m-music");
-  b.textContent = ["Music On", "Music Off"][mode]; b.setAttribute("aria-pressed", String(mode > 0));
-  if (save) store.set("music3", String(mode));
+function syncMusic() {   /* make the button and the sound match musicOn; safe to call at any time */
+  const b = $("#m-music");
+  b.textContent = musicOn ? "Music Off" : "Music On";   /* the button names what choosing it will do */
+  b.setAttribute("aria-pressed", String(musicOn));
+  if (!ac) return;   /* sound is not unlocked yet; unlockAudio() calls back here */
+  const now = ac.currentTime;
+  bus.gain.cancelScheduledValues(now); bus.gain.setTargetAtTime(musicOn ? 0.6 : 0, now, musicOn ? 0.4 : 0.12);
+  clearInterval(musicTimer); musicTimer = null;
+  if (musicOn) { stepNo = 0; nextNote = 0; musicTimer = setInterval(schedule, 100); schedule(); }
+}
+function unlockAudio() {   /* must run inside a tap, click or key press */
+  if (!AudioEngine || (!ac && !musicOn)) return;
   try {
-    if (mode) {
-      ac = ac || new (window.AudioContext || window.webkitAudioContext)(); { const r = ac.resume(); if (r && r.catch) r.catch(() => {}); }
-      if (!musicGain) {
-        const lp = ac.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 2400;
-        musicGain = ac.createGain(); musicGain.gain.value = 0; musicGain.connect(lp); lp.connect(ac.destination);
-      }
-      musicGain.gain.cancelScheduledValues(ac.currentTime); musicGain.gain.setTargetAtTime(0.6, ac.currentTime, 0.4);
-      nextNote = 0; clearInterval(musicTimer); musicTimer = setInterval(musicTick, 100); musicTick();
-    } else if (musicGain) { clearInterval(musicTimer); musicGain.gain.setTargetAtTime(0, ac.currentTime, 0.15); }
+    if (!ac) {
+      ac = new AudioEngine();
+      const soften = ac.createBiquadFilter(); soften.type = "lowpass"; soften.frequency.value = 2400;
+      bus = ac.createGain(); bus.gain.value = 0; bus.connect(soften); soften.connect(ac.destination);
+      const wake = ac.createBufferSource(); wake.buffer = ac.createBuffer(1, 1, 22050); wake.connect(ac.destination); wake.start(0);   /* a silent sample: wakes audio on iPhones */
+      syncMusic();
+    }
+    if (ac.state !== "running") { const r = ac.resume(); if (r && r.then) r.then(schedule, () => {}); }
   } catch (e) {}
 }
-$("#m-music").addEventListener("click", () => setMusic(musicMode ? 0 : 1, true));
-/* On by default. Browsers hold sound until the first tap or key press, so for most visitors it starts
-   when they press through the title screen. A visitor who turns it off stays off. */
-if (store.get("music3") !== "0") {
-  setMusic(1, false);
-  const wake = () => { if (musicMode && ac && ac.state !== "running") { const r = ac.resume(); if (r && r.catch) r.catch(() => {}); } };
-  document.addEventListener("pointerdown", wake, { capture: true });
-  document.addEventListener("keydown", wake, { capture: true });
-}
+["click", "touchend", "mousedown", "keydown"].forEach((type) => document.addEventListener(type, unlockAudio, { capture: true, passive: true }));
+document.addEventListener("visibilitychange", schedule);
+$("#m-music").addEventListener("click", () => {
+  musicOn = !musicOn; store.set("music3", musicOn ? "1" : "0");
+  syncMusic(); unlockAudio();
+});
 
-/* ---------- start ---------- */
+/* ==========================================================================
+   8. START
+   ========================================================================== */
 $("#count").textContent = sorted.length;
 $("#latest").textContent = sorted[0] ? day(sorted[0].date).split(",")[0] : "-";
 const tick = () => { $("#clock").textContent = new Date().toTimeString().slice(0, 8); };
 tick(); setInterval(tick, 1000);
-setColour("blackout");
 sizeSky();
-if (!reduce) (function loop() { if (!document.hidden) drawSky(1); requestAnimationFrame(loop); })();
+if (!reduceMotion) (function loop() { if (!document.hidden) drawSky(1); requestAnimationFrame(loop); })();
+syncMusic();
 showFiles();
-const start = decodeURIComponent((location.hash || "").slice(1));
-const linked = start && sorted.find((p) => p.file === start);
-pendingPost = linked || null;
-intro();
+const linkId = decodeURIComponent((location.hash || "").slice(1));
+pendingPost = sorted.find((p) => p.file === linkId) || null;
+syncLayers();
+$("#startbtn").focus();
 </script>
 </body>
 </html>
