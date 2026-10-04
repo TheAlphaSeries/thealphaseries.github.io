@@ -18,6 +18,10 @@
       "weight": 2,
       "length": 15,
       "location": "Pine Lake, California",
+      "rarity": "rare",
+      "catch_rate": 12,
+      "fight": 4,
+      "lure": "",
       "photo": "/photos/img7512-2.jpeg",
       "lore": "Of the demons that haunt Pine Lake, this is held to be the most irascible. The savant Ombalique, who spent eleven years cataloguing its moods from the safety of the shore, pronounced it \"a creature of fastidious malice, striped in the colors of a sunset it did not deserve.\"\n\nIt keeps to the cold deeps where the light fails, and rises at dusk to take whatever is foolish enough to touch the surface. Those who have hooked it report a pull of unreasonable vigor, and afterward a persistent sense of having been appraised and found wanting.\n\nWhen it leaps, the ignorant suppose it wishes to escape. The wise know it merely wishes to see who has presumed."
     },
@@ -29,6 +33,10 @@
       "weight": null,
       "length": null,
       "location": "Pine Lake, California",
+      "rarity": "common",
+      "catch_rate": 68,
+      "fight": 1,
+      "lure": "",
       "photo": "",
       "lore": "A small round personage of the shallows, gilded like a coin and very nearly as common. It guards its patch of gravel with a ferocity out of all proportion to its size, and will rush at intruders many times larger: a policy that philosophers have called valiant and fishermen have called convenient.\n\nAlong the lakeshore it is agreed that to catch one confers no distinction, and that to catch none is a disgrace."
     },
@@ -40,6 +48,10 @@
       "weight": null,
       "length": null,
       "location": "Lake Chabot, California",
+      "rarity": "uncommon",
+      "catch_rate": 35,
+      "fight": 2,
+      "lure": "",
       "photo": "",
       "lore": "A pale, speckled fish of retiring habit, which gathers among sunken thickets with others of its kind and conducts its affairs chiefly at dawn and dusk. Its mouth is thin as wet parchment and tears at the least insistence, whence the vulgar name of papermouth.\n\nThe angler who hauls too eagerly is left holding a bare hook and an improved understanding of patience."
     },
@@ -51,6 +63,10 @@
       "weight": null,
       "length": null,
       "location": "Lake Chabot, California",
+      "rarity": "uncommon",
+      "catch_rate": 28,
+      "fight": 4,
+      "lure": "",
       "photo": "",
       "lore": "A stout green brigand that lurks beside drowned timber and awaits events. Its mouth is of extraordinary capacity, and it regards whatever passes as a meal first and a question of suitability afterward.\n\nIt is the fish that every lake angler professes to find commonplace and privately desires above all others. To land one is to be insufferable for a week."
     },
@@ -62,6 +78,10 @@
       "weight": null,
       "length": null,
       "location": "",
+      "rarity": "rare",
+      "catch_rate": 15,
+      "fight": 5,
+      "lure": "",
       "photo": "",
       "lore": "A whiskered dignitary of the lake bottom, smooth as a river stone and wholly without scales, which it appears to regard as an affectation of lesser fish. It goes abroad by night, tasting the mud with its barbels and finding nothing beneath its notice.\n\nThe spines of its fins deliver a sharp rebuke to careless hands. Those so instructed seldom require a second lesson."
     }
