@@ -39,5 +39,7 @@ if (existsSync("posts")) {
 }
 posts.sort((a, b) => b.date.localeCompare(a.date) || b.file.localeCompare(a.file));
 const about = existsSync("pages/about.md") ? parse(readFileSync("pages/about.md", "utf8")).body : "";
-writeFileSync("posts.json", JSON.stringify({ about, posts }, null, 2) + "\n");
+// "source" records where this copy of the list was built, which helps when checking the site.
+const source = process.env.GITHUB_ACTIONS ? "github" : (process.env.WORKERS_CI || process.env.WORKERS_CI_BUILD_UUID) ? "cloudflare" : "other";
+writeFileSync("posts.json", JSON.stringify({ source, about, posts }, null, 2) + "\n");
 console.log("posts.json: " + posts.length + " entries");

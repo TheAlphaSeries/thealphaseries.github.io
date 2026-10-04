@@ -1,0 +1,10 @@
+// Settings Cloudflare uses each time it publishes the site.
+{
+  "name": "thealphaseries-github-io",
+  "main": "scripts/worker.js",
+  "compatibility_date": "2026-09-01",
+  // Everything in this folder is the website, except what .assetsignore lists.
+  "assets": { "directory": ".", "binding": "ASSETS" },
+  // Rebuild the entry list from posts/ before every publish.
+  "build": { "command": "node scripts/build-index.mjs" }
+}
