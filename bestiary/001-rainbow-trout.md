@@ -5,6 +5,7 @@ date: 2026-10-04
 weight: "2"
 length: "15"
 location: Pine Lake, California
+photo: /photos/img7512-2.jpeg
 ---
 Of the demons that haunt Pine Lake, this is held to be the most irascible. The savant Ombalique, who spent eleven years cataloguing its moods from the safety of the shore, pronounced it "a creature of fastidious malice, striped in the colors of a sunset it did not deserve."
 
