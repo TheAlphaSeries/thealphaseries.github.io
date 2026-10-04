@@ -1,5 +1,5 @@
 {
-  "source": "github",
+  "source": "other",
   "about": "> Half Life is a permanent state of change. Nothing holds its shape for long. Time moves, places shift, people become someone else, and so do you. You are still conscious, still moving, still wanting, and the only way through is to move with it.",
   "posts": [
     {
@@ -19,7 +19,7 @@
       "length": null,
       "location": "Pine Lake, California",
       "photo": "",
-      "lore": "The demon of Pine Lake. The old anglers say it was a drowned spirit before it was a fish, and that the red band along its side is a wound that never closed.\n\nIt keeps to the cold, dark water where the light gives out, and rises only at dusk to take whatever touches the surface. Those who have hooked it speak of a pull like the lake itself dragging the line down.\n\nWhen it leaps, it is not trying to escape. It is looking at whoever dared."
+      "lore": "Of the demons that haunt Pine Lake, this is held to be the most irascible. The savant Ombalique, who spent eleven years cataloguing its moods from the safety of the shore, pronounced it \"a creature of fastidious malice, striped in the colors of a sunset it did not deserve.\"\n\nIt keeps to the cold deeps where the light fails, and rises at dusk to take whatever is foolish enough to touch the surface. Those who have hooked it report a pull of unreasonable vigor, and afterward a persistent sense of having been appraised and found wanting.\n\nWhen it leaps, the ignorant suppose it wishes to escape. The wise know it merely wishes to see who has presumed."
     },
     {
       "file": "002-sunfish",
@@ -30,7 +30,7 @@
       "length": null,
       "location": "Pine Lake, California",
       "photo": "",
-      "lore": "A round-bodied panfish of warm, weedy shallows. Small, but bold enough to charge anything that drifts near its nest."
+      "lore": "A small round personage of the shallows, gilded like a coin and very nearly as common. It guards its patch of gravel with a ferocity out of all proportion to its size, and will rush at intruders many times larger: a policy that philosophers have called valiant and fishermen have called convenient.\n\nAlong the lakeshore it is agreed that to catch one confers no distinction, and that to catch none is a disgrace."
     },
     {
       "file": "004-crappie",
@@ -41,7 +41,7 @@
       "length": null,
       "location": "Lake Chabot, California",
       "photo": "",
-      "lore": "A speckled, deep-bodied fish that schools around sunken brush and feeds most at dawn and dusk. Anglers call it papermouth, for a lip so thin a hook can tear free."
+      "lore": "A pale, speckled fish of retiring habit, which gathers among sunken thickets with others of its kind and conducts its affairs chiefly at dawn and dusk. Its mouth is thin as wet parchment and tears at the least insistence, whence the vulgar name of papermouth.\n\nThe angler who hauls too eagerly is left holding a bare hook and an improved understanding of patience."
     },
     {
       "file": "005-bass",
@@ -52,7 +52,7 @@
       "length": null,
       "location": "Lake Chabot, California",
       "photo": "",
-      "lore": "An ambush hunter that holds beside cover and takes its prey in one gulp. It is the fish most lake anglers are really after."
+      "lore": "A stout green brigand that lurks beside drowned timber and awaits events. Its mouth is of extraordinary capacity, and it regards whatever passes as a meal first and a question of suitability afterward.\n\nIt is the fish that every lake angler professes to find commonplace and privately desires above all others. To land one is to be insufferable for a week."
     }
   ]
 }

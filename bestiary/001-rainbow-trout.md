@@ -7,8 +7,8 @@ length:
 location: Pine Lake, California
 photo: 
 ---
-The demon of Pine Lake. The old anglers say it was a drowned spirit before it was a fish, and that the red band along its side is a wound that never closed.
+Of the demons that haunt Pine Lake, this is held to be the most irascible. The savant Ombalique, who spent eleven years cataloguing its moods from the safety of the shore, pronounced it "a creature of fastidious malice, striped in the colors of a sunset it did not deserve."
 
-It keeps to the cold, dark water where the light gives out, and rises only at dusk to take whatever touches the surface. Those who have hooked it speak of a pull like the lake itself dragging the line down.
+It keeps to the cold deeps where the light fails, and rises at dusk to take whatever is foolish enough to touch the surface. Those who have hooked it report a pull of unreasonable vigor, and afterward a persistent sense of having been appraised and found wanting.
 
-When it leaps, it is not trying to escape. It is looking at whoever dared.
+When it leaps, the ignorant suppose it wishes to escape. The wise know it merely wishes to see who has presumed.
