@@ -2,12 +2,6 @@
   "about": "> Half Life is a permanent state of change. Nothing holds its shape for long. Time moves, places shift, people become someone else, and so do you. You are still conscious, still moving, still wanting, and the only way through is to move with it.",
   "posts": [
     {
-      "file": "2026-10-03-automation-test",
-      "title": "Automation test",
-      "date": "2026-10-03",
-      "body": "Temporary entry to check that the entry list rebuilds itself."
-    },
-    {
       "file": "2026-10-02-first-entry",
       "title": "First entry",
       "date": "2026-10-02",
