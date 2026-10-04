@@ -2,7 +2,7 @@
 name: Rainbow Trout
 sprite: trout
 date: 2026-10-04
-weight: "1"
+weight: "2"
 length: "15"
 location: Pine Lake, California
 photo: /photos/img7512-2.jpeg
