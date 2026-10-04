@@ -385,8 +385,11 @@ function showBestiary(focusFirst) {
   openScreen("bestiary", "m-bestiary");
   main.append(el("p", "label", "Bestiary"));
   if (!BESTIARY.length) { main.append(el("p", "sub", loadNote === "Loading..." ? loadNote : "Nothing recorded yet."), backRow()); return; }
-  const kinds = new Set(BESTIARY.map((b) => b.name.toLowerCase())).size;
-  main.append(el("p", "tally", BESTIARY.length + " caught  /  " + kinds + " kinds"));
+  /* A species is whatever was picked in the editor's Species list; an entry left on the
+     generic choice is told apart by its name instead. */
+  const species = new Set(BESTIARY.map((b) =>
+    b.sprite && b.sprite !== "fish" ? b.sprite : "name:" + b.name.trim().toLowerCase())).size;
+  main.append(el("p", "tally", BESTIARY.length + " caught  /  " + species + " species"));
   const wrap = el("div", "beasts"), list = el("div", "beastlist"), card = el("div", "beastcard");
   const show = (b, btn) => {
     list.querySelectorAll(".opt").forEach((o) => o.setAttribute("aria-pressed", String(o === btn)));
