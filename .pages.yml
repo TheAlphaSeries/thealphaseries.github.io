@@ -60,15 +60,11 @@ content:
         options:
           format: yyyy-MM-dd
       - name: weight
-        label: Weight (lb)
-        type: number
-        options:
-          min: 0
+        label: Weight in pounds (decimals are fine, e.g. 1.25)
+        type: string
       - name: length
-        label: Length (in)
-        type: number
-        options:
-          min: 0
+        label: Length in inches (decimals are fine, e.g. 13.5)
+        type: string
       - name: location
         label: Where
         type: string
