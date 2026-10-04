@@ -437,7 +437,9 @@ function showAbout() {
   open("about", "About this site.", "m-about");
   main.append(el("p", "label", "About"));
   const body = el("div", "post");
-  renderBody(`> Half Life is not death, but what comes after it, an existence that lingers, unstable and eroding. It is a state where time runs backward, objects decay, and reality itself loses its certainty. You are still conscious, still moving, still wanting, but everything around you is thinning out. Memory fades, the present slips, and the future feels borrowed.`, body);
+  renderBody(`Nothing stays as it is. Half Life is the name I give to that permanent state of change: always flowing, never clinging to one way.
+
+> Half Life is not death, but what comes after it, an existence that lingers, unstable and eroding. It is a state where time runs backward, objects decay, and reality itself loses its certainty. You are still conscious, still moving, still wanting, but everything around you is thinning out. Memory fades, the present slips, and the future feels borrowed.`, body);
   const nav = el("div", "row group"); nav.append(opt("Back", "Return to the log.", () => showFiles(true)));
   main.append(body, nav);
 }
