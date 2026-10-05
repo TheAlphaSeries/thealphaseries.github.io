@@ -2099,10 +2099,80 @@
       "acquired": "",
       "photo": "",
       "lore": "An orchid of no natural ancestry: four separate kinds were persuaded into one by growers who could not leave well enough alone. It sends up a spike of dark stars, spotted and edged in white, and holds them for two months. Who Howard was is not recorded, nor whether the dream was a pleasant one."
+    },
+    {
+      "file": "101-juniper",
+      "name": "Juniper",
+      "botanical": "Juniperus procumbens",
+      "kind": "bonsai",
+      "sprite": "bonsai",
+      "status": "perished",
+      "count": 2,
+      "rarity": "common",
+      "temper": 2,
+      "light": "Full sun",
+      "water": "Daily in summer",
+      "acquired": "",
+      "photo": "",
+      "lore": "Two low green junipers, the customary first trees of every beginner and the customary first losses. They are hardy to the point of insolence and will endure frost, wind and neglect of nearly every kind. The exception is a missed watering in warm weather, of which they do not complain: they simply remain green for several weeks after they have died, out of spite."
+    },
+    {
+      "file": "102-maple-grove",
+      "name": "Maple Grove",
+      "botanical": "Acer palmatum",
+      "kind": "bonsai",
+      "sprite": "grove",
+      "status": "perished",
+      "count": 1,
+      "rarity": "uncommon",
+      "temper": 4,
+      "light": "Morning sun, afternoon shade",
+      "water": "Daily, twice in heat",
+      "acquired": "",
+      "photo": "",
+      "lore": "A stand of small maples planted together in one tray to resemble a wood seen from a great distance. In autumn they turned the red of a magistrate's robe, and visitors were made to admire them. Maples drink without pause and forgive nothing. The leaves crisped first, then the twigs, and the wood was a wood no longer."
+    },
+    {
+      "file": "103-grape",
+      "name": "Grape Vine",
+      "botanical": "Vitis vinifera",
+      "kind": "bonsai",
+      "sprite": "bonsai",
+      "status": "perished",
+      "count": 1,
+      "rarity": "rare",
+      "temper": 3,
+      "light": "Full sun",
+      "water": "Generously while in leaf",
+      "acquired": "",
+      "photo": "",
+      "lore": "A grape vine persuaded, against its whole nature, to remain the height of a man's forearm. It bore each year a single cluster of grapes of the ordinary size, which hung from it like a chandelier from a footstool. It was the most admired tree in the collection, and so naturally the first to go."
+    },
+    {
+      "file": "104-redwood-grove",
+      "name": "Redwood Grove",
+      "botanical": "Sequoia sempervirens",
+      "kind": "bonsai",
+      "sprite": "grove",
+      "status": "perished",
+      "count": 1,
+      "rarity": "rare",
+      "temper": 4,
+      "light": "Bright light, cool air",
+      "water": "Never once allowed to dry",
+      "acquired": "",
+      "photo": "",
+      "lore": "A grove of coast redwoods, a tree that left to itself lives two thousand years and stands taller than a cathedral. These were kept a foot high in a dish. They are creatures of the fog and take their water from the air as much as the soil; deprived of both they went the color of rust in a fortnight. Their wild cousins a few miles north did not notice."
     }
   ],
   "plants_intro": {
     "bonsai": "---\n\nLet it be recorded that every tree in this collection perished while its keeper was away in the far East.\n\nThey had been shaped with wire and patience over a period of a year, and asked of the world only water: daily, and without fail. Arrangements were made. The arrangements did not hold. They are set down here as they were, that their names not be lost along with them. To be revieved in the weeks to come.",
     "house": "The plants of the house, which ask for little: filtered light, damp air, and to be left out of their keeper's travel plans. Unlike the trees, these yet live."
+  },
+  "status": {
+    "name": "Chris",
+    "class": "Wandering Chronicler",
+    "home": "The Mission, San Francisco",
+    "body": "A keeper of records, by his own appointment. He carries a camera into places where it is unwelcome, a rod to waters where the fish have other plans, and a notebook in which he sets down both encounters to his own advantage."
   }
 }
