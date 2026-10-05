@@ -7,6 +7,19 @@ place: ""
 kind: errand
 difficulty: "5"
 reward: "A bag that closes"
+roles:
+  - name: "Owner of the Bag"
+    about: "Bears the cost, and the blame for having let it come to this"
+    held: "The keeper"
+  - name: "Mender"
+    about: "A tailor of steady hand, willing to look inside"
+    held: ""
+  - name: "Holder of the Lamp"
+    about: "Holds the light over the work and does not look down"
+    held: ""
+  - name: "Witness"
+    about: "Keeps the account of whatever has already fallen out"
+    held: ""
 objectives:
   - text: "Find a mender willing to look inside"
     done: false
