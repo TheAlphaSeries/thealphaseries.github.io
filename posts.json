@@ -1949,6 +1949,11 @@
       "when": "At the mender's convenience",
       "place": "",
       "body": "The bag has no bottom, a property much admired until the zipper failed. It now stands open at all hours, and things once put safely away have begun to wander back out. No tailor of the district will take the work: the last to try has not been seen since he reached in for the pull.",
+      "difficulty": 5,
+      "kind": "errand",
+      "reward": "A bag that closes",
+      "exp": null,
+      "completed": "",
       "objectives": [
         {
           "text": "Find a mender willing to look inside",
@@ -1980,6 +1985,11 @@
       "when": "Before the first hard snow",
       "place": "",
       "body": "A company goes up into the high country in the last days of the season, when the aspens have spent their gold and the lakes are making up their minds to freeze. The trout there are fat, slow, and of the opinion that the year is over. They are to be corrected.",
+      "difficulty": 4,
+      "kind": "side",
+      "reward": "Fat trout, numb hands, and the right to speak of it",
+      "exp": null,
+      "completed": "",
       "objectives": [
         {
           "text": "Take the sullen recluse of the undercut bank",
@@ -2011,6 +2021,11 @@
       "when": "When the winds permit",
       "place": "",
       "body": "Far out upon the western ocean lies a chain of islands that the sea did not want and the earth insisted upon. One is still under construction: the ground there glows by night, and the inhabitants make offerings to the mountain and build their houses elsewhere.",
+      "difficulty": 3,
+      "kind": "main",
+      "reward": "A darker complexion, and sand in everything owned",
+      "exp": null,
+      "completed": "",
       "objectives": [
         {
           "text": "Stand at the rim of the burning mountain",
