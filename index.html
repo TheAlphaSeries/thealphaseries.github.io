@@ -252,6 +252,9 @@ h3 { font-size: 12px; line-height: 1.7; color: var(--accent); margin-top: 8px; }
 .who .home span:first-child { color: var(--dim); font-size: 15px; }
 .stats { margin: 0; gap: 8px 18px; } .stats dd { text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .sheet + .lore { margin-top: 18px; }
+.sheetcol { min-width: 0; } .sheethead { margin: 20px 0 8px; padding-top: 12px; border-top: 2px solid rgba(255, 255, 255, .3); color: var(--dim); font-size: 11px; }
+.ledger dd { display: flex; justify-content: flex-end; gap: 6px 14px; flex-wrap: wrap; } .ledger .how { color: var(--dim); font-size: 15px; text-align: right; } .ledger .xp { min-width: 4ch; text-align: right; }
+.ledger .total { margin-top: 6px; padding-top: 6px; border-top: 2px solid rgba(255, 255, 255, .3); } .ledger dd.total .xp { color: #ffd257; }
 /* ----- photo albums ----- */
 .albums { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; }
 .album { display: block; width: 100%; padding: 0; text-align: left; }
@@ -410,6 +413,7 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
   </nav>
 
   <dl class="win" id="status">
+    <dt>Level</dt><dd id="lvl">-</dd>
     <dt>Entries</dt><dd id="count">0</dd>
     <dt>Saved</dt><dd id="latest">-</dd>
     <dt>Time</dt><dd id="clock">--:--:--</dd>
@@ -518,7 +522,7 @@ Drag to move. Pinch, or use + and -, to zoom. Point at a pin or a name to see th
 
 ## Experience
 
-Nearly everything here pays experience: an entry written, a species caught (rarer pays more), a plant kept alive, a landmark seen, a place reached, a quest fulfilled. It adds up to the level on the Status screen. Each collection also keeps its own standing.
+Nearly everything here pays experience: an entry written, a species caught (rarer pays more), a plant kept alive, a landmark seen, a place reached, a quest fulfilled. It adds up to the level, and the Status screen shows exactly where every point came from. Each collection also keeps its own standing, a rank earned by doing that one thing; the top rank of a collection is reached by finishing it.
 
 ## Quests
 
@@ -622,7 +626,7 @@ const QUEST_RANKS = [[0, "Unproven"], [1, "Runner of Errands"], [3, "Journeyman 
 function questTally() {   /* the keeper's standing as a finisher of quests */
   const done = QUESTS.filter((q) => q.status === "completed"), earned = done.reduce((n, q) => n + questExp(q), 0);
   const offered = QUESTS.filter((q) => q.status !== "completed").reduce((n, q) => n + questExp(q), 0);
-  const rank = QUEST_RANKS.filter((r) => done.length >= r[0]).pop(), next = QUEST_RANKS.find((r) => r[0] > done.length);
+  const r = rankOf(QUEST_RANKS, done.length), rank = [0, r.name], next = r.next ? [r.next.need + done.length, r.next.name] : null;
   const hardest = done.slice().sort((a, b) => b.difficulty - a.difficulty || questExp(b) - questExp(a))[0] || null;
   return { done: done.length, open: QUESTS.length - done.length, earned, offered, rank: rank[1], next: next ? [next[1], next[0] - done.length] : null, hardest };
 }
@@ -721,7 +725,15 @@ function pips(filled, cls) {   /* a row of five small squares, some lit, like a 
 /* ---- the game layer shared by the Bestiary, the Herbarium and the Map ----
    Each screen opens with a short stat block: a standing (a rank earned by doing the thing), how complete the
    collection is, and the experience it has paid. Experience from all of them adds up to the level on Status. */
-const standing = (ranks, n) => { const now = ranks.filter((r) => n >= r[0]).pop(), next = ranks.find((r) => r[0] > n); return now[1] + (next ? "  (" + (next[0] - n) + " more to " + next[1] + ")" : ""); };
+/* A rank ladder is a list of [how many it takes, name]. When the collection has an end (every species, every landmark),
+   pass that total: no rung may ask for more than exists, so the top rank is always reached by finishing the collection. */
+function rankOf(ranks, n, total) {
+  const rungs = [];
+  for (const [need, name] of ranks) { const at = total == null ? need : Math.min(need, Math.max(total, 0)); if (rungs.length && rungs[rungs.length - 1][0] === at) rungs[rungs.length - 1][1] = name; else rungs.push([at, name]); }
+  const now = rungs.filter((r) => n >= r[0]).pop() || rungs[0], next = rungs.find((r) => r[0] > n);
+  return { name: now[1], next: next ? { name: next[1], need: next[0] - n } : null };
+}
+const standing = (ranks, n, total) => { const r = rankOf(ranks, n, total); return r.name + (r.next ? "  (" + r.next.need + " more to " + r.next.name + ")" : ""); };
 function meter(part, whole, text) {   /* a bar filled part-way, with its numbers beside it */
   const wrap = el("span", "meter"), bar = el("span", "xpbar"), fill = el("i"), pct = whole ? Math.round(part / whole * 100) : 0;
   fill.style.width = (whole ? Math.max(part ? 3 : 0, Math.min(100, part / whole * 100)) : 0) + "%"; bar.append(fill); bar.setAttribute("aria-hidden", "true");
@@ -753,8 +765,10 @@ const EXPLORER_RANKS = [[0, "Homebody"], [5, "Stroller of Near Streets"], [20, "
 function mapTally() {
   const marks = PLACES.reduce((n, p) => n + p.landmarks.length, 0), seen = PLACES.reduce((n, p) => n + p.landmarks.filter((l) => l.visited).length, 0);
   const regions = PLACES.filter((p) => p.landmarks.length >= 5).map((p) => ({ name: p.name, seen: p.landmarks.filter((l) => l.visited).length, all: p.landmarks.length }));
-  const trips = new Set(PLACES.map((p) => p.trip).filter(Boolean)).size, mastered = regions.filter((r) => r.seen === r.all).length;
-  return { marks, seen, regions, trips, mastered, places: PLACES.length, earned: seen * MAP_EXP.landmark + PLACES.length * MAP_EXP.place + trips * MAP_EXP.journey + mastered * MAP_EXP.mastered };
+  /* a journey is a named trip (however many stops it has), or a trip pin that stands alone; a region is an area on the map, not a place reached */
+  const trips = new Set(PLACES.map((p) => p.trip).filter(Boolean)).size + PLACES.filter((p) => p.kind === "trip" && !p.trip).length;
+  const places = PLACES.filter((p) => p.kind !== "region").length, mastered = regions.filter((r) => r.seen === r.all).length;
+  return { marks, seen, regions, trips, mastered, places, earned: seen * MAP_EXP.landmark + places * MAP_EXP.place + trips * MAP_EXP.journey + mastered * MAP_EXP.mastered };
 }
 /* the Bestiary screen. pick: which fish to open on (used when arriving from the map) */
 function showBestiary(focusFirst, pick) {
@@ -768,7 +782,7 @@ function showBestiary(focusFirst, pick) {
   const kinds = (set) => new Set(set.map((b) => b.name.trim().toLowerCase())).size;   /* a species is told apart by its name */
   const ft = fishTally(), tiers = el("span", "tiers");
   ft.tiers.forEach(([r, got, all]) => { const t = el("span", "rarity " + r, RARITY[r][0] + " " + got + "/" + all); tiers.append(t); });
-  main.append(statBlock([["Standing", standing(ANGLER_RANKS, ft.species)], ["Species", meter(ft.species, ft.all)], ["By rarity", tiers],
+  main.append(statBlock([["Standing", standing(ANGLER_RANKS, ft.species, ft.all)], ["Species", meter(ft.species, ft.all)], ["By rarity", tiers],
     ["Experience", ft.earned + " earned  /  " + ft.offered + " still swimming"],
     ["Rarest catch", ft.rarest && ft.rarest.rarity ? ft.rarest.name + " (" + RARITY[ft.rarest.rarity][0] + ")" : ""], ["Heaviest", ft.heaviest ? ft.heaviest.name + ", " + ft.heaviest.weight + " lb" : ""]]));
   const wrap = el("div", "beasts"), list = el("div", "beastlist"), card = el("div", "beastcard");
@@ -1563,7 +1577,7 @@ function showMap(focusFirst, chooseFile) {
   const mt = mapTally(), regs = el("span", "regions");
   mt.regions.forEach((r) => { const line = el("span", "region" + (r.seen === r.all ? " mastered" : "")); line.append(el("span", "rname", r.name), meter(r.seen, r.all, r.seen + "/" + r.all + (r.seen === r.all ? "  Mastered" : ""))); regs.append(line); });
   /* the map comes first; its stat block sits between the map and the list of places */
-  main.append(el("p", "label", "Map"), chips, box, statBlock([["Standing", standing(EXPLORER_RANKS, mt.seen)], ["Landmarks", mt.marks ? meter(mt.seen, mt.marks) : ""], ["Regions", mt.regions.length ? regs : ""],
+  main.append(el("p", "label", "Map"), chips, box, statBlock([["Standing", standing(EXPLORER_RANKS, mt.seen, mt.marks)], ["Landmarks", mt.marks ? meter(mt.seen, mt.marks) : ""], ["Regions", mt.regions.length ? regs : ""],
     ["Experience", mt.earned + " earned  (" + count(mt.places, "place") + ", " + count(mt.trips, "journey") + ")"]]), wrap, backRow());
   refresh(); map.fit(map.v.pins, .01);
   const homePin = PLACES.find((p) => p.kind === "home" && p.lat != null && !mapOff.has("home"));   /* with nothing else asked for, the map opens on home */
@@ -1592,16 +1606,31 @@ window.addEventListener("resize", () => { drawMini(); if (mapRedraw) mapRedraw()
    to date. The level is worked out from those numbers (see tally()).
    ========================================================================== */
 /* Count everything on the site, and turn it into experience and a level. */
+const PAY = { entry: 8, album: 6, photo: 1, objective: 5 };   /* the flat rates; fish, plants, the map and quests set their own (FISH_EXP, PLANT_EXP, MAP_EXP, questExp) */
+/* Every source of experience, one row each: [what, how it was earned, experience]. The level is worked out from
+   the total of this list and nothing else, so the Status screen can show exactly where it came from. */
+function ledger() {
+  const ft = fishTally(), mt = mapTally(), gt = plantTally(PLANTS), qt = questTally();
+  const photos = ALBUMS.reduce((n, a) => n + a.photos.length, 0), goals = QUESTS.reduce((n, q) => n + q.objectives.filter((o) => o.done).length, 0);
+  return [
+    ["Entries", count(sorted.length, "entry").replace("entrys", "entries") + " at " + PAY.entry, sorted.length * PAY.entry],
+    ["Fish", count(ft.species, "species").replace("speciess", "species") + ", by rarity", ft.earned],
+    ["Landmarks", mt.seen + " seen at " + MAP_EXP.landmark, mt.seen * MAP_EXP.landmark],
+    ["Places", count(mt.places, "place") + " at " + MAP_EXP.place, mt.places * MAP_EXP.place],
+    ["Journeys", count(mt.trips, "journey") + " at " + MAP_EXP.journey, mt.trips * MAP_EXP.journey],
+    ["Regions mastered", mt.mastered + " at " + MAP_EXP.mastered, mt.mastered * MAP_EXP.mastered],
+    ["Photographs", count(ALBUMS.length, "album") + " at " + PAY.album + ", " + count(photos, "photo") + " at " + PAY.photo, ALBUMS.length * PAY.album + photos * PAY.photo],
+    ["Plants", gt.living + " living, by rarity", gt.earned],
+    ["Quests fulfilled", String(qt.done), qt.earned],
+    ["Objectives", goals + " ticked at " + PAY.objective, goals * PAY.objective]];
+}
 function tally() {
-  const caught = BESTIARY.filter((b) => b.status !== "wanted"), names = (set) => new Set(set.map((b) => b.name.trim().toLowerCase())).size;
-  const marks = PLACES.reduce((n, p) => n + p.landmarks.length, 0), seen = PLACES.reduce((n, p) => n + p.landmarks.filter((l) => l.visited).length, 0);
-  const photos = ALBUMS.reduce((n, a) => n + a.photos.length, 0), green = census(PLANTS), questsDone = QUESTS.filter((q) => q.status === "completed").length;
-  const goals = QUESTS.reduce((n, q) => n + q.objectives.filter((o) => o.done).length, 0), trips = new Set(PLACES.map((p) => p.trip).filter(Boolean)).size;
-  /* what each thing is worth: writing and finishing quests most, a single landmark least */
-  const xp = sorted.length * 8 + fishTally().earned + mapTally().earned + ALBUMS.length * 6 + photos + plantTally(PLANTS).earned + questTally().earned + goals * 5;   /* a fulfilled quest pays what it promised; each objective ticked pays 5 */
+  const caught = BESTIARY.filter((b) => b.status !== "wanted"), ft = fishTally(), mt = mapTally(), qt = questTally();
+  const photos = ALBUMS.reduce((n, a) => n + a.photos.length, 0), green = census(PLANTS);
+  const xp = ledger().reduce((n, row) => n + row[2], 0);
   const level = Math.floor(Math.sqrt(xp / 10)) + 1, floor = 10 * (level - 1) * (level - 1), next = 10 * level * level;   /* each level takes more than the last */
-  return { xp, level, into: xp - floor, span: next - floor, toNext: next - xp, entries: sorted.length, caught: caught.length, species: names(caught), allSpecies: names(BESTIARY),
-    seen, marks, places: PLACES.length, trips, albums: ALBUMS.length, photos, green, questsDone, questsOpen: QUESTS.length - questsDone };
+  return { xp, level, into: xp - floor, span: next - floor, toNext: next - xp, entries: sorted.length, caught: caught.length, species: ft.species, allSpecies: ft.all,
+    seen: mt.seen, marks: mt.marks, places: mt.places, trips: mt.trips, albums: ALBUMS.length, photos, green, questsDone: qt.done, questsOpen: qt.open };
 }
 function showStatus(focusFirst) {
   openScreen("status", "m-status");
@@ -1619,15 +1648,18 @@ function showStatus(focusFirst) {
   stat("Entries written", String(t.entries));
   stat("Fish caught", t.caught + "  (" + t.species + " of " + t.allSpecies + " species)");
   stat("Landmarks seen", t.seen + " of " + t.marks);
-  stat("Standings", standing(ANGLER_RANKS, fishTally().species).split("  (")[0] + ";  " + standing(EXPLORER_RANKS, t.seen).split("  (")[0] + ";  " + standing(GARDEN_RANKS, t.green.living).split("  (")[0]);
   stat("Places reached", String(t.places));
   stat("Journeys made", String(t.trips));
   stat("Photographs", t.photos + (t.albums ? "  in " + count(t.albums, "album") : ""));
   stat("Plants", t.green.living + " living,  " + t.green.perished + " perished");
-  stat("Quests", t.questsDone + " done,  " + t.questsOpen + " open");
-  stat("Standing", questTally().rank);
-  stat("Experience", String(t.xp));
-  wrap.append(who, facts);
+  stat("Quests", t.questsDone + " fulfilled,  " + t.questsOpen + " in hand");
+  const right = el("div", "sheetcol"), ranks = el("dl", "facts stats"), book = el("dl", "facts stats ledger");
+  [["As angler", rankOf(ANGLER_RANKS, t.species, t.allSpecies)], ["As wanderer", rankOf(EXPLORER_RANKS, t.seen, t.marks)], ["As gardener", rankOf(GARDEN_RANKS, t.green.living)], ["As finisher", rankOf(QUEST_RANKS, t.questsDone)]]
+    .forEach(([k, r]) => ranks.append(el("dt", null, k), el("dd", null, r.name)));
+  ledger().forEach(([k, how, xp]) => { const dd = el("dd"); dd.append(el("span", "how", how), el("span", "xp", String(xp))); book.append(el("dt", null, k), dd); });
+  const sum = el("dd", "total"); sum.append(el("span", "how", "Level " + t.level), el("span", "xp", String(t.xp))); book.append(el("dt", "total", "Total"), sum);
+  right.append(facts, el("p", "label sheethead", "Standings"), ranks, el("p", "label sheethead", "Experience"), book);
+  wrap.append(who, right);
   main.append(el("p", "label", "Status"), wrap);
   if (STATUS.body) { const words = el("div", "post lore"); renderBody(STATUS.body, words); main.append(words); }
   main.append(backRow());
@@ -1925,7 +1957,7 @@ function linkedPost() {   /* the entry named after # in the address, if there is
       .sort((a, b) => b.date.localeCompare(a.date) || b.file.localeCompare(a.file));
     loadNote = "No entries yet.";
   } catch (e) { ABOUT = ""; BESTIARY_INTRO = ""; BESTIARY = []; ALBUMS = []; PLACES = []; QUESTS = []; PLANTS = []; PLANT_INTRO = { bonsai: "", house: "" }; sorted = []; loadNote = "Could not load the log. Refresh to try again."; }
-  $("#count").textContent = sorted.length;
+  $("#count").textContent = sorted.length; $("#lvl").textContent = tally().level;
   $("#latest").textContent = sorted[0] ? day(sorted[0].date).split(",")[0] || "-" : "-";
   pendingPost = linkedPost();
   const started = introBox.classList.contains("done");
