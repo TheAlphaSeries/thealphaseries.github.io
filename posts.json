@@ -1279,7 +1279,7 @@
       "kind": "home",
       "lat": 37.7599,
       "lng": -122.4148,
-      "date": "",
+      "date": "2026-10-04",
       "photo": "",
       "trip": "",
       "stop": null,
@@ -1288,91 +1288,91 @@
         {
           "name": "Golden Gate Bridge",
           "icon": "bridge",
-          "visited": false,
+          "visited": true,
           "lat": 37.8199,
           "lng": -122.4783
         },
         {
           "name": "Fort Point",
           "icon": "museum",
-          "visited": false,
+          "visited": true,
           "lat": 37.8106,
           "lng": -122.477
         },
         {
           "name": "Crissy Field",
           "icon": "tree",
-          "visited": false,
+          "visited": true,
           "lat": 37.8039,
           "lng": -122.4641
         },
         {
           "name": "Presidio Tunnel Tops",
           "icon": "tree",
-          "visited": false,
+          "visited": true,
           "lat": 37.8017,
           "lng": -122.4563
         },
         {
           "name": "Palace of Fine Arts",
           "icon": "dome",
-          "visited": false,
+          "visited": true,
           "lat": 37.8029,
           "lng": -122.4484
         },
         {
           "name": "Baker Beach",
           "icon": "lake",
-          "visited": false,
+          "visited": true,
           "lat": 37.7936,
           "lng": -122.4836
         },
         {
           "name": "Legion of Honor",
           "icon": "museum",
-          "visited": false,
+          "visited": true,
           "lat": 37.7845,
           "lng": -122.5008
         },
         {
           "name": "Lands End and Sutro Baths",
           "icon": "cave",
-          "visited": false,
+          "visited": true,
           "lat": 37.7804,
           "lng": -122.5137
         },
         {
           "name": "Ocean Beach",
           "icon": "lake",
-          "visited": false,
+          "visited": true,
           "lat": 37.7594,
           "lng": -122.5107
         },
         {
           "name": "Dutch Windmill",
           "icon": "tower",
-          "visited": false,
+          "visited": true,
           "lat": 37.7705,
           "lng": -122.5094
         },
         {
           "name": "Stow Lake",
           "icon": "lake",
-          "visited": false,
+          "visited": true,
           "lat": 37.7686,
           "lng": -122.4756
         },
         {
           "name": "Japanese Tea Garden",
           "icon": "pagoda",
-          "visited": false,
+          "visited": true,
           "lat": 37.7702,
           "lng": -122.4701
         },
         {
           "name": "de Young Museum",
           "icon": "museum",
-          "visited": false,
+          "visited": true,
           "lat": 37.7715,
           "lng": -122.4687
         },
@@ -1386,35 +1386,35 @@
         {
           "name": "Conservatory of Flowers",
           "icon": "dome",
-          "visited": false,
+          "visited": true,
           "lat": 37.7726,
           "lng": -122.4603
         },
         {
           "name": "Haight-Ashbury",
           "icon": "house",
-          "visited": false,
+          "visited": true,
           "lat": 37.7699,
           "lng": -122.4469
         },
         {
           "name": "Painted Ladies",
           "icon": "house",
-          "visited": false,
+          "visited": true,
           "lat": 37.7763,
           "lng": -122.4328
         },
         {
           "name": "Japantown Peace Pagoda",
           "icon": "pagoda",
-          "visited": false,
+          "visited": true,
           "lat": 37.785,
           "lng": -122.4298
         },
         {
           "name": "City Hall",
           "icon": "dome",
-          "visited": false,
+          "visited": true,
           "lat": 37.7793,
           "lng": -122.4193
         },
@@ -1435,7 +1435,7 @@
         {
           "name": "Fisherman's Wharf",
           "icon": "boat",
-          "visited": false,
+          "visited": true,
           "lat": 37.8087,
           "lng": -122.4098
         },
@@ -1449,35 +1449,35 @@
         {
           "name": "Coit Tower",
           "icon": "tower",
-          "visited": false,
+          "visited": true,
           "lat": 37.8024,
           "lng": -122.4058
         },
         {
           "name": "Exploratorium",
           "icon": "museum",
-          "visited": false,
+          "visited": true,
           "lat": 37.8017,
           "lng": -122.3973
         },
         {
           "name": "Ferry Building",
           "icon": "tower",
-          "visited": false,
+          "visited": true,
           "lat": 37.7955,
           "lng": -122.3937
         },
         {
           "name": "Transamerica Pyramid",
           "icon": "obelisk",
-          "visited": false,
+          "visited": true,
           "lat": 37.7952,
           "lng": -122.4028
         },
         {
           "name": "Chinatown Dragon Gate",
           "icon": "lantern",
-          "visited": false,
+          "visited": true,
           "lat": 37.7908,
           "lng": -122.4058
         },
@@ -1498,21 +1498,21 @@
         {
           "name": "SFMOMA",
           "icon": "museum",
-          "visited": false,
+          "visited": true,
           "lat": 37.7857,
           "lng": -122.4011
         },
         {
           "name": "Salesforce Park",
           "icon": "skyline",
-          "visited": false,
+          "visited": true,
           "lat": 37.7897,
           "lng": -122.3962
         },
         {
           "name": "Bay Bridge",
           "icon": "bridge",
-          "visited": false,
+          "visited": true,
           "lat": 37.7983,
           "lng": -122.3778
         },
@@ -1526,7 +1526,7 @@
         {
           "name": "Oracle Park",
           "icon": "dome",
-          "visited": false,
+          "visited": true,
           "lat": 37.7786,
           "lng": -122.3893
         },
@@ -1540,14 +1540,14 @@
         {
           "name": "Mission Dolores",
           "icon": "cathedral",
-          "visited": false,
+          "visited": true,
           "lat": 37.7642,
           "lng": -122.427
         },
         {
           "name": "Dolores Park",
           "icon": "tree",
-          "visited": false,
+          "visited": true,
           "lat": 37.7596,
           "lng": -122.4269
         },
@@ -1568,14 +1568,14 @@
         {
           "name": "Twin Peaks",
           "icon": "peak",
-          "visited": false,
+          "visited": true,
           "lat": 37.7544,
           "lng": -122.4477
         },
         {
           "name": "Sutro Tower",
           "icon": "tower",
-          "visited": false,
+          "visited": true,
           "lat": 37.7552,
           "lng": -122.4528
         },
@@ -1589,7 +1589,7 @@
         {
           "name": "Bernal Heights Park",
           "icon": "peak",
-          "visited": false,
+          "visited": true,
           "lat": 37.7432,
           "lng": -122.4144
         }
