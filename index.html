@@ -193,7 +193,7 @@ h3 { font-size: 12px; line-height: 1.7; color: var(--accent); margin-top: 8px; }
 .chip[aria-pressed="true"] { color: var(--fg); opacity: 1; }
 .chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .dot { display: inline-block; width: 10px; height: 10px; flex: none; }
-.dot.fishing, .kind.fishing { color: #6fb7ff; } .dot.landmark, .kind.landmark { color: #ffd257; } .dot.hike, .kind.hike { color: #7fd68a; }
+.dot.fishing, .kind.fishing { color: #6fb7ff; } .dot.landmark, .kind.landmark { color: #ffd257; } .dot.hike, .kind.hike { color: #7fd68a; } .dot.trip, .kind.trip { color: #c79bff; }
 .dot { background: currentColor; }
 .maplist { margin-top: 16px; }
 .place { grid-template-columns: 18px 10px minmax(0, 1fr); }
@@ -719,7 +719,8 @@ function showAlbum(a) {
 const KINDS = {   /* label, colour, and a 7x7 picture for the pin */
   fishing: ["Fishing", "#6fb7ff", [".......", "#..###.", "#######", "#######", "#######", "#..###.", "......."]],
   landmark: ["Landmarks", "#ffd257", [".#####.", ".#####.", ".#####.", ".#.....", ".#.....", ".#.....", "###...."]],
-  hike: ["Hikes", "#7fd68a", ["...#...", "..###..", "..###..", ".#####.", ".#####.", "#######", "#######"]]
+  hike: ["Hikes", "#7fd68a", ["...#...", "..###..", "..###..", ".#####.", ".#####.", "#######", "#######"]],
+  trip: ["Trips", "#c79bff", ["...#...", "..###..", "#######", ".#####.", ".#####.", "##...##", "#.....#"]]
 };
 const merc = (lat, lng) => [(lng + 180) / 360, (1 - Math.log(Math.tan(Math.PI / 4 + Math.max(-85, Math.min(85, lat)) * Math.PI / 360)) / Math.PI) / 2];
 let landPath = null, landWait = null;
@@ -728,7 +729,10 @@ function loadLand() {
     const path = new Path2D(), q = d.q || 100;
     for (const ring of d.rings) {   /* each ring: a start point, then steps from one point to the next */
       let x = ring[0], y = ring[1], m = merc(y / q, x / q); path.moveTo(m[0], m[1]);
-      for (let i = 2; i + 1 < ring.length; i += 2) { x += ring[i]; y += ring[i + 1]; m = merc(y / q, x / q); path.lineTo(m[0], m[1]); }
+      for (let i = 2; i + 1 < ring.length; i += 2) {
+        let step = ring[i]; if (step > 180 * q) step -= 360 * q; else if (step < -180 * q) step += 360 * q;   /* a coast that crosses the date line carries on past the edge instead of jumping back across the map */
+        x += step; y += ring[i + 1]; m = merc(y / q, x / q); path.lineTo(m[0], m[1]);
+      }
       path.closePath();
     }
     landPath = path;
@@ -761,8 +765,8 @@ function makeMap(canvas, cell, small) {
     c.setTransform(1, 0, 0, 1, 0, 0); c.fillStyle = "#000"; c.fillRect(0, 0, w, h);
     if (landPath) {
       c.fillStyle = "#fff"; const reach = w / 2 / v.scale;
-      for (const k of [-1, 0, 1]) {   /* the world repeats to the left and right */
-        if (v.x + reach < k || v.x - reach > k + 1) continue;
+      for (const k of [-2, -1, 0, 1, 2]) {   /* the world repeats to the left and right; a copy can spill one world-width past its own edges */
+        if (v.x + reach < k - 1 || v.x - reach > k + 2) continue;
         c.setTransform(v.scale, 0, 0, v.scale, w / 2 - (v.x - k) * v.scale, h / 2 - v.y * v.scale); c.fill(landPath, "evenodd");
       }
       c.setTransform(1, 0, 0, 1, 0, 0);

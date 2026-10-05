@@ -166,6 +166,8 @@ content:
               label: Landmark
             - name: hike
               label: Hike
+            - name: trip
+              label: Trip
       - name: coordinates
         label: Coordinates (in Google Maps, right-click the spot, click the numbers to copy, paste here - e.g. 37.7297, -122.1040)
         type: string
