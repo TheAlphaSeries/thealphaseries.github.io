@@ -1954,6 +1954,7 @@
       "reward": "A bag that closes",
       "exp": null,
       "completed": "",
+      "roles": [],
       "objectives": [
         {
           "text": "Find a mender willing to look inside",
@@ -1990,6 +1991,7 @@
       "reward": "Fat trout, numb hands, and the right to speak of it",
       "exp": null,
       "completed": "",
+      "roles": [],
       "objectives": [
         {
           "text": "Take the sullen recluse of the undercut bank",
@@ -2026,6 +2028,7 @@
       "reward": "A darker complexion, and sand in everything owned",
       "exp": null,
       "completed": "",
+      "roles": [],
       "objectives": [
         {
           "text": "Stand at the rim of the burning mountain",
@@ -2045,6 +2048,64 @@
         },
         {
           "text": "Visit the hall where the island kings kept their feathers",
+          "done": false
+        }
+      ]
+    },
+    {
+      "file": "treasure-island",
+      "title": "The Voyage to Treasure Island",
+      "status": "active",
+      "order": 4,
+      "when": "In the days soon to come",
+      "place": "",
+      "body": "A small but exceptionally capable company is to be assembled and sail for Treasure Island. The purpose is singular and culturally significant: to capture the finest photograph yet made of the San Francisco skyline.\n\nTwo or three men are required, of various builds, temperaments and useful dispositions: a land surveyor, a pack hauler, and a charming fellow to secure passage through ports, gates, checkpoints, and whatever minor authorities presume to stand between the company and destiny. The post of mystic is filled. The keeper will consult the heavens, interpret the light, and point toward the horizon as required.\n\nThose who would join should choose a post below and petition for it. If all perform their duties admirably, glory is probable.",
+      "difficulty": 2,
+      "kind": "side",
+      "reward": "The finest photograph yet made of the San Francisco skyline",
+      "exp": null,
+      "completed": "",
+      "roles": [
+        {
+          "name": "Mystic",
+          "about": "Consults the heavens, interprets the light, points toward the horizon",
+          "held": "The keeper"
+        },
+        {
+          "name": "Land Surveyor",
+          "about": "Knows the city, its winds, elevations and secret prospects",
+          "held": ""
+        },
+        {
+          "name": "Pack Hauler",
+          "about": "Of sturdy constitution and cheerful obedience; carries the instruments",
+          "held": ""
+        },
+        {
+          "name": "Charming Fellow",
+          "about": "Of easy speech and flexible principle; secures passage past minor authorities",
+          "held": ""
+        }
+      ],
+      "objectives": [
+        {
+          "text": "Engage a land surveyor, familiar with the city, its winds and its secret prospects",
+          "done": false
+        },
+        {
+          "text": "Engage a pack hauler of sturdy constitution and cheerful obedience",
+          "done": false
+        },
+        {
+          "text": "Engage a charming fellow of easy speech and flexible principle",
+          "done": false
+        },
+        {
+          "text": "Sail for Treasure Island",
+          "done": false
+        },
+        {
+          "text": "Capture the finest photograph yet made of the San Francisco skyline",
           "done": false
         }
       ]
