@@ -108,7 +108,7 @@ if (existsSync("quests")) {
     const { meta, body } = parse(readFileSync("quests/" + name, "utf8"));
     const file = name.replace(/\.md$/, "");
     quests.push({ file, title: str(meta.title) || file, status: /^(done|complete|completed)$/i.test(str(meta.status).trim()) ? "completed" : "active",
-      start: isoDay(meta.start), end: isoDay(meta.end), when: str(meta.when).trim(), place: str(meta.place).trim(), body,
+      order: Number.isFinite(parseFloat(meta.order)) ? parseFloat(meta.order) : null, when: str(meta.when).trim(), place: str(meta.place).trim(), body,   // no dates on purpose: the site is public
       objectives: (Array.isArray(meta.objectives) ? meta.objectives : []).filter((o) => o && typeof o === "object" && String(o.text || "").trim())
         .map((o) => ({ text: String(o.text).trim(), done: /^(true|yes|1)$/i.test(String(o.done || "").trim()) })) });
   }

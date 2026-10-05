@@ -310,18 +310,11 @@ content:
               label: Active
             - name: completed
               label: Completed
-      - name: start
-        label: Starts
-        type: date
-        options:
-          format: yyyy-MM-dd
-      - name: end
-        label: Ends
-        type: date
-        options:
-          format: yyyy-MM-dd
+      - name: order
+        label: Position in the list (1 comes first)
+        type: string
       - name: when
-        label: When, in words (optional - shown in place of the dates, e.g. Second weekend of November)
+        label: When, in words - keep it vague, the site is public (e.g. Before the first hard snow)
         type: string
       - name: place
         label: Where (optional - a map pin's name, to link the two)
