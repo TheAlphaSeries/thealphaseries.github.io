@@ -805,37 +805,51 @@
         {
           "name": "Giant Panda Base",
           "icon": "panda",
-          "visited": true
+          "visited": true,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "People's Park Teahouse",
           "icon": "cup",
-          "visited": true
+          "visited": true,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "Kuanzhai Alleys",
           "icon": "house",
-          "visited": true
+          "visited": true,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "Wuhou Shrine",
           "icon": "pagoda",
-          "visited": true
+          "visited": true,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "Jinli Street",
           "icon": "lantern",
-          "visited": true
+          "visited": true,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "Anshun Bridge",
           "icon": "bridge",
-          "visited": true
+          "visited": true,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "Leshan Giant Buddha",
           "icon": "buddha",
-          "visited": false
+          "visited": false,
+          "lat": null,
+          "lng": null
         }
       ]
     },
@@ -854,32 +868,44 @@
         {
           "name": "Hongya Cave",
           "icon": "house",
-          "visited": true
+          "visited": true,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "Liziba Station",
           "icon": "tram",
-          "visited": true
+          "visited": true,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "Yangtze Cableway",
           "icon": "cablecar",
-          "visited": true
+          "visited": true,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "Shancheng Alley",
           "icon": "lantern",
-          "visited": true
+          "visited": true,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "Jiefangbei",
           "icon": "skyline",
-          "visited": true
+          "visited": true,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "Ciqikou Old Town",
           "icon": "pagoda",
-          "visited": false
+          "visited": false,
+          "lat": null,
+          "lng": null
         }
       ]
     },
@@ -898,32 +924,44 @@
         {
           "name": "Hualin Jade Market",
           "icon": "gem",
-          "visited": true
+          "visited": true,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "Xuelei Fragrance Museum",
           "icon": "museum",
-          "visited": true
+          "visited": true,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "Dongshankou",
           "icon": "house",
-          "visited": true
+          "visited": true,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "Canton Tower",
           "icon": "tower",
-          "visited": false
+          "visited": false,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "Chen Clan Ancestral Hall",
           "icon": "pagoda",
-          "visited": false
+          "visited": false,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "Shamian Island",
           "icon": "tree",
-          "visited": false
+          "visited": false,
+          "lat": null,
+          "lng": null
         }
       ]
     },
@@ -942,22 +980,30 @@
         {
           "name": "Longleaf Trace",
           "icon": "tree",
-          "visited": false
+          "visited": false,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "Pocket Museum",
           "icon": "museum",
-          "visited": false
+          "visited": false,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "The Lucky Rabbit",
           "icon": "house",
-          "visited": false
+          "visited": false,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "Hattiesburg Zoo",
           "icon": "tree",
-          "visited": false
+          "visited": false,
+          "lat": null,
+          "lng": null
         }
       ]
     },
@@ -976,37 +1022,51 @@
         {
           "name": "Victoria Peak",
           "icon": "peak",
-          "visited": true
+          "visited": true,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "Star Ferry",
           "icon": "boat",
-          "visited": true
+          "visited": true,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "Nan Lian Garden",
           "icon": "pagoda",
-          "visited": true
+          "visited": true,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "Temple Street Night Market",
           "icon": "lantern",
-          "visited": true
+          "visited": true,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "Man Wah Lane",
           "icon": "house",
-          "visited": true
+          "visited": true,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "PMQ",
           "icon": "museum",
-          "visited": true
+          "visited": true,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "Tian Tan Buddha",
           "icon": "buddha",
-          "visited": false
+          "visited": false,
+          "lat": null,
+          "lng": null
         }
       ]
     },
@@ -1025,17 +1085,23 @@
         {
           "name": "The Marina",
           "icon": "boat",
-          "visited": true
+          "visited": true,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "The Dam",
           "icon": "bridge",
-          "visited": false
+          "visited": false,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "Honker Bay",
           "icon": "lake",
-          "visited": false
+          "visited": false,
+          "lat": null,
+          "lng": null
         }
       ]
     },
@@ -1054,22 +1120,30 @@
         {
           "name": "Dentzel Carousel",
           "icon": "carousel",
-          "visited": false
+          "visited": false,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "The MAX",
           "icon": "museum",
-          "visited": false
+          "visited": false,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "Threefoot Building",
           "icon": "skyline",
-          "visited": false
+          "visited": false,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "Jimmie Rodgers Museum",
           "icon": "note",
-          "visited": false
+          "visited": false,
+          "lat": null,
+          "lng": null
         }
       ]
     },
@@ -1088,32 +1162,44 @@
         {
           "name": "Jackson Square",
           "icon": "cathedral",
-          "visited": false
+          "visited": false,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "Cafe du Monde",
           "icon": "cup",
-          "visited": false
+          "visited": false,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "St. Charles Streetcar",
           "icon": "tram",
-          "visited": false
+          "visited": false,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "Frenchmen Street",
           "icon": "note",
-          "visited": false
+          "visited": false,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "Garden District",
           "icon": "tree",
-          "visited": false
+          "visited": false,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "Steamboat Natchez",
           "icon": "boat",
-          "visited": false
+          "visited": false,
+          "lat": null,
+          "lng": null
         }
       ]
     },
@@ -1132,22 +1218,30 @@
         {
           "name": "Bart's Books",
           "icon": "house",
-          "visited": false
+          "visited": false,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "The Pink Moment",
           "icon": "peak",
-          "visited": false
+          "visited": false,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "Libbey Park",
           "icon": "tree",
-          "visited": false
+          "visited": false,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "Lake Casitas",
           "icon": "lake",
-          "visited": false
+          "visited": false,
+          "lat": null,
+          "lng": null
         }
       ]
     },
@@ -1166,12 +1260,338 @@
         {
           "name": "The Lake",
           "icon": "lake",
-          "visited": true
+          "visited": true,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "The Caverns",
           "icon": "cave",
-          "visited": false
+          "visited": false,
+          "lat": null,
+          "lng": null
+        }
+      ]
+    },
+    {
+      "file": "san-francisco",
+      "name": "San Francisco",
+      "kind": "home",
+      "lat": 37.7599,
+      "lng": -122.4148,
+      "date": "",
+      "photo": "",
+      "trip": "",
+      "stop": null,
+      "note": "Home. A city of forty-odd hills at the end of a peninsula, wrapped most mornings in a fog so thick that the residents have given it a name and speak of it as a neighbor. The streets were laid out by a man with a ruler and no regard for the terrain, so that they proceed directly up slopes a goat would decline.\n\nThe Mission, in the sunny lee of the hills, is where this log is kept. It is older than the city around it, loud at all hours, painted on every available wall, and warmer than the rest by a margin its inhabitants will mention unprompted.",
+      "landmarks": [
+        {
+          "name": "Golden Gate Bridge",
+          "icon": "bridge",
+          "visited": false,
+          "lat": 37.8199,
+          "lng": -122.4783
+        },
+        {
+          "name": "Fort Point",
+          "icon": "museum",
+          "visited": false,
+          "lat": 37.8106,
+          "lng": -122.477
+        },
+        {
+          "name": "Crissy Field",
+          "icon": "tree",
+          "visited": false,
+          "lat": 37.8039,
+          "lng": -122.4641
+        },
+        {
+          "name": "Presidio Tunnel Tops",
+          "icon": "tree",
+          "visited": false,
+          "lat": 37.8017,
+          "lng": -122.4563
+        },
+        {
+          "name": "Palace of Fine Arts",
+          "icon": "dome",
+          "visited": false,
+          "lat": 37.8029,
+          "lng": -122.4484
+        },
+        {
+          "name": "Baker Beach",
+          "icon": "lake",
+          "visited": false,
+          "lat": 37.7936,
+          "lng": -122.4836
+        },
+        {
+          "name": "Legion of Honor",
+          "icon": "museum",
+          "visited": false,
+          "lat": 37.7845,
+          "lng": -122.5008
+        },
+        {
+          "name": "Lands End and Sutro Baths",
+          "icon": "cave",
+          "visited": false,
+          "lat": 37.7804,
+          "lng": -122.5137
+        },
+        {
+          "name": "Ocean Beach",
+          "icon": "lake",
+          "visited": false,
+          "lat": 37.7594,
+          "lng": -122.5107
+        },
+        {
+          "name": "Dutch Windmill",
+          "icon": "tower",
+          "visited": false,
+          "lat": 37.7705,
+          "lng": -122.5094
+        },
+        {
+          "name": "Stow Lake",
+          "icon": "lake",
+          "visited": false,
+          "lat": 37.7686,
+          "lng": -122.4756
+        },
+        {
+          "name": "Japanese Tea Garden",
+          "icon": "pagoda",
+          "visited": false,
+          "lat": 37.7702,
+          "lng": -122.4701
+        },
+        {
+          "name": "de Young Museum",
+          "icon": "museum",
+          "visited": false,
+          "lat": 37.7715,
+          "lng": -122.4687
+        },
+        {
+          "name": "Academy of Sciences",
+          "icon": "dome",
+          "visited": false,
+          "lat": 37.7699,
+          "lng": -122.4661
+        },
+        {
+          "name": "Conservatory of Flowers",
+          "icon": "dome",
+          "visited": false,
+          "lat": 37.7726,
+          "lng": -122.4603
+        },
+        {
+          "name": "Haight-Ashbury",
+          "icon": "house",
+          "visited": false,
+          "lat": 37.7699,
+          "lng": -122.4469
+        },
+        {
+          "name": "Painted Ladies",
+          "icon": "house",
+          "visited": false,
+          "lat": 37.7763,
+          "lng": -122.4328
+        },
+        {
+          "name": "Japantown Peace Pagoda",
+          "icon": "pagoda",
+          "visited": false,
+          "lat": 37.785,
+          "lng": -122.4298
+        },
+        {
+          "name": "City Hall",
+          "icon": "dome",
+          "visited": false,
+          "lat": 37.7793,
+          "lng": -122.4193
+        },
+        {
+          "name": "Lombard Street",
+          "icon": "house",
+          "visited": false,
+          "lat": 37.8021,
+          "lng": -122.4187
+        },
+        {
+          "name": "Musee Mecanique",
+          "icon": "carousel",
+          "visited": false,
+          "lat": 37.8093,
+          "lng": -122.4159
+        },
+        {
+          "name": "Fisherman's Wharf",
+          "icon": "boat",
+          "visited": false,
+          "lat": 37.8087,
+          "lng": -122.4098
+        },
+        {
+          "name": "Alcatraz",
+          "icon": "tower",
+          "visited": false,
+          "lat": 37.8267,
+          "lng": -122.423
+        },
+        {
+          "name": "Coit Tower",
+          "icon": "tower",
+          "visited": false,
+          "lat": 37.8024,
+          "lng": -122.4058
+        },
+        {
+          "name": "Exploratorium",
+          "icon": "museum",
+          "visited": false,
+          "lat": 37.8017,
+          "lng": -122.3973
+        },
+        {
+          "name": "Ferry Building",
+          "icon": "tower",
+          "visited": false,
+          "lat": 37.7955,
+          "lng": -122.3937
+        },
+        {
+          "name": "Transamerica Pyramid",
+          "icon": "obelisk",
+          "visited": false,
+          "lat": 37.7952,
+          "lng": -122.4028
+        },
+        {
+          "name": "Chinatown Dragon Gate",
+          "icon": "lantern",
+          "visited": false,
+          "lat": 37.7908,
+          "lng": -122.4058
+        },
+        {
+          "name": "Grace Cathedral",
+          "icon": "cathedral",
+          "visited": false,
+          "lat": 37.7919,
+          "lng": -122.4132
+        },
+        {
+          "name": "Cable Car Turnaround",
+          "icon": "tram",
+          "visited": false,
+          "lat": 37.7847,
+          "lng": -122.4079
+        },
+        {
+          "name": "SFMOMA",
+          "icon": "museum",
+          "visited": false,
+          "lat": 37.7857,
+          "lng": -122.4011
+        },
+        {
+          "name": "Salesforce Park",
+          "icon": "skyline",
+          "visited": false,
+          "lat": 37.7897,
+          "lng": -122.3962
+        },
+        {
+          "name": "Bay Bridge",
+          "icon": "bridge",
+          "visited": false,
+          "lat": 37.7983,
+          "lng": -122.3778
+        },
+        {
+          "name": "Treasure Island",
+          "icon": "skyline",
+          "visited": false,
+          "lat": 37.8235,
+          "lng": -122.3706
+        },
+        {
+          "name": "Oracle Park",
+          "icon": "dome",
+          "visited": false,
+          "lat": 37.7786,
+          "lng": -122.3893
+        },
+        {
+          "name": "Castro Theatre",
+          "icon": "note",
+          "visited": false,
+          "lat": 37.762,
+          "lng": -122.435
+        },
+        {
+          "name": "Mission Dolores",
+          "icon": "cathedral",
+          "visited": false,
+          "lat": 37.7642,
+          "lng": -122.427
+        },
+        {
+          "name": "Dolores Park",
+          "icon": "tree",
+          "visited": false,
+          "lat": 37.7596,
+          "lng": -122.4269
+        },
+        {
+          "name": "Clarion Alley",
+          "icon": "house",
+          "visited": false,
+          "lat": 37.7631,
+          "lng": -122.4215
+        },
+        {
+          "name": "Balmy Alley",
+          "icon": "house",
+          "visited": false,
+          "lat": 37.7519,
+          "lng": -122.4124
+        },
+        {
+          "name": "Twin Peaks",
+          "icon": "peak",
+          "visited": false,
+          "lat": 37.7544,
+          "lng": -122.4477
+        },
+        {
+          "name": "Sutro Tower",
+          "icon": "tower",
+          "visited": false,
+          "lat": 37.7552,
+          "lng": -122.4528
+        },
+        {
+          "name": "16th Avenue Tiled Steps",
+          "icon": "gem",
+          "visited": false,
+          "lat": 37.7563,
+          "lng": -122.4732
+        },
+        {
+          "name": "Bernal Heights Park",
+          "icon": "peak",
+          "visited": false,
+          "lat": 37.7432,
+          "lng": -122.4144
         }
       ]
     },
@@ -1190,32 +1610,44 @@
         {
           "name": "The Bund",
           "icon": "skyline",
-          "visited": true
+          "visited": true,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "Tianzifang",
           "icon": "house",
-          "visited": true
+          "visited": true,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "French Concession",
           "icon": "tree",
-          "visited": true
+          "visited": true,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "M50 Art District",
           "icon": "museum",
-          "visited": true
+          "visited": true,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "Oriental Pearl Tower",
           "icon": "tower",
-          "visited": false
+          "visited": false,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "Yu Garden",
           "icon": "pagoda",
-          "visited": false
+          "visited": false,
+          "lat": null,
+          "lng": null
         }
       ]
     },
@@ -1234,57 +1666,79 @@
         {
           "name": "Natural History Museum",
           "icon": "museum",
-          "visited": true
+          "visited": true,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "National Gallery of Art",
           "icon": "museum",
-          "visited": true
+          "visited": true,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "African American History Museum",
           "icon": "museum",
-          "visited": true
+          "visited": true,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "Air and Space Museum",
           "icon": "museum",
-          "visited": true
+          "visited": true,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "National Archives",
           "icon": "museum",
-          "visited": true
+          "visited": true,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "American History Museum",
           "icon": "museum",
-          "visited": true
+          "visited": true,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "White House",
           "icon": "dome",
-          "visited": true
+          "visited": true,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "Washington Monument",
           "icon": "obelisk",
-          "visited": true
+          "visited": true,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "Lincoln Memorial",
           "icon": "museum",
-          "visited": true
+          "visited": true,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "National Arboretum",
           "icon": "tree",
-          "visited": true
+          "visited": true,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "The Capitol",
           "icon": "dome",
-          "visited": false
+          "visited": false,
+          "lat": null,
+          "lng": null
         }
       ]
     },
@@ -1303,37 +1757,51 @@
         {
           "name": "Yuanjiajie Pillars",
           "icon": "pillars",
-          "visited": true
+          "visited": true,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "Bailong Elevator",
           "icon": "cablecar",
-          "visited": true
+          "visited": true,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "Golden Whip Stream",
           "icon": "tree",
-          "visited": true
+          "visited": true,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "Tianmen Cableway",
           "icon": "cablecar",
-          "visited": true
+          "visited": true,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "Heaven's Gate",
           "icon": "cave",
-          "visited": true
+          "visited": true,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "Glass Skywalk",
           "icon": "bridge",
-          "visited": true
+          "visited": true,
+          "lat": null,
+          "lng": null
         },
         {
           "name": "Grand Canyon Glass Bridge",
           "icon": "bridge",
-          "visited": false
+          "visited": false,
+          "lat": null,
+          "lng": null
         }
       ]
     }
