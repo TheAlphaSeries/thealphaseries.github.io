@@ -100,11 +100,24 @@ if (existsSync("places")) {
         .map((l) => { const [lat, lng] = coords(l.coordinates); return { name: String(l.name).trim(), icon: String(l.icon || "").trim().toLowerCase(), visited: /^(true|yes|1)$/i.test(String(l.visited || "").trim()), lat, lng }; }) });
   }
 }
+// Quests: one file per quest in quests/. Upcoming trips and other things set out to do, each with objectives to tick off.
+const quests = [];
+if (existsSync("quests")) {
+  for (const name of readdirSync("quests").sort()) {
+    if (!name.endsWith(".md")) continue;
+    const { meta, body } = parse(readFileSync("quests/" + name, "utf8"));
+    const file = name.replace(/\.md$/, "");
+    quests.push({ file, title: str(meta.title) || file, status: /^(done|complete|completed)$/i.test(str(meta.status).trim()) ? "completed" : "active",
+      start: isoDay(meta.start), end: isoDay(meta.end), when: str(meta.when).trim(), place: str(meta.place).trim(), body,
+      objectives: (Array.isArray(meta.objectives) ? meta.objectives : []).filter((o) => o && typeof o === "object" && String(o.text || "").trim())
+        .map((o) => ({ text: String(o.text).trim(), done: /^(true|yes|1)$/i.test(String(o.done || "").trim()) })) });
+  }
+}
 const about = existsSync("pages/about.md") ? parse(readFileSync("pages/about.md", "utf8")).body : "";
 // "source" records where this copy of the list was built, which helps when checking the site.
 const source = process.env.GITHUB_ACTIONS ? "github" : (process.env.WORKERS_CI || process.env.WORKERS_CI_BUILD_UUID) ? "cloudflare" : "other";
 const bestiaryIntro = existsSync("pages/bestiary.md") ? parse(readFileSync("pages/bestiary.md", "utf8")).body : "";
-writeFileSync("posts.json", JSON.stringify({ source, about, bestiary_intro: bestiaryIntro, posts, bestiary, albums, places }, null, 2) + "\n");
+writeFileSync("posts.json", JSON.stringify({ source, about, bestiary_intro: bestiaryIntro, posts, bestiary, albums, places, quests }, null, 2) + "\n");
 // A small stamp, written only at publish time, to confirm this script ran there.
 if (!process.env.GITHUB_ACTIONS) writeFileSync("build.json", JSON.stringify({ source, entries: posts.length, built: new Date().toISOString() }) + "\n");
 console.log("posts.json: " + posts.length + " entries");

@@ -290,6 +290,58 @@ content:
         type: rich-text
         options:
           format: markdown
+  - name: quests
+    label: Quests
+    type: collection
+    path: quests
+    format: yaml-frontmatter
+    filename: "{primary}.md"
+    fields:
+      - name: title
+        label: Quest name
+        type: string
+        required: true
+      - name: status
+        label: Status
+        type: select
+        options:
+          values:
+            - name: active
+              label: Active
+            - name: completed
+              label: Completed
+      - name: start
+        label: Starts
+        type: date
+        options:
+          format: yyyy-MM-dd
+      - name: end
+        label: Ends
+        type: date
+        options:
+          format: yyyy-MM-dd
+      - name: when
+        label: When, in words (optional - shown in place of the dates, e.g. Second weekend of November)
+        type: string
+      - name: place
+        label: Where (optional - a map pin's name, to link the two)
+        type: string
+      - name: objectives
+        label: Objectives (tick them off as you go)
+        type: object
+        list: true
+        fields:
+          - name: text
+            label: Objective
+            type: string
+          - name: done
+            label: Done
+            type: boolean
+      - name: body
+        label: The story of the quest
+        type: rich-text
+        options:
+          format: markdown
   - name: bestiary_intro
     label: Bestiary intro
     type: file

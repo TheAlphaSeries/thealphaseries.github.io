@@ -175,6 +175,22 @@ h3 { font-size: 12px; line-height: 1.7; color: var(--accent); margin-top: 8px; }
 .post code { font-family: var(--body); font-size: .85em; }
 .post hr { width: 100%; border: 0; border-top: 2px solid rgba(255, 255, 255, .3); margin: 6px 0; }
 .sub { color: var(--dim); margin: 14px 0 0 24px; }
+/* ----- the quest log ----- */
+.questhead { margin: 28px 0 14px; padding-top: 18px; border-top: 2px solid rgba(255, 255, 255, .3); }
+.quests { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; align-items: start; }
+.quest { border: 3px solid var(--border); border-radius: 9px; box-shadow: inset 0 0 0 2px var(--border-shade); padding: 14px 16px 16px; min-width: 0; overflow-wrap: anywhere; }
+.quest h3 { font-size: 12px; line-height: 1.7; }
+.quest .when { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0 14px; margin: 6px 0 0; color: var(--dim); font-variant-numeric: tabular-nums; }
+.quest .eta { color: #ffd257; }
+.quest .lore { font-size: 17px; }
+.goalhead { display: flex; justify-content: space-between; align-items: baseline; margin: 14px 0 0; padding-top: 10px; border-top: 2px solid rgba(255, 255, 255, .3); font-family: var(--display); font-size: 10px; line-height: 1.6; color: var(--accent); }
+.goals { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 5px; }
+.goals li { display: grid; grid-template-columns: 13px minmax(0, 1fr); gap: 10px; align-items: start; color: var(--dim); }
+.goals li.done { color: var(--fg); }
+.goals .tick { position: relative; margin-top: 7px; width: 9px; height: 9px; border: 2px solid currentColor; background: #000; }
+.goals li.done .tick { background: #7fd68a; border-color: #7fd68a; }
+.goals li.done .tick::after { content: ""; position: absolute; left: 2px; top: -1px; width: 3px; height: 6px; border: solid #000; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+.questdone { margin: 18px 0 0; } .pastquests { margin-left: 24px; }
 /* ----- photo albums ----- */
 .albums { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; }
 .album { display: block; width: 100%; padding: 0; text-align: left; }
@@ -364,6 +380,7 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
 let ABOUT = "";          /* the About text, loaded from posts.json */
 let BESTIARY_INTRO = "";   /* the short blurb at the top of the Bestiary, loaded from posts.json */
 let ALBUMS = [];         /* photo albums, newest first, loaded from posts.json */
+let QUESTS = [];         /* things set out to do, with objectives, loaded from posts.json */
 let PLACES = [];         /* map pins, loaded from posts.json */
 let BESTIARY = [];       /* the creatures, loaded from posts.json */
 let sorted = [];         /* the entries, newest first, loaded from posts.json */
@@ -434,7 +451,47 @@ function showFiles(focusFirst) {
   });
   main.append(list);
   if (!sorted.length) main.append(el("p", "sub", loadNote));
+  showQuests();
   if (focusFirst) { const f = list.querySelector(".opt"); if (f) f.focus(); }
+}
+/* ----- the quest log, under the entries on the home screen ----- */
+function questWhen(q) {   /* "Oct 19 - 28, 2026", or the words given in place of dates */
+  if (q.when) return q.when;
+  const a = /^(\d{4})-(\d{2})-(\d{2})/.exec(q.start), b = /^(\d{4})-(\d{2})-(\d{2})/.exec(q.end);
+  if (!a || !day(q.start)) return "";
+  if (!b || !day(q.end) || q.end === q.start) return day(q.start);
+  if (a[1] === b[1] && a[2] === b[2]) return MONTHS[+a[2] - 1] + " " + +a[3] + " - " + +b[3] + ", " + a[1];
+  return a[1] === b[1] ? MONTHS[+a[2] - 1] + " " + +a[3] + " - " + MONTHS[+b[2] - 1] + " " + +b[3] + ", " + a[1] : day(q.start) + " - " + day(q.end);
+}
+function questClock(q) {   /* how far off it is, by the visitor's own calendar */
+  const at = (d) => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(d); return m && day(d) ? new Date(+m[1], +m[2] - 1, +m[3]).getTime() : null; };
+  const start = at(q.start), end = at(q.end) == null ? start : at(q.end), now = new Date(); if (start == null) return "";
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime(), days = Math.round((start - today) / 86400000);
+  if (today > end) return "Awaiting report";
+  if (days <= 0) return "Under way";
+  return days === 1 ? "Tomorrow" : "In " + days + " days";
+}
+function showQuests() {
+  if (!QUESTS.length) return;
+  const active = QUESTS.filter((q) => q.status !== "completed"), done = QUESTS.filter((q) => q.status === "completed");
+  const head = el("p", "label questhead", "Quests"), wrap = el("div", "quests");
+  active.forEach((q) => {
+    const box = el("section", "quest"), when = el("p", "when"), goals = el("ul", "goals"), got = q.objectives.filter((o) => o.done).length;
+    when.append(el("span", null, questWhen(q)), el("span", "eta", questClock(q)));
+    box.append(el("h3", null, q.title), when);
+    if (q.body) { const story = el("div", "post lore"); renderBody(q.body, story); box.append(story); }
+    q.objectives.forEach((o) => { const li = el("li", o.done ? "done" : null); li.append(el("span", "tick"), el("span", null, o.text)); li.setAttribute("aria-label", o.text + (o.done ? ": done" : ": not yet")); goals.append(li); });
+    if (q.objectives.length) { const tally = el("p", "goalhead"); tally.append(el("span", null, "Objectives"), el("span", "lmcount", got + " / " + q.objectives.length)); box.append(tally, goals); }
+    const pin = pinFor(q.place);
+    if (pin) { const row = el("div", "row"); row.append(opt("Show on map", () => showMap(true, pin.file))); box.append(row); }
+    wrap.append(box);
+  });
+  main.append(head, wrap);
+  if (done.length) {
+    const past = el("ul", "goals pastquests");
+    done.forEach((q) => { const li = el("li", "done"); li.append(el("span", "tick"), el("span", null, q.title + (questWhen(q) ? "  /  " + questWhen(q) : ""))); past.append(li); });
+    main.append(el("p", "sub questdone", "Completed"), past);
+  }
 }
 function showPage(name, menuId, label, text) {
   openScreen(name, menuId);
@@ -1400,11 +1457,15 @@ function linkedPost() {   /* the entry named after # in the address, if there is
     const kindOrder = Object.keys(KINDS);   /* list order: by kind, then trips together in stop order, then by name */
     PLACES.sort((a, b) => kindOrder.indexOf(a.kind) - kindOrder.indexOf(b.kind) || a.trip.localeCompare(b.trip) ||
       (a.stop == null ? 1e9 : a.stop) - (b.stop == null ? 1e9 : b.stop) || a.name.localeCompare(b.name));
+    QUESTS = (Array.isArray(data.quests) ? data.quests : []).filter((q) => q && typeof q === "object" && text(q.title).trim()).map((q) => ({
+      title: text(q.title).trim(), status: text(q.status) === "completed" ? "completed" : "active", start: text(q.start), end: text(q.end), when: text(q.when), place: text(q.place), body: text(q.body),
+      objectives: (Array.isArray(q.objectives) ? q.objectives : []).filter((o) => o && typeof o === "object" && text(o.text).trim()).map((o) => ({ text: text(o.text).trim(), done: o.done === true })) }))
+      .sort((a, b) => (a.start || "9999").localeCompare(b.start || "9999") || a.title.localeCompare(b.title));
     sorted = (Array.isArray(data.posts) ? data.posts : []).filter((p) => p && typeof p === "object" && text(p.file)).map((p) => ({
       file: text(p.file), title: text(p.title) || text(p.file), date: text(p.date), place: text(p.place), body: text(p.body) }))
       .sort((a, b) => b.date.localeCompare(a.date) || b.file.localeCompare(a.file));
     loadNote = "No entries yet.";
-  } catch (e) { ABOUT = ""; BESTIARY_INTRO = ""; BESTIARY = []; ALBUMS = []; PLACES = []; sorted = []; loadNote = "Could not load the log. Refresh to try again."; }
+  } catch (e) { ABOUT = ""; BESTIARY_INTRO = ""; BESTIARY = []; ALBUMS = []; PLACES = []; QUESTS = []; sorted = []; loadNote = "Could not load the log. Refresh to try again."; }
   $("#count").textContent = sorted.length;
   $("#latest").textContent = sorted[0] ? day(sorted[0].date).split(",")[0] || "-" : "-";
   pendingPost = linkedPost();
