@@ -801,55 +801,418 @@
       "trip": "China and Hong Kong",
       "stop": 1,
       "note": "A city of teahouses, peppercorns and deliberate idleness, where the citizens have raised the afternoon nap to a civic art. The cuisine is designed to numb the mouth so that the visitor cannot complain of the heat, and the district's most celebrated residents are black and white, eat only bamboo, and decline all interviews.",
+      "landmarks": []
+    },
+    {
+      "file": "china",
+      "name": "China and Hong Kong",
+      "kind": "region",
+      "lat": 36,
+      "lng": 103.8,
+      "date": "2026-03-21",
+      "photo": "",
+      "trip": "",
+      "stop": null,
+      "note": "An empire so old that its ruins have ruins, and so large that a man may travel for three weeks by the fastest trains yet devised and see only a corner of it. Its cities are built by the hundred million and lit like festivals; its mountains were plainly designed by a painter; its cooks regard no part of any animal as beyond discussion.\n\nMarked here are the places reached in the spring of 2026, and beside them the great sights still owing: a wall, a buried army, a palace on the roof of the world. The list is not short. The empire is patient.",
       "landmarks": [
         {
           "name": "Giant Panda Base",
           "icon": "panda",
           "visited": true,
-          "lat": null,
-          "lng": null
+          "lat": 30.7332,
+          "lng": 104.1466
         },
         {
           "name": "People's Park Teahouse",
           "icon": "cup",
           "visited": true,
-          "lat": null,
-          "lng": null
+          "lat": 30.659,
+          "lng": 104.057
         },
         {
           "name": "Kuanzhai Alleys",
           "icon": "house",
           "visited": true,
-          "lat": null,
-          "lng": null
+          "lat": 30.6635,
+          "lng": 104.053
         },
         {
           "name": "Wuhou Shrine",
           "icon": "pagoda",
           "visited": true,
-          "lat": null,
-          "lng": null
+          "lat": 30.646,
+          "lng": 104.048
         },
         {
           "name": "Jinli Street",
           "icon": "lantern",
           "visited": true,
-          "lat": null,
-          "lng": null
+          "lat": 30.6445,
+          "lng": 104.05
         },
         {
           "name": "Anshun Bridge",
           "icon": "bridge",
           "visited": true,
-          "lat": null,
-          "lng": null
+          "lat": 30.644,
+          "lng": 104.085
         },
         {
           "name": "Leshan Giant Buddha",
           "icon": "buddha",
           "visited": false,
-          "lat": null,
-          "lng": null
+          "lat": 29.5447,
+          "lng": 103.7734
+        },
+        {
+          "name": "Yuanjiajie Pillars",
+          "icon": "pillars",
+          "visited": true,
+          "lat": 29.352,
+          "lng": 110.435
+        },
+        {
+          "name": "Bailong Elevator",
+          "icon": "cablecar",
+          "visited": true,
+          "lat": 29.347,
+          "lng": 110.448
+        },
+        {
+          "name": "Golden Whip Stream",
+          "icon": "tree",
+          "visited": true,
+          "lat": 29.33,
+          "lng": 110.44
+        },
+        {
+          "name": "Tianmen Cableway",
+          "icon": "cablecar",
+          "visited": true,
+          "lat": 29.117,
+          "lng": 110.479
+        },
+        {
+          "name": "Heaven's Gate",
+          "icon": "cave",
+          "visited": true,
+          "lat": 29.052,
+          "lng": 110.483
+        },
+        {
+          "name": "Glass Skywalk",
+          "icon": "bridge",
+          "visited": true,
+          "lat": 29.046,
+          "lng": 110.476
+        },
+        {
+          "name": "Grand Canyon Glass Bridge",
+          "icon": "bridge",
+          "visited": false,
+          "lat": 29.399,
+          "lng": 110.698
+        },
+        {
+          "name": "Hongya Cave",
+          "icon": "house",
+          "visited": true,
+          "lat": 29.5647,
+          "lng": 106.5797
+        },
+        {
+          "name": "Liziba Station",
+          "icon": "tram",
+          "visited": true,
+          "lat": 29.553,
+          "lng": 106.533
+        },
+        {
+          "name": "Yangtze Cableway",
+          "icon": "cablecar",
+          "visited": true,
+          "lat": 29.556,
+          "lng": 106.585
+        },
+        {
+          "name": "Shancheng Alley",
+          "icon": "lantern",
+          "visited": true,
+          "lat": 29.552,
+          "lng": 106.565
+        },
+        {
+          "name": "Jiefangbei",
+          "icon": "skyline",
+          "visited": true,
+          "lat": 29.559,
+          "lng": 106.577
+        },
+        {
+          "name": "Ciqikou Old Town",
+          "icon": "pagoda",
+          "visited": false,
+          "lat": 29.581,
+          "lng": 106.45
+        },
+        {
+          "name": "The Bund",
+          "icon": "skyline",
+          "visited": true,
+          "lat": 31.24,
+          "lng": 121.49
+        },
+        {
+          "name": "Tianzifang",
+          "icon": "house",
+          "visited": true,
+          "lat": 31.209,
+          "lng": 121.468
+        },
+        {
+          "name": "French Concession",
+          "icon": "tree",
+          "visited": true,
+          "lat": 31.213,
+          "lng": 121.447
+        },
+        {
+          "name": "M50 Art District",
+          "icon": "museum",
+          "visited": true,
+          "lat": 31.249,
+          "lng": 121.449
+        },
+        {
+          "name": "Oriental Pearl Tower",
+          "icon": "tower",
+          "visited": false,
+          "lat": 31.2397,
+          "lng": 121.4998
+        },
+        {
+          "name": "Yu Garden",
+          "icon": "pagoda",
+          "visited": false,
+          "lat": 31.227,
+          "lng": 121.492
+        },
+        {
+          "name": "Hualin Jade Market",
+          "icon": "gem",
+          "visited": true,
+          "lat": 23.118,
+          "lng": 113.244
+        },
+        {
+          "name": "Xuelei Fragrance Museum",
+          "icon": "museum",
+          "visited": true,
+          "lat": 23.1,
+          "lng": 113.32
+        },
+        {
+          "name": "Dongshankou",
+          "icon": "house",
+          "visited": true,
+          "lat": 23.125,
+          "lng": 113.295
+        },
+        {
+          "name": "Canton Tower",
+          "icon": "tower",
+          "visited": false,
+          "lat": 23.1065,
+          "lng": 113.3245
+        },
+        {
+          "name": "Chen Clan Ancestral Hall",
+          "icon": "pagoda",
+          "visited": false,
+          "lat": 23.129,
+          "lng": 113.244
+        },
+        {
+          "name": "Shamian Island",
+          "icon": "tree",
+          "visited": false,
+          "lat": 23.107,
+          "lng": 113.244
+        },
+        {
+          "name": "Victoria Peak",
+          "icon": "peak",
+          "visited": true,
+          "lat": 22.2759,
+          "lng": 114.1455
+        },
+        {
+          "name": "Star Ferry",
+          "icon": "boat",
+          "visited": true,
+          "lat": 22.2937,
+          "lng": 114.1687
+        },
+        {
+          "name": "Nan Lian Garden",
+          "icon": "pagoda",
+          "visited": true,
+          "lat": 22.339,
+          "lng": 114.205
+        },
+        {
+          "name": "Temple Street Night Market",
+          "icon": "lantern",
+          "visited": true,
+          "lat": 22.306,
+          "lng": 114.17
+        },
+        {
+          "name": "Man Wah Lane",
+          "icon": "house",
+          "visited": true,
+          "lat": 22.286,
+          "lng": 114.153
+        },
+        {
+          "name": "PMQ",
+          "icon": "museum",
+          "visited": true,
+          "lat": 22.283,
+          "lng": 114.152
+        },
+        {
+          "name": "Tian Tan Buddha",
+          "icon": "buddha",
+          "visited": false,
+          "lat": 22.254,
+          "lng": 113.905
+        },
+        {
+          "name": "Great Wall at Badaling",
+          "icon": "bridge",
+          "visited": false,
+          "lat": 40.354,
+          "lng": 116.02
+        },
+        {
+          "name": "Forbidden City",
+          "icon": "pagoda",
+          "visited": false,
+          "lat": 39.9163,
+          "lng": 116.3972
+        },
+        {
+          "name": "Terracotta Army",
+          "icon": "buddha",
+          "visited": false,
+          "lat": 34.3848,
+          "lng": 109.2785
+        },
+        {
+          "name": "Potala Palace",
+          "icon": "dome",
+          "visited": false,
+          "lat": 29.6578,
+          "lng": 91.1169
+        },
+        {
+          "name": "Li River at Yangshuo",
+          "icon": "pillars",
+          "visited": false,
+          "lat": 24.7785,
+          "lng": 110.4966
+        },
+        {
+          "name": "Yellow Mountain",
+          "icon": "peak",
+          "visited": false,
+          "lat": 30.134,
+          "lng": 118.167
+        },
+        {
+          "name": "West Lake",
+          "icon": "lake",
+          "visited": false,
+          "lat": 30.2431,
+          "lng": 120.15
+        },
+        {
+          "name": "Suzhou Gardens",
+          "icon": "tree",
+          "visited": false,
+          "lat": 31.323,
+          "lng": 120.628
+        },
+        {
+          "name": "Jiuzhaigou",
+          "icon": "lake",
+          "visited": false,
+          "lat": 33.26,
+          "lng": 103.918
+        },
+        {
+          "name": "Longmen Grottoes",
+          "icon": "cave",
+          "visited": false,
+          "lat": 34.555,
+          "lng": 112.47
+        },
+        {
+          "name": "Shaolin Temple",
+          "icon": "pagoda",
+          "visited": false,
+          "lat": 34.507,
+          "lng": 112.935
+        },
+        {
+          "name": "Three Gorges Dam",
+          "icon": "bridge",
+          "visited": false,
+          "lat": 30.823,
+          "lng": 111.003
+        },
+        {
+          "name": "Lijiang Old Town",
+          "icon": "house",
+          "visited": false,
+          "lat": 26.8721,
+          "lng": 100.233
+        },
+        {
+          "name": "Rainbow Mountains of Zhangye",
+          "icon": "peak",
+          "visited": false,
+          "lat": 38.915,
+          "lng": 100.133
+        },
+        {
+          "name": "Mogao Caves",
+          "icon": "cave",
+          "visited": false,
+          "lat": 40.037,
+          "lng": 94.804
+        },
+        {
+          "name": "Harbin Ice City",
+          "icon": "cathedral",
+          "visited": false,
+          "lat": 45.777,
+          "lng": 126.617
+        },
+        {
+          "name": "Everest North Base Camp",
+          "icon": "peak",
+          "visited": false,
+          "lat": 28.14,
+          "lng": 86.851
+        },
+        {
+          "name": "Ruins of St. Paul's, Macau",
+          "icon": "cathedral",
+          "visited": false,
+          "lat": 22.1975,
+          "lng": 113.5409
         }
       ]
     },
@@ -864,50 +1227,7 @@
       "trip": "China and Hong Kong",
       "stop": 3,
       "note": "A city built on the theory that the ground is optional. Its towers climb out of the fog at every angle, its trains pass through the apartments of the citizens without apology, and what the map calls the first floor may be the twentieth upon inquiry.",
-      "landmarks": [
-        {
-          "name": "Hongya Cave",
-          "icon": "house",
-          "visited": true,
-          "lat": null,
-          "lng": null
-        },
-        {
-          "name": "Liziba Station",
-          "icon": "tram",
-          "visited": true,
-          "lat": null,
-          "lng": null
-        },
-        {
-          "name": "Yangtze Cableway",
-          "icon": "cablecar",
-          "visited": true,
-          "lat": null,
-          "lng": null
-        },
-        {
-          "name": "Shancheng Alley",
-          "icon": "lantern",
-          "visited": true,
-          "lat": null,
-          "lng": null
-        },
-        {
-          "name": "Jiefangbei",
-          "icon": "skyline",
-          "visited": true,
-          "lat": null,
-          "lng": null
-        },
-        {
-          "name": "Ciqikou Old Town",
-          "icon": "pagoda",
-          "visited": false,
-          "lat": null,
-          "lng": null
-        }
-      ]
+      "landmarks": []
     },
     {
       "file": "guangzhou",
@@ -920,50 +1240,7 @@
       "trip": "China and Hong Kong",
       "stop": 5,
       "note": "An old trading port where anything may be had for a price and the price is never the first one mentioned. Jade is weighed here by the hundredweight, breakfast is served in forty small baskets, and perfume is studied with the gravity other cities reserve for law.",
-      "landmarks": [
-        {
-          "name": "Hualin Jade Market",
-          "icon": "gem",
-          "visited": true,
-          "lat": null,
-          "lng": null
-        },
-        {
-          "name": "Xuelei Fragrance Museum",
-          "icon": "museum",
-          "visited": true,
-          "lat": null,
-          "lng": null
-        },
-        {
-          "name": "Dongshankou",
-          "icon": "house",
-          "visited": true,
-          "lat": null,
-          "lng": null
-        },
-        {
-          "name": "Canton Tower",
-          "icon": "tower",
-          "visited": false,
-          "lat": null,
-          "lng": null
-        },
-        {
-          "name": "Chen Clan Ancestral Hall",
-          "icon": "pagoda",
-          "visited": false,
-          "lat": null,
-          "lng": null
-        },
-        {
-          "name": "Shamian Island",
-          "icon": "tree",
-          "visited": false,
-          "lat": null,
-          "lng": null
-        }
-      ]
+      "landmarks": []
     },
     {
       "file": "hattiesburg",
@@ -1018,57 +1295,7 @@
       "trip": "China and Hong Kong",
       "stop": 6,
       "note": "A city stacked upon a rock, where the towers crowd to the water's edge like spectators at an execution. A green ferry has crossed the harbor every few minutes for longer than anyone can recall, and at night the whole place is lit as if to signal something very far away.",
-      "landmarks": [
-        {
-          "name": "Victoria Peak",
-          "icon": "peak",
-          "visited": true,
-          "lat": null,
-          "lng": null
-        },
-        {
-          "name": "Star Ferry",
-          "icon": "boat",
-          "visited": true,
-          "lat": null,
-          "lng": null
-        },
-        {
-          "name": "Nan Lian Garden",
-          "icon": "pagoda",
-          "visited": true,
-          "lat": null,
-          "lng": null
-        },
-        {
-          "name": "Temple Street Night Market",
-          "icon": "lantern",
-          "visited": true,
-          "lat": null,
-          "lng": null
-        },
-        {
-          "name": "Man Wah Lane",
-          "icon": "house",
-          "visited": true,
-          "lat": null,
-          "lng": null
-        },
-        {
-          "name": "PMQ",
-          "icon": "museum",
-          "visited": true,
-          "lat": null,
-          "lng": null
-        },
-        {
-          "name": "Tian Tan Buddha",
-          "icon": "buddha",
-          "visited": false,
-          "lat": null,
-          "lng": null
-        }
-      ]
+      "landmarks": []
     },
     {
       "file": "lake-chabot",
@@ -1606,50 +1833,7 @@
       "trip": "China and Hong Kong",
       "stop": 4,
       "note": "On one bank of the river stand the counting-houses of a vanished empire; on the other, towers raised by its successors to look down upon them. The traveler is invited to stand between and draw his own conclusions, preferably after shopping.",
-      "landmarks": [
-        {
-          "name": "The Bund",
-          "icon": "skyline",
-          "visited": true,
-          "lat": null,
-          "lng": null
-        },
-        {
-          "name": "Tianzifang",
-          "icon": "house",
-          "visited": true,
-          "lat": null,
-          "lng": null
-        },
-        {
-          "name": "French Concession",
-          "icon": "tree",
-          "visited": true,
-          "lat": null,
-          "lng": null
-        },
-        {
-          "name": "M50 Art District",
-          "icon": "museum",
-          "visited": true,
-          "lat": null,
-          "lng": null
-        },
-        {
-          "name": "Oriental Pearl Tower",
-          "icon": "tower",
-          "visited": false,
-          "lat": null,
-          "lng": null
-        },
-        {
-          "name": "Yu Garden",
-          "icon": "pagoda",
-          "visited": false,
-          "lat": null,
-          "lng": null
-        }
-      ]
+      "landmarks": []
     },
     {
       "file": "washington-dc",
@@ -1753,57 +1937,7 @@
       "trip": "China and Hong Kong",
       "stop": 2,
       "note": "Three thousand pillars of stone stand here in a sea of mist, as though some sorcerer had begun a forest and lost interest before the leaves. The inhabitants have since attached elevators to the cliffs and paved the abysses with glass, on the theory that vertigo may be charged for.",
-      "landmarks": [
-        {
-          "name": "Yuanjiajie Pillars",
-          "icon": "pillars",
-          "visited": true,
-          "lat": null,
-          "lng": null
-        },
-        {
-          "name": "Bailong Elevator",
-          "icon": "cablecar",
-          "visited": true,
-          "lat": null,
-          "lng": null
-        },
-        {
-          "name": "Golden Whip Stream",
-          "icon": "tree",
-          "visited": true,
-          "lat": null,
-          "lng": null
-        },
-        {
-          "name": "Tianmen Cableway",
-          "icon": "cablecar",
-          "visited": true,
-          "lat": null,
-          "lng": null
-        },
-        {
-          "name": "Heaven's Gate",
-          "icon": "cave",
-          "visited": true,
-          "lat": null,
-          "lng": null
-        },
-        {
-          "name": "Glass Skywalk",
-          "icon": "bridge",
-          "visited": true,
-          "lat": null,
-          "lng": null
-        },
-        {
-          "name": "Grand Canyon Glass Bridge",
-          "icon": "bridge",
-          "visited": false,
-          "lat": null,
-          "lng": null
-        }
-      ]
+      "landmarks": []
     }
   ]
 }
