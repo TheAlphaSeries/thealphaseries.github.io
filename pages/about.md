@@ -1,9 +1,5 @@
 ---
 ---
----
-
-> ## About
->
 > *Half Life is the unfortunate condition of all things.*
 >
 > Nothing maintains its proper shape for very long. Cities rearrange themselves. Familiar places disappear. Friends scatter toward distant shores. Great enthusiasms become mild curiosities, and occasionally the reverse. Even you, despite whatever assurances you may have made on the subject, are becoming someone else.
@@ -21,6 +17,3 @@
 > Everything is already changing.
 >
 > One may as well go see what it becomes.
-
----
-

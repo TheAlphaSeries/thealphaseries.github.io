@@ -162,7 +162,7 @@ h3 { font-size: 12px; line-height: 1.7; color: var(--accent); margin-top: 8px; }
 .post code { font-family: var(--body); font-size: .85em; }
 .post hr { width: 100%; border: 0; border-top: 2px solid rgba(255, 255, 255, .3); margin: 6px 0; }
 .sub { color: var(--dim); margin: 14px 0 0 24px; }
-.post blockquote { border-left: 3px solid var(--accent); padding-left: 18px; color: var(--fg); font-style: italic; font-size: 23px; line-height: 1.5; }
+.post blockquote { display: flex; flex-direction: column; gap: 14px; border-left: 3px solid var(--accent); padding-left: 18px; color: var(--fg); font-style: italic; font-size: 23px; line-height: 1.5; }
 .shots { display: grid; gap: 10px; }
 .shots.multi { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 figure { margin: 0; min-width: 0; }
@@ -508,7 +508,7 @@ function inline(text, into) {   /* bold, italic, links and code inside a line */
   }
   if (last < text.length) into.append(text.slice(last));
 }
-function renderBody(text, into) {
+function renderBody(text, into, depth) {
   String(text || "").replace(/\r/g, "").split(/\n\s*\n/).forEach((block) => {
     let lines = block.split("\n").map((l) => l.replace(/\s+$/, (m) => (m.length > 1 ? "  " : ""))).filter((l) => l.trim());   /* two trailing spaces are kept: they mean a line break */
     if (!lines.length) return;
@@ -534,7 +534,10 @@ function renderBody(text, into) {
       into.append(list); return;
     }
     if (flat.every((l) => l.startsWith(">"))) {
-      const q = el("blockquote"); inline(flat.map((l) => l.replace(/^>\s?/, "")).join(" "), q); into.append(q); return;
+      /* a quote can hold paragraphs, headings and lists of its own, so its inside is read the same way as an entry */
+      const q = el("blockquote"), inner = flat.map((l) => l.replace(/^>\s?/, ""));
+      if ((depth || 0) < 4) renderBody(inner.join("\n"), q, (depth || 0) + 1); else inline(inner.join(" "), q);
+      into.append(q); return;
     }
     const para = el("p");
     lines.forEach((l, i) => {   /* a line ending in two spaces or a backslash is a deliberate line break */
