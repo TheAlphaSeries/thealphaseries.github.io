@@ -335,6 +335,129 @@ content:
         type: rich-text
         options:
           format: markdown
+  - name: plants
+    label: Herbarium (plants)
+    type: collection
+    path: plants
+    format: yaml-frontmatter
+    filename: "{primary}.md"
+    fields:
+      - name: name
+        label: Plant
+        type: string
+        required: true
+      - name: botanical
+        label: Botanical name (optional)
+        type: string
+      - name: kind
+        label: Collection
+        type: select
+        options:
+          values:
+            - name: house
+              label: House plant
+            - name: bonsai
+              label: Bonsai
+      - name: sprite
+        label: Picture
+        type: select
+        options:
+          values:
+            - name: anthurium
+              label: Anthurium (long hanging leaves)
+            - name: gloriosum
+              label: Heart-shaped velvet leaves
+            - name: monstera
+              label: Monstera (split, speckled leaves)
+            - name: orchid
+              label: Orchid
+            - name: bonsai
+              label: Bonsai tree
+            - name: plant
+              label: Other plant
+      - name: status
+        label: Living or perished?
+        type: select
+        options:
+          values:
+            - name: living
+              label: Living
+            - name: perished
+              label: Perished
+      - name: count
+        label: How many of this plant (1 unless you keep several)
+        type: string
+      - name: rarity
+        label: Rarity
+        type: select
+        options:
+          values:
+            - name: common
+              label: Common
+            - name: uncommon
+              label: Uncommon
+            - name: rare
+              label: Rare
+            - name: epic
+              label: Epic
+            - name: legendary
+              label: Legendary
+      - name: temper
+        label: Temper (how demanding it is)
+        type: select
+        options:
+          values:
+            - name: "1"
+              label: 1 - Asks for nothing
+            - name: "2"
+              label: 2 - Forgiving
+            - name: "3"
+              label: 3 - Has opinions
+            - name: "4"
+              label: 4 - Difficult
+            - name: "5"
+              label: 5 - Impossible to please
+      - name: light
+        label: Light
+        type: string
+      - name: water
+        label: Water
+        type: string
+      - name: acquired
+        label: Acquired (optional)
+        type: date
+        options:
+          format: yyyy-MM-dd
+      - name: photo
+        label: Photo (optional)
+        type: image
+      - name: body
+        label: Lore
+        type: rich-text
+        options:
+          format: markdown
+  - name: bonsai_intro
+    label: Herbarium - Bonsai notice
+    type: file
+    path: pages/bonsai.md
+    format: yaml-frontmatter
+    fields:
+      - name: body
+        label: Shown at the top of the Bonsai collection
+        type: rich-text
+        options:
+          format: markdown
+  - name: houseplants_intro
+    label: Herbarium - House plants blurb
+    type: file
+    path: pages/houseplants.md
+    format: yaml-frontmatter
+    fields:
+      - name: body
+        label: Shown at the top of the House plants collection
+        type: rich-text
+        options:
+          format: markdown
   - name: bestiary_intro
     label: Bestiary intro
     type: file

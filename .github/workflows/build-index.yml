@@ -3,7 +3,7 @@ name: Build entry index
 on:
   push:
     branches: [main]
-    paths: ["posts/**", "pages/**", "bestiary/**", "albums/**", "places/**", "quests/**", "photos/**", "scripts/**"]
+    paths: ["posts/**", "pages/**", "bestiary/**", "albums/**", "places/**", "quests/**", "plants/**", "photos/**", "scripts/**"]
 permissions:
   contents: write
 jobs:

@@ -133,6 +133,9 @@ h3 { font-size: 12px; line-height: 1.7; color: var(--accent); margin-top: 8px; }
 .beastlist { max-height: 470px; overflow-y: auto; overflow-x: hidden; padding-right: 6px; scrollbar-width: thin; scrollbar-color: var(--border) transparent; overscroll-behavior: contain; }
 .beastcard { border: 3px solid var(--border); border-radius: 9px; box-shadow: inset 0 0 0 2px var(--border-shade); padding: 14px 16px 16px; min-width: 0; }
 .beastcard.pop { animation: pop .5s var(--spring); }
+.plantpic { display: block; width: 100%; max-width: 220px; height: auto; margin: 0 auto 10px; image-rendering: pixelated; }
+.botanical { margin: 2px 0 0; color: var(--dim); font-family: var(--read); font-style: italic; font-size: 18px; }
+.facts .living { color: #7fd68a; } .facts .perished { color: #c98a6a; }
 .fishpic { display: block; width: 100%; max-width: 320px; height: auto; margin: 0 auto 10px; image-rendering: pixelated; }
 .facts { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 14px; margin: 10px 0 0; }
 .facts dt { color: var(--dim); } .facts dd { margin: 0; }
@@ -415,6 +418,7 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
       2. Helpers            small tools used everywhere
       3. Home screen        the log, the quest log, and simple pages (About, Help)
       4. Bestiary           the fish pictures and the fish screen
+   4b. Herbarium         the plant pictures, the plant screen, and its strip on the home screen
       5. Entry text         turning what the editor saves into paragraphs, photos, links
       6. Pop-out window     an opened entry or quest
       7. Photo viewer       one enlarged photo, or a set to step through
@@ -435,6 +439,8 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
 let ABOUT = "";          /* the About text, loaded from posts.json */
 let BESTIARY_INTRO = "";   /* the short blurb at the top of the Bestiary, loaded from posts.json */
 let ALBUMS = [];         /* photo albums, newest first, loaded from posts.json */
+let PLANTS = [];         /* the herbarium: bonsai and house plants, loaded from posts.json */
+let PLANT_INTRO = { bonsai: "", house: "" };   /* the notice at the top of each collection */
 let QUESTS = [];         /* things set out to do, with objectives, loaded from posts.json */
 let PLACES = [];         /* map pins, loaded from posts.json */
 let BESTIARY = [];       /* the creatures, loaded from posts.json */
@@ -474,7 +480,7 @@ const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
 const day = (d) => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(d || ""); return m && MONTHS[+m[2] - 1] && +m[3] >= 1 && +m[3] <= 31 ? MONTHS[+m[2] - 1] + " " + +m[3] + ", " + m[1] : ""; };
 
 const stage = $("#stage"), main = $("#main"), menu = $("#menu"), reader = $("#reader"), rwin = $("#readerwin"), zoomBox = $("#zoom"), introBox = $("#intro");
-let view = "files";      /* which screen the main window shows: files, bestiary, photos, album, map, about or help */
+let view = "files";      /* which screen the main window shows: files, bestiary, plants, photos, album, map, about or help */
 let current = null;      /* the entry open in the pop-out window, if any */
 
 /* put an entry's name after # in the address (so the link can be shared), or clear it */
@@ -518,6 +524,7 @@ function showFiles(focusFirst) {
   main.append(list);
   if (!sorted.length) main.append(el("p", "sub", loadNote));
   showQuests();
+  showGarden();
   if (focusFirst) { const f = list.querySelector(".opt"); if (f) f.focus(); }
 }
 /* ----- the quest log: a small strip under the entries. Each quest shows its name, a vague "when" and
@@ -697,6 +704,99 @@ function showBestiary(focusFirst, pick) {
   const at = BESTIARY[pick] ? pick : 0, start = list.querySelectorAll(".opt")[at];
   show(BESTIARY[at], start);
   if (focusFirst) start.focus();
+}
+
+/* ==========================================================================
+   4b. HERBARIUM
+   The plants, kept like the Bestiary: a list on the left, the chosen plant's
+   card on the right. Two collections, Bonsai and House plants, each with a
+   notice at the top and a count of the living and the perished.
+   PLANT holds the pictures, drawn the same way as the fish (a palette and
+   rows of letters). A perished plant is drawn withered; a perished bonsai
+   is drawn as a bare trunk.
+   ========================================================================== */
+const PLANT_SIZE = [44, 52];
+const PLANT = { "anthurium": { "pal": { "0": "#14181a", "1": "#1f5236", "2": "#143825", "3": "#14161a", "4": "#cfe3c0", "5": "#14201a", "6": "#3d6b3a", "7": "#3e4439", "8": "#2c2018", "9": "#3e251a", "a": "#cf7d4b", "b": "#361e1a", "c": "#b5653a", "d": "#7d4226", "e": "#25161a" }, "rows": [ "............................................", "............................................", ".....................00.....................", "....................0110....................", "...................011123...................", "..................01111223..................", "............00....01111223..................", "...........0110..0111112223...00............", "..........011123.0111112223..0110...........", "..........011122011111122223.01410..........", ".........01111220111111222230114123.........", "........0111112221111112422011141223........", "........0111412221111112222011141223........", ".......011144422211111122220111412223.......", ".......011414122211111122220111412223.......", ".......011114122201114422220111414223.......", ".......011114122201141142230111412223.......", ".......011114122201111124230111412223.......", ".......011114142201111122230114412223.......", ".......011114122201111122235641112223.......", ".......011114122301114422235611112223.......", ".......011114122301141142235611112223.......", ".......0111444223.7411124256611142223.......", ".......011414142650111122356741142423.......", "........01114122650111122356501142223.......", "........0111412566011442256650114223........", "........01144123560111142565.0144423........", "........01414123567411124665.7414247........", "........0111412356601112565...014223........", ".........011410..5601112565...014223........", ".........011410..5661112665...014223........", ".........011410...56111265.....7423.........", ".........01147....56111265.....0123.........", "..........0147.....561165.......323.........", "..........0110.....561165.....3..3..........", "...........038333333561033333383............", "...........9a888888888888888888a9...........", "...........9aaaaaaaaaaaaaaaaaaaa9...........", "...........9aaaaaaaaaaaaaaaaaaaa9...........", "............bccccccccdcccdddddde............", "............bccccccccccccdddddde............", ".............bccccccccccddddddde............", ".............bcccccccccdcddddde.............", ".............bccccccccdccddddde.............", ".............bcccccccdcccddddde.............", "..............bccccccccccdddde..............", "..............bcccccccccddddde..............", "..............bccccccccdcdddde..............", "...............bccccccdccdddde..............", "...............bcccccdcccddde...............", "................bbbbbebbbeee................", "............................................" ] }, "gloriosum": { "pal": { "0": "#14161a", "1": "#102a1a", "2": "#1f5330", "3": "#2c6b3f", "4": "#14201a", "5": "#e8f1dc", "6": "#14181a", "7": "#454842", "8": "#16241a", "9": "#4a7a44", "a": "#2c2018", "b": "#3e251a", "c": "#cf7d4b", "d": "#361e1a", "e": "#b5653a", "f": "#7d4226", "g": "#25161a" }, "rows": [ "............................................", "............................................", "............00...............0000...........", "...........011000..........0011110..........", "..........01211110........01133334..........", ".........0122225110......0113533310...00....", "...000...62222522110....01133353334.00110...", "..011100.62225222210....013333353340122110..", ".01133310122252222210..01333333353132222110.", ".01333333332522222210..01333533335332222210.", "011333333355222225210..01333353333555555557.", "0135555555532222522210.013333353335222222110", "0133333333352255222210.01333333535222222210.", "013333333335252222210..01333333355552222210.", "013333333555522222210..01333533352225555210.", "011335555333522225210...4333353352222222110.", ".01333333333352552210...013333552222222210..", ".01133333333355222210...01333335555522210...", "..011333355555522226....0133333522222110....", "...01133333333522210....013333522222110.....", "....00133333333511110..011113352221100......", "......011333333113333462222115221100........", ".......001133331355333322255151100..........", ".........00113113335533255221100............", "...........00113333335552222210.............", ".............013355533522555210.............", ".............011333355555222210.............", "..............0133333352222210..............", "..............0113355352552110..............", "...............01333355522210...............", "................013333522210................", ".................0133352210.................", "..................01335210..................", "...................013510...................", ".............0.....891198.....0.............", "............0a0000008998000000a0............", "...........bcaaaaaaaaaaaaaaaaaacb...........", "...........bccccccccccccccccccccb...........", "...........bccccccccccccccccccccb...........", "............deeeeeeeefeeeffffffg............", "............deeeeeeeeeeeeffffffg............", ".............deeeeeeeeeefffffffg............", ".............deeeeeeeeefefffffg.............", ".............deeeeeeeefeefffffg.............", ".............deeeeeeefeeefffffg.............", "..............deeeeeeeeeeffffg..............", "..............deeeeeeeeefffffg..............", "..............deeeeeeeefeffffg..............", "...............deeeeeefeeffffg..............", "...............deeeeefeeefffg...............", "................dddddgdddggg................", "............................................" ] }, "monstera": { "pal": { "0": "#14241a", "1": "#141a1a", "2": "#2f7a45", "3": "#1f5730", "4": "#f0ead0", "5": "#48463e", "6": "#16241a", "7": "#4a7a44", "8": "#14161a", "9": "#2c2018", "a": "#3e251a", "b": "#cf7d4b", "c": "#361e1a", "d": "#b5653a", "e": "#7d4226", "f": "#25161a" }, "rows": [ "............................................", "............................................", "............................................", "...............001..........................", "..............022311........................", ".......0.....02224331.......................", ".....00200...542233331......................", "....0224220.02422334331.....................", "...542222420022223444331....................", "...02422422222222343311.....................", "..0222244222222224311331....................", "..0242222222222220133331...0050.............", "..022244444422222133334310022420............", "...00055554442221334333102222220...111......", "...000555544422213333310224422220.13331.....", "..02224444554222233451102242242451334331....", "...02444445542222311133450224224233333331...", "...02224444424222313330245554442243433331...", "....0242222222222133340222455442233333431...", ".....0500002222420131502224454422333333331..", "......0222200222213331.542445542245115111...", ".......02222022223311.0200244422254334331...", "........0242224224331..020002442413333445...", ".........05542222331...54222222223433331....", "..........5422242331...0222022222011111.....", "...........502422331....022022221333331.....", ".............022245......0242220133331......", "..............0676......0224222224311.......", "...............676.......0222242051.........", "...............6776......022222220..........", "................676.......0222200...........", "................6776.......0200.............", ".................676.......676..............", ".................6776.....6776..............", ".............8....6776...6676.8.............", "............89888886776867768898............", "...........ab999999999999999999ba...........", "...........abbbbbbbbbbbbbbbbbbbba...........", "...........abbbbbbbbbbbbbbbbbbbba...........", "............cddddddddedddeeeeeef............", "............cddddddddddddeeeeeef............", ".............cddddddddddeeeeeeef............", ".............cdddddddddedeeeeef.............", ".............cddddddddeddeeeeef.............", ".............cdddddddedddeeeeef.............", "..............cddddddddddeeeef..............", "..............cdddddddddeeeeef..............", "..............cddddddddedeeeef..............", "...............cddddddeddeeeef..............", "...............cdddddedddeeef...............", "................cccccfcccfff................", "............................................" ] }, "orchid": { "pal": { "0": "#2a161a", "1": "#8c2a3c", "2": "#c8566a", "3": "#3c191f", "4": "#6b8f3e", "5": "#fff3f6", "6": "#f2d7e0", "7": "#484043", "8": "#202a1a", "9": "#14251a", "a": "#141b1a", "b": "#3f7d3a", "c": "#2b5a2a", "d": "#4c4849", "e": "#2a341b", "f": "#8fae5a", "g": "#6f8f44", "h": "#212a1a", "i": "#14161a", "j": "#2c2018", "k": "#3e251a", "l": "#cf7d4b", "m": "#361e1a", "n": "#b5653a", "o": "#7d4226", "p": "#25161a" }, "rows": [ "...............................0............", "..............................010...........", "........................00..001230..........", ".......................011001111110.0.......", "......................001244421510.010......", ".....................01211120166678010......", ".....................841151001111441210.....", ".....................8416667.00003211110....", "....................84010323......01510.....", "....................8410..3.......76667.....", "...................0032300.......0107323....", "..................011111110.......0...3.....", ".............9a....3215110..................", "............9bca....76667...................", "............acb9...0110110...9a.............", "............9bb9....00848...9bca............", "............9bcb9.....010...acb9............", ".............9bb9.....010..acbb9............", "......99.....9bca....01123.9bbca............", ".....9bb9....acb9...32111109bca.............", ".....9bca....9bbca...0115d.acb9.............", ".....acbb9...9bcb9...01667acbb9.............", "......9bca....9bb9..0184329bbca....99.......", "......acb9....9bca...084839bca....9bb9......", "......9bb9....acbb9...848.acb9....9bca......", "......9bcb9....9bca...848acbb9...9bcb9......", ".......9bb9....acb9...8489bb9....acb9.......", ".......9bcb9...9bbca..8489bca....9bb9.......", "........9bb9....acb9.e849bca....9bb9........", "........9bcb9...9bbceff4acb9....9bca........", ".........9bbcaa..acfff44gb9....9bca.........", "..........acbbcaa9bfffffgb9..99bcb9.........", "...........aacbbceffffffggha9bbcb9..........", ".............9bcbbffffffggacbbcb9...........", "..............99bcffffffggcbbca9............", "................99bfffffgcb99a..............", "...............i..efffffgh9.i...............", "..............ijiiiieffeiiiiji..............", ".............kljjjjjjjjjjjjjjlk.............", ".............kllllllllllllllllk.............", ".............kllllllllllllllllk.............", "..............mnnnnnnnnnooooop..............", "..............mnnnnnnnnonoooop..............", "...............mnnnnnnonnooop...............", "...............mnnnnnonnnooop...............", "...............mnnnnnnnnnooop...............", "................mnnnnnnnooop................", "................mnnnnnnonoop................", "................mnnnnnonnoop................", ".................mnnnonnnop.................", "..................mmmpmmmp..................", "............................................" ] }, "bonsai": { "pal": { "0": "#14251a", "1": "#192d1a", "2": "#3f7d3a", "3": "#55994a", "4": "#141b1a", "5": "#2c5a2a", "6": "#19161a", "7": "#553d27", "8": "#7a5a3c", "9": "#241b1a", "a": "#17201a", "b": "#181e24", "c": "#4d6b34", "d": "#52647a", "e": "#14161b", "f": "#3c4a5c", "g": "#2b3644", "h": "#14161a" }, "rows": [ "............................................", "............................................", "................01111000....................", "..............002333322200..................", ".............02333333333220.................", "............0233333333333220................", "............02333333333332220...............", "............02333333333322220...............", "............4525233535252520................", ".......11111045252525222333200..............", ".....11333332000222222333333320.............", "....1333333333206788883333333220............", "....1333333333228889985353525220000.........", "....023333332222099.672522252502222000......", "....452222222220.....987822223333333220.....", ".....4022252220.......988783333333333220....", ".......0004000.........988833333333332220...", ".......................678823333333322220...", "........0000...........98875222525252520....", ".....0102222000........9888452525222520.....", "....023333333220....999887888802222040......", "...13333333333220..98878888769.0000.........", "...133333333332220678888769889..............", "...0233333333222298887889.9889..............", "...4522252525252987888876..6789111110.......", "....45252522252988887896....98733333200.....", ".....40022227898878889......133333333320....", "........0009887888876.......1333333333220...", "............99887889........0233333322220...", "..............988876........452222222220....", "..............6788889........4022252220.....", "...............987889..........0004000......", "...............9888789......................", "...............6788889......................", "................987889......................", "................9888789.....................", ".................988889.....................", ".................9878889....................", ".................9888789....................", "..................988889....................", ".........a........9878889...................", "......bbacaaaaaaaaa988789aaaaaaaaaabbb......", ".....bdddccccccccccccccccccccccccccdddb.....", ".....bddddddddddddddddddddddddddddddddb.....", "......effffffffffffffffffggggggggggggh......", ".......efffffffffffffffffgggggggggggh.......", ".......efffffffffffffffffgggggggggggh.......", ".......efffffffffffffffffgggggggggggh.......", "........hggggggggggggggggggggggggggh........", ".........hhgggghhhhhhhhhhhhhhgggghh.........", "..........hggggh............hggggh..........", "...........hhhh..............hhhh..........." ] }, "deadwood": { "pal": { "0": "#29241e", "1": "#8a7a66", "2": "#5e5244", "3": "#1c181a", "4": "#24161a", "5": "#16161a", "6": "#7a4a22", "7": "#181e24", "8": "#4a3f33", "9": "#52647a", "a": "#14161b", "b": "#3c4a5c", "c": "#2b3644", "d": "#14161a" }, "rows": [ "............................................", "............................................", ".................0....0.....................", "................010..010....................", "................0123.010....................", ".................010010.....................", "..................01110.....................", "..................3210......................", "..................01123..00.................", "..................01110.0110................", ".................3032110123.................", ".......00......03211112103..................", "......0110030001111001110...................", ".......001121111000.321110..................", ".........0110000.....012110........3........", "........0100..........01123......0323.......", ".......010.............01110....0110........", "........0..............32110..00110.........", ".......................01123.01211100.......", ".......0...............011100110001110......", "......010............0011211110...000.......", ".......010.........30121101230..............", ".......0123.......32111123010...............", "........010......01112110..010..............", "......032110....012111123..3210.............", ".....01103210..011112103....0100............", "......00..012301121110.......011003000......", "...........0012111123.........011121110.....", ".............0112110...........0010000......", "..............011123.............0..........", "..............3211110.......................", "...............012110.......................", "...............0111210......................", "...............3211110......................", "................012110......................", "................0111210.....................", ".................011110.....................", ".................0121110....................", ".................0111210....................", "...............4..011110.........4..........", ".........5..4.464.0121110.....4.464.........", "......77585464555550112105555464555777......", ".....7999888888888888888888888888889997.....", ".....7999999999999999999999999999999997.....", "......abbbbbbbbbbbbbbbbbbccccccccccccd......", ".......abbbbbbbbbbbbbbbbbcccccccccccd.......", ".......abbbbbbbbbbbbbbbbbcccccccccccd.......", ".......abbbbbbbbbbbbbbbbbcccccccccccd.......", "........dccccccccccccccccccccccccccd........", ".........ddccccddddddddddddddccccdd.........", "..........dccccd............dccccd..........", "...........dddd..............dddd..........." ] }, "plant": { "pal": { "0": "#14251a", "1": "#3f7d3a", "2": "#141b1a", "3": "#2b5a2a", "4": "#14161a", "5": "#2c2018", "6": "#3e251a", "7": "#cf7d4b", "8": "#361e1a", "9": "#b5653a", "a": "#7d4226", "b": "#25161a" }, "rows": [ "............................................", "............................................", "............................................", ".....................00.....................", "....................0110....................", "....................0110....................", "...............2....0110....2...............", "..............232...0110...232..............", ".............01310.011110.01310.............", ".............01310.011110.01310.............", ".............01310.011110.01310.............", ".............011110011110011110.............", ".............011110011110013110.............", ".............011310011110013110.............", ".............011311011110113110.............", "........2.....0131101111011310.....2........", ".......232....0131111111111110....232.......", ".......2310...0111111111111110...0132.......", ".......0110...0113111111113110...0110.......", ".......01310..0113111111113110..01310.......", ".......01310..0113111111113110..01310.......", ".......011110.0111111111111110.011110.......", ".......011311001111111111111100113110.......", "........013110.01131111113110.011310........", "........0111110011311111131100113110........", "........0113111011311111111101113110........", "........0111111001111111311001131110........", ".........01131110113111131101113110.........", ".........01113111013111131011131110.........", "..........011111101311111101131110..........", "...........0111111011113101111110...........", "............01111111311311111110............", ".............011111231130111110.............", "..............0011111111111100..............", ".............4..011301123110..4.............", "............45444401333310444454............", "...........6755555555555555555576...........", "...........6777777777777777777776...........", "...........6777777777777777777776...........", "............899999999a999aaaaaab............", "............8999999999999aaaaaab............", ".............89999999999aaaaaaab............", ".............8999999999a9aaaaab.............", ".............899999999a99aaaaab.............", ".............89999999a999aaaaab.............", "..............89999999999aaaab..............", "..............8999999999aaaaab..............", "..............899999999a9aaaab..............", "...............8999999a99aaaab..............", "...............899999a999aaab...............", "................88888b888bbb................", "............................................" ] } };
+const COLLECTIONS = { house: "House Plants", bonsai: "Bonsai" };
+let plantsKind = "house";   /* which collection the Herbarium screen is showing */
+/* how many plants (not entries: one entry can stand for several) are living or perished */
+const census = (set) => ({ living: set.filter((p) => p.status === "living").reduce((n, p) => n + p.count, 0), perished: set.filter((p) => p.status !== "living").reduce((n, p) => n + p.count, 0) });
+const censusText = (c) => (c.living + c.perished ? c.living + " living  /  " + c.perished + " perished" : "None living");
+function drawPlant(canvas, kind, dead) {
+  if (dead && kind === "bonsai") { kind = "deadwood"; dead = false; }   /* a dead tree has its own picture */
+  if (!Object.prototype.hasOwnProperty.call(PLANT, kind)) kind = "plant";
+  const f = PLANT[kind], c = canvas.getContext("2d"); canvas.width = PLANT_SIZE[0]; canvas.height = PLANT_SIZE[1];
+  f.rows.forEach((row, y) => { for (let x = 0; x < row.length; x++) {
+    let col = f.pal[row[x]]; if (!col) continue;
+    if (dead) {   /* withered: every colour turned to a dry brown of the same brightness */
+      const n = parseInt(col.slice(1), 16), l = ((n >> 16) * .3 + ((n >> 8) & 255) * .59 + (n & 255) * .11) / 255;
+      col = "rgb(" + Math.round(40 + l * 150) + "," + Math.round(34 + l * 118) + "," + Math.round(26 + l * 84) + ")";
+    }
+    c.fillStyle = col; c.fillRect(x, y, 1, 1);
+  } });
+}
+/* the strip on the home screen, under the quests: one tile per collection with its count */
+function showGarden() {
+  if (!PLANTS.length && !PLANT_INTRO.bonsai && !PLANT_INTRO.house) return;
+  const wrap = el("div", "quests");
+  Object.keys(COLLECTIONS).forEach((k, i) => {
+    const b = opt(null, () => showPlants(k, true), "quest");
+    b.append(el("span", "name", COLLECTIONS[k]), el("span", "when", censusText(census(PLANTS.filter((p) => p.kind === k)))));
+    b.style.setProperty("--i", Math.min(i, 6)); wrap.append(b);
+  });
+  main.append(el("p", "label questhead", "Herbarium"), wrap);
+}
+/* the Herbarium screen. kind: which collection to show, "house" or "bonsai" */
+function showPlants(kind, focusFirst) {
+  if (!Object.prototype.hasOwnProperty.call(COLLECTIONS, kind)) kind = "house";
+  openScreen("plants", null); plantsKind = kind;
+  const set = PLANTS.filter((p) => p.kind === kind), tabs = el("div", "chips");
+  main.append(el("p", "label", "Herbarium"), el("p", "tally", censusText(census(PLANTS))));
+  Object.keys(COLLECTIONS).forEach((k) => {
+    const b = el("button", "chip", COLLECTIONS[k]); b.type = "button"; b.setAttribute("aria-pressed", String(k === kind));
+    b.addEventListener("click", () => showPlants(k, true)); tabs.append(b);
+  });
+  main.append(tabs);
+  if (PLANT_INTRO[kind]) { const intro = el("div", "post lore intro"); renderBody(PLANT_INTRO[kind], intro); main.append(intro); }
+  main.append(el("p", "tally", COLLECTIONS[kind] + ":  " + censusText(census(set))));
+  if (!set.length) {
+    main.append(el("p", "sub", loadNote === "Loading..." ? loadNote : kind === "bonsai" ? "No trees are yet named here." : "Nothing recorded yet."), backRow());
+    if (focusFirst) main.querySelector('.chip[aria-pressed="true"]').focus({ preventScroll: true });
+    return;
+  }
+  const wrap = el("div", "beasts"), list = el("div", "beastlist"), card = el("div", "beastcard");
+  const show = (p, btn) => {
+    list.querySelectorAll(".opt").forEach((o) => o.setAttribute("aria-pressed", String(o === btn)));
+    card.textContent = "";
+    const dead = p.status !== "living", pic = el("canvas", "plantpic"); pic.setAttribute("aria-hidden", "true"); drawPlant(pic, p.sprite, dead);
+    if (p.photo) {   /* with a photo on file, the drawing is a button that opens it */
+      const open = el("button", "fishbtn"); open.type = "button"; open.setAttribute("aria-label", "See the photo of this " + p.name);
+      open.append(pic, el("span", "hint", "View photo")); open.addEventListener("click", () => zoom(safeUrl(p.photo), p.name, open));
+      card.append(open);
+    } else card.append(pic);
+    const facts = el("dl", "facts"), fact = (k, v, extra) => { const dd = el("dd", null, v); if (extra) dd.prepend(extra); facts.append(el("dt", null, k), dd); return dd; };
+    fact("Status", dead ? "Perished" : "Living").className = dead ? "perished" : "living";
+    if (p.count > 1) fact("Kept", String(p.count));
+    if (p.rarity) fact("Rarity", RARITY[p.rarity][0], pips(RARITY[p.rarity][1])).className = "rarity " + p.rarity;
+    if (p.temper) fact("Temper", p.temper + " / 5", pips(p.temper));
+    if (p.light) fact("Light", p.light);
+    if (p.water) fact("Water", p.water);
+    if (p.acquired) fact("Acquired", day(p.acquired));
+    card.append(el("h2", null, p.name)); if (p.botanical) card.append(el("p", "botanical", p.botanical));
+    card.append(facts);
+    if (p.lore) { const lore = el("div", "post lore"); renderBody(p.lore, lore); card.append(lore); }
+    card.classList.remove("pop"); void card.offsetWidth; card.classList.add("pop");
+  };
+  set.forEach((p, i) => {
+    const pick = () => { if (btn.getAttribute("aria-pressed") !== "true") show(p, btn); };
+    const btn = opt(null, pick, "beast" + (p.status !== "living" ? " known" : ""));
+    btn.addEventListener("focus", pick);   /* moving the cursor shows that plant */
+    btn.append(el("span", "num", String(i + 1).padStart(3, "0")), el("span", "name", p.name + (p.count > 1 ? "  x" + p.count : "")));
+    btn.style.setProperty("--i", Math.min(i, 8)); list.append(btn);
+  });
+  wrap.append(list, card); main.append(wrap, backRow());
+  show(set[0], list.querySelector(".opt"));
+  if (focusFirst) list.querySelector(".opt").focus({ preventScroll: true });
 }
 
 /* ==========================================================================
@@ -1567,6 +1667,13 @@ function linkedPost() {   /* the entry named after # in the address, if there is
     const kindOrder = Object.keys(KINDS);   /* list order: by kind, then trips together in stop order, then by name */
     PLACES.sort((a, b) => kindOrder.indexOf(a.kind) - kindOrder.indexOf(b.kind) || a.trip.localeCompare(b.trip) ||
       (a.stop == null ? 1e9 : a.stop) - (b.stop == null ? 1e9 : b.stop) || a.name.localeCompare(b.name));
+    PLANTS = (Array.isArray(data.plants) ? data.plants : []).filter((p) => p && typeof p === "object").map((p) => ({
+      name: text(p.name).trim() || "Unnamed plant", botanical: text(p.botanical), kind: text(p.kind) === "bonsai" ? "bonsai" : "house", sprite: text(p.sprite) || "plant",
+      status: text(p.status) === "perished" ? "perished" : "living", count: Math.max(1, Math.min(999, Math.round(amount(p.count) || 1))),
+      rarity: Object.prototype.hasOwnProperty.call(RARITY, text(p.rarity)) ? text(p.rarity) : "", temper: Math.min(5, Math.round(amount(p.temper) || 0)) || null,
+      light: text(p.light), water: text(p.water), acquired: text(p.acquired), photo: text(p.photo), lore: text(p.lore) }));
+    const intro = data.plants_intro && typeof data.plants_intro === "object" ? data.plants_intro : {};
+    PLANT_INTRO = { bonsai: text(intro.bonsai), house: text(intro.house) };
     QUESTS = (Array.isArray(data.quests) ? data.quests : []).filter((q) => q && typeof q === "object" && text(q.title).trim()).map((q) => ({
       title: text(q.title).trim(), status: text(q.status) === "completed" ? "completed" : "active", order: typeof q.order === "number" && Number.isFinite(q.order) ? q.order : 1e9, when: text(q.when), place: text(q.place), body: text(q.body),
       objectives: (Array.isArray(q.objectives) ? q.objectives : []).filter((o) => o && typeof o === "object" && text(o.text).trim()).map((o) => ({ text: text(o.text).trim(), done: o.done === true })) }))
@@ -1575,13 +1682,14 @@ function linkedPost() {   /* the entry named after # in the address, if there is
       file: text(p.file), title: text(p.title) || text(p.file), date: text(p.date), place: text(p.place), body: text(p.body) }))
       .sort((a, b) => b.date.localeCompare(a.date) || b.file.localeCompare(a.file));
     loadNote = "No entries yet.";
-  } catch (e) { ABOUT = ""; BESTIARY_INTRO = ""; BESTIARY = []; ALBUMS = []; PLACES = []; QUESTS = []; sorted = []; loadNote = "Could not load the log. Refresh to try again."; }
+  } catch (e) { ABOUT = ""; BESTIARY_INTRO = ""; BESTIARY = []; ALBUMS = []; PLACES = []; QUESTS = []; PLANTS = []; PLANT_INTRO = { bonsai: "", house: "" }; sorted = []; loadNote = "Could not load the log. Refresh to try again."; }
   $("#count").textContent = sorted.length;
   $("#latest").textContent = sorted[0] ? day(sorted[0].date).split(",")[0] || "-" : "-";
   pendingPost = linkedPost();
   const started = introBox.classList.contains("done");
   if (view === "files" && reader.hidden) showFiles(started);   /* redraw whichever screen is up, now that there is something to show */
   if (view === "bestiary") showBestiary(started);
+  if (view === "plants") showPlants(plantsKind, started);
   if (view === "photos" || view === "album") showPhotos(started);
   if (view === "map") showMap(started);
   drawMini(); loadLand().then(drawMini);

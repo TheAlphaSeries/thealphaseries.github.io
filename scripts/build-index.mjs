@@ -5,6 +5,7 @@
 //   albums/     photo albums           ->  "albums"
 //   places/     map pins and landmarks ->  "places"
 //   quests/     the quest log          ->  "quests"     (no dates are published, on purpose)
+//   plants/     the herbarium          ->  "plants"     (pages/bonsai.md, pages/houseplants.md -> "plants_intro")
 //   pages/about.md                     ->  "about"
 //
 // Each file is a small header between two "---" lines (name: value pairs, and lists) followed by
@@ -126,11 +127,26 @@ if (existsSync("quests")) {
         .map((o) => ({ text: String(o.text).trim(), done: /^(true|yes|1)$/i.test(String(o.done || "").trim()) })) });
   }
 }
+// The herbarium: one file per plant in plants/, in file-name order. Each is a bonsai or a house plant, living or perished.
+const plants = [];
+if (existsSync("plants")) {
+  for (const name of readdirSync("plants").sort()) {
+    if (!name.endsWith(".md")) continue;
+    const { meta, body } = parse(readFileSync("plants/" + name, "utf8"));
+    const file = name.replace(/\.md$/, ""), n = parseInt(str(meta.count), 10), t = parseInt(str(meta.temper), 10);
+    plants.push({ file, name: str(meta.name) || file, botanical: str(meta.botanical), kind: /^bonsai$/i.test(str(meta.kind).trim()) ? "bonsai" : "house",
+      sprite: str(meta.sprite).trim().toLowerCase() || "plant", status: /^(perished|dead|killed)$/i.test(str(meta.status).trim()) ? "perished" : "living",
+      count: n >= 1 && n <= 999 ? n : 1, rarity: str(meta.rarity).toLowerCase(), temper: t >= 1 && t <= 5 ? t : null,
+      light: str(meta.light), water: str(meta.water), acquired: isoDay(meta.acquired), photo: str(meta.photo), lore: body });
+  }
+}
+const page = (f) => (existsSync("pages/" + f) ? parse(readFileSync("pages/" + f, "utf8")).body : "");
+const plantsIntro = { bonsai: page("bonsai.md"), house: page("houseplants.md") };
 const about = existsSync("pages/about.md") ? parse(readFileSync("pages/about.md", "utf8")).body : "";
 // "source" records where this copy of the list was built, which helps when checking the site.
 const source = process.env.GITHUB_ACTIONS ? "github" : (process.env.WORKERS_CI || process.env.WORKERS_CI_BUILD_UUID) ? "cloudflare" : "other";
 const bestiaryIntro = existsSync("pages/bestiary.md") ? parse(readFileSync("pages/bestiary.md", "utf8")).body : "";
-writeFileSync("posts.json", JSON.stringify({ source, about, bestiary_intro: bestiaryIntro, posts, bestiary, albums, places, quests }, null, 2) + "\n");
+writeFileSync("posts.json", JSON.stringify({ source, about, bestiary_intro: bestiaryIntro, posts, bestiary, albums, places, quests, plants, plants_intro: plantsIntro }, null, 2) + "\n");
 // A small stamp, written only at publish time, to confirm this script ran there.
 if (!process.env.GITHUB_ACTIONS) writeFileSync("build.json", JSON.stringify({ source, entries: posts.length, built: new Date().toISOString() }) + "\n");
 console.log("posts.json: " + posts.length + " entries");

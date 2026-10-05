@@ -24,6 +24,7 @@ Saving there creates or changes a file in one of the folders below. The site upd
 | `bestiary/` | One file per fish, caught or not yet caught. `pages/bestiary.md` is the blurb at the top. |
 | `albums/` | Photo albums. |
 | `places/` | Map pins. A pin can carry a write-up and a list of landmarks. |
+| `plants/` | The Herbarium: one file per plant, bonsai or house plant, living or perished. `pages/bonsai.md` and `pages/houseplants.md` are the notices at the top of each collection. |
 | `quests/` | The quest log. No dates or real place names: the site is public. |
 | `pages/about.md` | The About text. |
 | `photos/` | Photos as uploaded. `thumbs/` and `large/` are smaller copies made automatically; do not edit those. |
