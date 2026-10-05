@@ -185,7 +185,7 @@ h3 { font-size: 12px; line-height: 1.7; color: var(--accent); margin-top: 8px; }
 .sub { color: var(--dim); margin: 14px 0 0 24px; }
 /* ----- the quest log: a compact strip on the home screen (the entries above it are the main thing) ----- */
 .questhead { margin: 26px 0 10px; padding-top: 16px; border-top: 2px solid rgba(255, 255, 255, .3); color: var(--dim); font-size: 11px; }
-.quests { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr)); gap: 8px; }
+.quests { display: grid; grid-template-columns: repeat(auto-fit, minmax(max(min(180px, 100%), calc((100% - 16px) / 3)), 1fr)); gap: 8px; }   /* never more than three across; a fourth quest starts a new row */
 .quest { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 8px; align-items: center; width: 100%; padding: 8px 10px; text-align: left;
   border: 2px solid var(--border-shade); border-radius: 7px; overflow-wrap: anywhere; }
 .quest::before { display: none; }
