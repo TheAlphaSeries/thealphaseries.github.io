@@ -4,6 +4,9 @@ status: active
 order: "3"
 when: "At the mender's convenience"
 place: ""
+kind: errand
+difficulty: "5"
+reward: "A bag that closes"
 objectives:
   - text: "Find a mender willing to look inside"
     done: false

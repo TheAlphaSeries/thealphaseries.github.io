@@ -202,6 +202,13 @@ h3 { font-size: 12px; line-height: 1.7; color: var(--accent); margin-top: 8px; }
 .questlog .quest .when { font-size: 16px; }
 .quest .qparty { grid-column: 1 / -1; margin-top: 6px; color: var(--dim); font-size: 15px; line-height: 1.35; overflow-wrap: anywhere; }
 .quest.fulfilled { opacity: .78; } .quest.fulfilled .when { color: #7fd68a; }
+.qtags { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; margin-top: 6px; font-size: 15px; color: var(--dim); }
+.qkind { padding: 0 7px; border: 2px solid currentColor; border-radius: 5px; font-size: 13px; line-height: 1.5; }
+.hard { display: inline-flex; align-items: center; white-space: nowrap; }
+.hard.h1 { color: #9fd8a8; } .hard.h2 { color: #c8e08a; } .hard.h3 { color: #ffd257; } .hard.h4 { color: #ffa25c; } .hard.h5 { color: #ff7a6e; }
+.qexp { color: #8fd6ff; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.quest.fulfilled .qexp { color: #7fd68a; }
+.qstats { margin: 4px 0 6px; } .qstats dd { overflow-wrap: anywhere; min-width: 0; }
 .qcount { color: var(--dim); font-size: 14px; font-variant-numeric: tabular-nums; margin-top: 4px; }
 #readerwin .meta .when { color: #ffd257; }
 .goals li span { min-width: 0; overflow-wrap: anywhere; }
@@ -503,7 +510,7 @@ Drag to move. Pinch, or use + and -, to zoom. Point at a pin or a name to see th
 
 ## Quests
 
-The Quests tab is the full log: what is in hand, and what has been fulfilled. Open a quest to see who travels with it. To ask to join, choose Petition to join and give a name. No account is needed, and only what you write is kept. The keeper accepts or declines in his own time.`;
+The Quests tab is the full log: what is in hand, and what has been fulfilled. Each quest has a difficulty and pays experience when it is finished; harder ones and Great Works pay more. Open a quest to see who travels with it. To ask to join, choose Petition to join and give a name. No account is needed, and only what you write is kept. The keeper accepts or declines in his own time.`;
 
 /* ==========================================================================
    2. HELPERS
@@ -593,11 +600,33 @@ function showQuests() {
 }
 /* The Quest Log screen: every quest in full, the open ones first and the fulfilled ones kept below as a record.
    The home screen shows the same open quests as a short strip (showQuests above); both open the same pop-out. */
+/* The game side of a quest. Difficulty runs 1 to 5; the sort of quest scales what it pays; a quest can also name
+   its own experience. Experience is only earned when the quest is fulfilled (each objective ticked along the way
+   pays a little by itself: see tally() in section 9b). */
+const HARDNESS = ["", "Trifling", "Modest", "Arduous", "Perilous", "Ruinous"], PAYS = [0, 30, 60, 100, 160, 250];
+const QUEST_KINDS = { main: ["Great Work", 1.5], side: ["Venture", 1], errand: ["Errand", .5] };
+const questExp = (q) => (q.exp != null ? q.exp : Math.round(PAYS[q.difficulty] * QUEST_KINDS[q.kind][1] / 5) * 5);
+const QUEST_RANKS = [[0, "Unproven"], [1, "Runner of Errands"], [3, "Journeyman of Small Matters"], [6, "Adept of the Road"], [10, "Veteran of Many Ends"], [16, "Finisher of Things"], [25, "One Whom Tasks Avoid"]];
+function questTally() {   /* the keeper's standing as a finisher of quests */
+  const done = QUESTS.filter((q) => q.status === "completed"), earned = done.reduce((n, q) => n + questExp(q), 0);
+  const offered = QUESTS.filter((q) => q.status !== "completed").reduce((n, q) => n + questExp(q), 0);
+  const rank = QUEST_RANKS.filter((r) => done.length >= r[0]).pop(), next = QUEST_RANKS.find((r) => r[0] > done.length);
+  const hardest = done.slice().sort((a, b) => b.difficulty - a.difficulty || questExp(b) - questExp(a))[0] || null;
+  return { done: done.length, open: QUESTS.length - done.length, earned, offered, rank: rank[1], next: next ? [next[1], next[0] - done.length] : null, hardest };
+}
+function questTags(q) {   /* one line: what sort, how hard, what it pays */
+  const line = el("span", "qtags"), hard = el("span", "hard h" + q.difficulty);
+  hard.append(pips(q.difficulty), el("span", null, HARDNESS[q.difficulty]));
+  hard.setAttribute("aria-label", "Difficulty " + q.difficulty + " of 5, " + HARDNESS[q.difficulty]);
+  line.append(el("span", "qkind", QUEST_KINDS[q.kind][0]), hard, el("span", "qexp", (q.status === "completed" ? "" : "+") + questExp(q) + " EXP" + (q.status === "completed" ? " earned" : "")));
+  return line;
+}
 function questRow(q, i) {
   const got = q.objectives.filter((o) => o.done).length, b = opt(null, () => showQuest(q, b), "quest" + (q.status === "completed" ? " fulfilled" : "")), bar = el("span", "qbar");
   const names = owns(PARTY, q.file) ? PARTY[q.file] : [];
   q.objectives.slice(0, 24).forEach((o) => bar.append(el("i", o.done ? "on" : null)));
-  b.append(el("span", "name", q.title), el("span", "when", q.status === "completed" ? "Fulfilled" : q.when), bar, el("span", "qcount", q.objectives.length ? got + "/" + q.objectives.length : ""));
+  b.append(el("span", "name", q.title), el("span", "when", q.status === "completed" ? "Fulfilled" + (q.completed ? " " + day(q.completed) : "") : q.when), questTags(q), bar, el("span", "qcount", q.objectives.length ? got + "/" + q.objectives.length : ""));
+  if (q.reward) b.append(el("span", "qparty", "Spoils: " + q.reward));
   if (names.length) b.append(el("span", "qparty", "Company of " + (names.length + 1) + ": the keeper, " + names.join(", ")));
   else if (partyOpen && q.status !== "completed") b.append(el("span", "qparty", "Seeking companions"));
   b.style.setProperty("--i", Math.min(i, 6));
@@ -611,11 +640,16 @@ function showQuestLog(focusFirst) {
   intro.append(el("p", null, "Here are entered the undertakings of the keeper: those in hand, and below them those brought to an end. An undertaking is struck from the first list only by being finished. Abandonment is not recorded, there being no column for it."));
   main.append(intro);
   if (!QUESTS.length) { main.append(el("p", "sub", loadNote === "Loading..." ? loadNote : "No undertakings are in hand."), backRow()); return; }
-  main.append(el("p", "sub", open.length + " in hand  /  " + done.length + " fulfilled"));
+  const t = questTally(), facts = el("dl", "facts qstats"), fact = (k, v) => facts.append(el("dt", null, k), el("dd", null, v));
+  fact("Standing", t.rank + (t.next ? "  (" + t.next[1] + " more to " + t.next[0] + ")" : ""));
+  fact("Quests", t.open + " in hand  /  " + t.done + " fulfilled");
+  fact("Experience", t.earned + " earned  /  " + t.offered + " on offer");
+  if (t.hardest) fact("Hardest fulfilled", t.hardest.title + " (" + HARDNESS[t.hardest.difficulty] + ")");
+  main.append(facts);
   const list = el("div", "questlog"); open.forEach((q, i) => list.append(questRow(q, i)));
   if (open.length) main.append(list); else main.append(el("p", "sub", "Nothing is in hand. The keeper is, for the moment, at liberty."));
   if (done.length) {
-    const past = el("div", "questlog"); done.forEach((q, i) => past.append(questRow(q, i)));
+    const past = el("div", "questlog"); done.sort((a, b) => b.completed.localeCompare(a.completed)).forEach((q, i) => past.append(questRow(q, i)));   /* most recently finished first */
     main.append(el("p", "label questhead", "Fulfilled"), past);
   }
   main.append(backRow());
@@ -985,6 +1019,13 @@ function showQuest(q, from) {
   rwin.append(head);
   if (q.body) { const story = el("div", "post"); renderBody(q.body, story); rwin.append(story); }
   q.objectives.forEach((o) => { const li = el("li", o.done ? "done" : null); li.append(el("span", "tick"), el("span", null, o.text)); li.setAttribute("aria-label", o.text + (o.done ? ": done" : ": not yet")); goals.append(li); });
+  const sheet = el("dl", "facts qstats"), row = (k, v) => { const dd = el("dd"); dd.append(v); sheet.append(el("dt", null, k), dd); };
+  const hard = el("span", "hard h" + q.difficulty); hard.append(pips(q.difficulty), HARDNESS[q.difficulty]);
+  row("Sort", QUEST_KINDS[q.kind][0]); row("Difficulty", hard);
+  row("Experience", questExp(q) + (q.status === "completed" ? " earned" : " on completion"));
+  if (q.reward) row("Spoils", q.reward);
+  if (q.status === "completed") row("Fulfilled", q.completed ? day(q.completed) : "Yes");
+  rwin.append(sheet);
   if (q.objectives.length) { const tally = el("p", "goalhead"); tally.append(el("span", null, "Objectives"), el("span", "lmcount", got + " / " + q.objectives.length)); rwin.append(tally, goals); }
   company(q);
   const nav = el("div", "row group"), pin = pinFor(q.place);
@@ -1488,7 +1529,7 @@ function tally() {
   const photos = ALBUMS.reduce((n, a) => n + a.photos.length, 0), green = census(PLANTS), questsDone = QUESTS.filter((q) => q.status === "completed").length;
   const goals = QUESTS.reduce((n, q) => n + q.objectives.filter((o) => o.done).length, 0), trips = new Set(PLACES.map((p) => p.trip).filter(Boolean)).size;
   /* what each thing is worth: writing and finishing quests most, a single landmark least */
-  const xp = sorted.length * 8 + names(caught) * 10 + seen * 2 + PLACES.length * 3 + ALBUMS.length * 6 + photos + green.living * 3 + questsDone * 20 + goals * 4;
+  const xp = sorted.length * 8 + names(caught) * 10 + seen * 2 + PLACES.length * 3 + ALBUMS.length * 6 + photos + green.living * 3 + questTally().earned + goals * 5;   /* a fulfilled quest pays what it promised; each objective ticked pays 5 */
   const level = Math.floor(Math.sqrt(xp / 10)) + 1, floor = 10 * (level - 1) * (level - 1), next = 10 * level * level;   /* each level takes more than the last */
   return { xp, level, into: xp - floor, span: next - floor, toNext: next - xp, entries: sorted.length, caught: caught.length, species: names(caught), allSpecies: names(BESTIARY),
     seen, marks, places: PLACES.length, trips, albums: ALBUMS.length, photos, green, questsDone, questsOpen: QUESTS.length - questsDone };
@@ -1514,6 +1555,7 @@ function showStatus(focusFirst) {
   stat("Photographs", t.photos + (t.albums ? "  in " + count(t.albums, "album") : ""));
   stat("Plants", t.green.living + " living,  " + t.green.perished + " perished");
   stat("Quests", t.questsDone + " done,  " + t.questsOpen + " open");
+  stat("Standing", questTally().rank);
   stat("Experience", String(t.xp));
   wrap.append(who, facts);
   main.append(el("p", "label", "Status"), wrap);
@@ -1803,7 +1845,9 @@ function linkedPost() {   /* the entry named after # in the address, if there is
     const intro = data.plants_intro && typeof data.plants_intro === "object" ? data.plants_intro : {};
     PLANT_INTRO = { bonsai: text(intro.bonsai), house: text(intro.house) };
     QUESTS = (Array.isArray(data.quests) ? data.quests : []).filter((q) => q && typeof q === "object" && text(q.title).trim()).map((q) => ({
-      file: text(q.file), title: text(q.title).trim(), status: text(q.status) === "completed" ? "completed" : "active", order: typeof q.order === "number" && Number.isFinite(q.order) ? q.order : 1e9, when: text(q.when), place: text(q.place), body: text(q.body),
+      file: text(q.file), title: text(q.title).trim(), status: text(q.status) === "completed" ? "completed" : "active",
+      difficulty: Math.min(5, Math.max(1, Math.round(amount(q.difficulty) || 2))), kind: owns(QUEST_KINDS, text(q.kind)) ? text(q.kind) : "side", reward: text(q.reward).trim(),
+      exp: typeof q.exp === "number" && Number.isFinite(q.exp) ? Math.min(9999, Math.max(0, Math.round(q.exp))) : null, completed: /^\d{4}-\d{2}-\d{2}/.test(text(q.completed)) ? text(q.completed).slice(0, 10) : "", order: typeof q.order === "number" && Number.isFinite(q.order) ? q.order : 1e9, when: text(q.when), place: text(q.place), body: text(q.body),
       objectives: (Array.isArray(q.objectives) ? q.objectives : []).filter((o) => o && typeof o === "object" && text(o.text).trim()).map((o) => ({ text: text(o.text).trim(), done: o.done === true })) }))
       .sort((a, b) => a.order - b.order || a.title.localeCompare(b.title));
     sorted = (Array.isArray(data.posts) ? data.posts : []).filter((p) => p && typeof p === "object" && text(p.file)).map((p) => ({

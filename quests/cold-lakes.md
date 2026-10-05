@@ -4,6 +4,9 @@ status: active
 order: "2"
 when: "Before the first hard snow"
 place: ""
+kind: side
+difficulty: "4"
+reward: "Fat trout, numb hands, and the right to speak of it"
 objectives:
   - text: "Take the sullen recluse of the undercut bank"
     done: false

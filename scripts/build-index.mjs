@@ -125,7 +125,10 @@ if (existsSync("quests")) {
     const { meta, body } = parse(readFileSync("quests/" + name, "utf8"));
     const file = name.replace(/\.md$/, "");
     quests.push({ file, title: str(meta.title) || file, status: /^(done|complete|completed)$/i.test(str(meta.status).trim()) ? "completed" : "active",
-      order: Number.isFinite(parseFloat(meta.order)) ? parseFloat(meta.order) : null, when: str(meta.when).trim(), place: str(meta.place).trim(), body,   // no dates on purpose: the site is public
+      order: Number.isFinite(parseFloat(meta.order)) ? parseFloat(meta.order) : null, when: str(meta.when).trim(), place: str(meta.place).trim(), body,   // no dates for what lies ahead, on purpose: the site is public
+      // the game side of a quest: how hard, what sort, what it pays. The day it was finished is in the past, so it may be shown.
+      difficulty: Number.isFinite(parseInt(meta.difficulty, 10)) ? parseInt(meta.difficulty, 10) : null, kind: str(meta.kind).trim().toLowerCase(), reward: str(meta.reward).trim(),
+      exp: Number.isFinite(parseInt(meta.exp, 10)) ? parseInt(meta.exp, 10) : null, completed: /^\d{4}-\d{2}-\d{2}/.test(str(meta.completed)) ? str(meta.completed).slice(0, 10) : "",
       objectives: (Array.isArray(meta.objectives) ? meta.objectives : []).filter((o) => o && typeof o === "object" && String(o.text || "").trim())
         .map((o) => ({ text: String(o.text).trim(), done: /^(true|yes|1)$/i.test(String(o.done || "").trim()) })) });
   }

@@ -330,6 +330,43 @@ content:
       - name: place
         label: Where (optional - a map pin's name, to link the two)
         type: string
+      - name: kind
+        label: Sort of quest
+        type: select
+        options:
+          values:
+            - name: main
+              label: Great Work (pays half as much again)
+            - name: side
+              label: Venture
+            - name: errand
+              label: Errand (pays half)
+      - name: difficulty
+        label: Difficulty
+        type: select
+        options:
+          values:
+            - name: "1"
+              label: 1 - Trifling
+            - name: "2"
+              label: 2 - Modest
+            - name: "3"
+              label: 3 - Arduous
+            - name: "4"
+              label: 4 - Perilous
+            - name: "5"
+              label: 5 - Ruinous
+      - name: reward
+        label: Spoils, in words (optional - what finishing it wins you)
+        type: string
+      - name: exp
+        label: Experience (optional - leave empty to let difficulty decide)
+        type: string
+      - name: completed
+        label: Day it was finished (fill in when you set Status to Completed)
+        type: date
+        options:
+          format: yyyy-MM-dd
       - name: objectives
         label: Objectives (tick them off as you go)
         type: object

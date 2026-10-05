@@ -4,6 +4,9 @@ status: active
 order: "1"
 when: "When the winds permit"
 place: ""
+kind: main
+difficulty: "3"
+reward: "A darker complexion, and sand in everything owned"
 objectives:
   - text: "Stand at the rim of the burning mountain"
     done: false
