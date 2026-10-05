@@ -1942,65 +1942,94 @@
   ],
   "quests": [
     {
-      "file": "hawaii",
-      "title": "The Islands of Fire",
+      "file": "bottomless-bag",
+      "title": "The Mending of the Bottomless Bag",
       "status": "active",
-      "start": "2026-10-19",
-      "end": "2026-10-28",
-      "when": "",
+      "order": 3,
+      "when": "At the mender's convenience",
       "place": "",
-      "body": "Far out upon the western ocean lies a chain of islands that the sea did not want and the earth insisted upon. One of them is still under construction: the ground there glows at night, and the inhabitants make offerings to the mountain and build their houses elsewhere.",
+      "body": "The bag has no bottom, a property much admired until the zipper failed. It now stands open at all hours, and things once put safely away have begun to wander back out. No tailor of the district will take the work: the last to try has not been seen since he reached in for the pull.",
       "objectives": [
         {
-          "text": "Stand at the rim of Kilauea",
+          "text": "Find a mender willing to look inside",
           "done": false
         },
         {
-          "text": "Climb Diamond Head",
+          "text": "Procure a zipper of sufficient length",
           "done": false
         },
         {
-          "text": "Pass a night in Volcano Village",
+          "text": "Account for whatever has already fallen out",
           "done": false
         },
         {
-          "text": "Photograph a field of new lava",
+          "text": "Close the bag",
           "done": false
         },
         {
-          "text": "Visit the Bishop Museum",
+          "text": "Refrain from asking what is at the bottom",
           "done": false
         }
       ]
     },
     {
-      "file": "mammoth",
-      "title": "The Cold Lakes of Mammoth",
+      "file": "cold-lakes",
+      "title": "The Cold Lakes",
       "status": "active",
-      "start": "2026-11-14",
-      "end": "2026-11-15",
-      "when": "Second weekend of November",
+      "order": 2,
+      "when": "Before the first hard snow",
       "place": "",
-      "body": "Eight travelers go up into the high country in the last days of the season, when the aspens have spent their gold and the lakes are making up their minds to freeze. The trout there are said to be fat, slow, and of the opinion that the year's fishing is over. They are to be corrected.",
+      "body": "A company goes up into the high country in the last days of the season, when the aspens have spent their gold and the lakes are making up their minds to freeze. The trout there are fat, slow, and of the opinion that the year is over. They are to be corrected.",
       "objectives": [
         {
-          "text": "Land a brown trout",
+          "text": "Take the sullen recluse of the undercut bank",
           "done": false
         },
         {
-          "text": "Land a brook trout",
+          "text": "Take a speckled glutton of the headwaters",
           "done": false
         },
         {
-          "text": "Fish Lake Mary from a boat",
+          "text": "Fish the high lake from a hired boat",
           "done": false
         },
         {
-          "text": "Walk the loop at Convict Lake",
+          "text": "Walk once around the lake of the fugitives",
           "done": false
         },
         {
           "text": "Endure one dawn below freezing without complaint",
+          "done": false
+        }
+      ]
+    },
+    {
+      "file": "islands-of-fire",
+      "title": "The Islands of Fire",
+      "status": "active",
+      "order": 1,
+      "when": "When the winds permit",
+      "place": "",
+      "body": "Far out upon the western ocean lies a chain of islands that the sea did not want and the earth insisted upon. One is still under construction: the ground there glows by night, and the inhabitants make offerings to the mountain and build their houses elsewhere.",
+      "objectives": [
+        {
+          "text": "Stand at the rim of the burning mountain",
+          "done": false
+        },
+        {
+          "text": "Climb the dead crater above the city",
+          "done": false
+        },
+        {
+          "text": "Pass a night in the village beneath the fire",
+          "done": false
+        },
+        {
+          "text": "Make a likeness of ground not yet a year old",
+          "done": false
+        },
+        {
+          "text": "Visit the hall where the island kings kept their feathers",
           "done": false
         }
       ]
