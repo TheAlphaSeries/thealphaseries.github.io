@@ -2034,5 +2034,75 @@
         }
       ]
     }
-  ]
+  ],
+  "plants": [
+    {
+      "file": "001-queen-anthurium",
+      "name": "Queen Anthurium",
+      "botanical": "Anthurium warocqueanum",
+      "kind": "house",
+      "sprite": "anthurium",
+      "status": "living",
+      "count": 1,
+      "rarity": "epic",
+      "temper": 5,
+      "light": "Bright shade; never the sun itself",
+      "water": "Damp air above all else",
+      "acquired": "",
+      "photo": "",
+      "lore": "A velvet aristocrat from the cloud forests, with leaves as long as a man's arm and the complexion of a banker's waistcoat. She requires air so wet that it may be wrung out, and regards any departure from this as a personal affront, which she expresses by browning at the edges."
+    },
+    {
+      "file": "002-philodendron-gloriosum",
+      "name": "Philodendron Gloriosum",
+      "botanical": "Philodendron gloriosum",
+      "kind": "house",
+      "sprite": "gloriosum",
+      "status": "living",
+      "count": 2,
+      "rarity": "rare",
+      "temper": 3,
+      "light": "Bright shade",
+      "water": "When the top of the soil has dried",
+      "acquired": "",
+      "photo": "",
+      "lore": "A creeping thing that will not climb, though every other member of its family does, and offers no reason. Its leaves are hearts of green velvet ruled with white, each unfurling over a period of weeks, during which it must not be looked at too directly. Two are kept, in case one should take offense."
+    },
+    {
+      "file": "003-monstera-thai-constellation",
+      "name": "Monstera Thai Constellation",
+      "botanical": "Monstera deliciosa 'Thai Constellation'",
+      "kind": "house",
+      "sprite": "monstera",
+      "status": "living",
+      "count": 1,
+      "rarity": "rare",
+      "temper": 2,
+      "light": "Bright shade",
+      "water": "Sparingly; it resents wet feet",
+      "acquired": "",
+      "photo": "",
+      "lore": "A plant splashed with cream as though someone had flicked a paintbrush at the night sky. It was devised in a laboratory in the East and for some years could be had only by the rich or the reckless. The holes in its leaves are deliberate, and it grows more of them as it gains confidence."
+    },
+    {
+      "file": "004-howards-dream",
+      "name": "Howard's Dream",
+      "botanical": "Bllra. Marfitch 'Howard's Dream'",
+      "kind": "house",
+      "sprite": "orchid",
+      "status": "living",
+      "count": 1,
+      "rarity": "uncommon",
+      "temper": 3,
+      "light": "Bright light, cool nights",
+      "water": "Often, then left to drain",
+      "acquired": "",
+      "photo": "",
+      "lore": "An orchid of no natural ancestry: four separate kinds were persuaded into one by growers who could not leave well enough alone. It sends up a spike of dark stars, spotted and edged in white, and holds them for two months. Who Howard was is not recorded, nor whether the dream was a pleasant one."
+    }
+  ],
+  "plants_intro": {
+    "bonsai": "Let it be recorded that every tree in this collection perished while its keeper was away in the far East.\n\nThey had been shaped with wire and patience over a period of years, and asked of the world only water: daily, and without fail. Arrangements were made. The arrangements did not hold. They are set down here as they were, that their names not be lost along with them.",
+    "house": "The plants of the house, which ask for little: filtered light, damp air, and to be left out of their keeper's travel plans. Unlike the trees, these yet live."
+  }
 }
