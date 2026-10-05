@@ -195,6 +195,13 @@ h3 { font-size: 12px; line-height: 1.7; color: var(--accent); margin-top: 8px; }
 .qbar { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 4px; }
 .qbar i { width: 7px; height: 7px; border: 2px solid var(--dim); opacity: .5; }
 .qbar i.on { background: #7fd68a; border-color: #7fd68a; opacity: 1; }
+/* the Quest Log screen: the same quest buttons, one to a row and roomier */
+.questlog { display: grid; gap: 10px; margin-top: 12px; }
+.questlog .quest { padding: 12px 14px; }
+.questlog .quest .name { font-size: 12px; }
+.questlog .quest .when { font-size: 16px; }
+.quest .qparty { grid-column: 1 / -1; margin-top: 6px; color: var(--dim); font-size: 15px; line-height: 1.35; overflow-wrap: anywhere; }
+.quest.fulfilled { opacity: .78; } .quest.fulfilled .when { color: #7fd68a; }
 .qcount { color: var(--dim); font-size: 14px; font-variant-numeric: tabular-nums; margin-top: 4px; }
 #readerwin .meta .when { color: #ffd257; }
 .goals li span { min-width: 0; overflow-wrap: anywhere; }
@@ -375,6 +382,7 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
 
   <nav class="win" id="menu" aria-label="Commands">
     <button class="opt" type="button" id="m-files">Log</button>
+    <button class="opt" type="button" id="m-quests">Quests</button>
     <button class="opt" type="button" id="m-bestiary">Bestiary</button>
     <button class="opt" type="button" id="m-plants">Herbarium</button>
     <button class="opt" type="button" id="m-photos">Photos</button>
@@ -431,7 +439,7 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
 
    The screen is a set of windows. The big one (#main) shows one screen at a
    time; each screen is drawn by a function named show...(): showFiles (the
-   home screen), showBestiary, showPhotos, showAlbum, showMap, showPage.
+   home screen), showQuestLog, showBestiary, showPhotos, showAlbum, showMap, showPage.
    Two things can pop out over the windows: #reader (an entry or a quest)
    and #zoom (an enlarged photo). The title screen (#intro) covers it all
    until Start is pressed.
@@ -495,7 +503,7 @@ Drag to move. Pinch, or use + and -, to zoom. Point at a pin or a name to see th
 
 ## Quests
 
-Open a quest to see who travels with it. To ask to join, choose Petition to join and give a name. No account is needed, and only what you write is kept. The keeper accepts or declines in his own time.`;
+The Quests tab is the full log: what is in hand, and what has been fulfilled. Open a quest to see who travels with it. To ask to join, choose Petition to join and give a name. No account is needed, and only what you write is kept. The keeper accepts or declines in his own time.`;
 
 /* ==========================================================================
    2. HELPERS
@@ -582,6 +590,36 @@ function showQuests() {
     done.forEach((q) => { const li = el("li", "done"); li.append(el("span", "tick"), el("span", null, q.title)); past.append(li); });
     main.append(el("p", "sub questdone", "Completed"), past);
   }
+}
+/* The Quest Log screen: every quest in full, the open ones first and the fulfilled ones kept below as a record.
+   The home screen shows the same open quests as a short strip (showQuests above); both open the same pop-out. */
+function questRow(q, i) {
+  const got = q.objectives.filter((o) => o.done).length, b = opt(null, () => showQuest(q, b), "quest" + (q.status === "completed" ? " fulfilled" : "")), bar = el("span", "qbar");
+  const names = owns(PARTY, q.file) ? PARTY[q.file] : [];
+  q.objectives.slice(0, 24).forEach((o) => bar.append(el("i", o.done ? "on" : null)));
+  b.append(el("span", "name", q.title), el("span", "when", q.status === "completed" ? "Fulfilled" : q.when), bar, el("span", "qcount", q.objectives.length ? got + "/" + q.objectives.length : ""));
+  if (names.length) b.append(el("span", "qparty", "Company of " + (names.length + 1) + ": the keeper, " + names.join(", ")));
+  else if (partyOpen && q.status !== "completed") b.append(el("span", "qparty", "Seeking companions"));
+  b.style.setProperty("--i", Math.min(i, 6));
+  return b;
+}
+function showQuestLog(focusFirst) {
+  openScreen("quests", "m-quests");
+  const open = QUESTS.filter((q) => q.status !== "completed"), done = QUESTS.filter((q) => q.status === "completed");
+  main.append(el("p", "label", "Quest Log"));
+  const intro = el("div", "post intro");
+  intro.append(el("p", null, "Here are entered the undertakings of the keeper: those in hand, and below them those brought to an end. An undertaking is struck from the first list only by being finished. Abandonment is not recorded, there being no column for it."));
+  main.append(intro);
+  if (!QUESTS.length) { main.append(el("p", "sub", loadNote === "Loading..." ? loadNote : "No undertakings are in hand."), backRow()); return; }
+  main.append(el("p", "sub", open.length + " in hand  /  " + done.length + " fulfilled"));
+  const list = el("div", "questlog"); open.forEach((q, i) => list.append(questRow(q, i)));
+  if (open.length) main.append(list); else main.append(el("p", "sub", "Nothing is in hand. The keeper is, for the moment, at liberty."));
+  if (done.length) {
+    const past = el("div", "questlog"); done.forEach((q, i) => past.append(questRow(q, i)));
+    main.append(el("p", "label questhead", "Fulfilled"), past);
+  }
+  main.append(backRow());
+  if (focusFirst) { const f = main.querySelector(".quest") || main.querySelector(".opt"); if (f) f.focus(); }
 }
 /* a plain page of text: About or Help */
 function showPage(name, menuId, label, text) {
@@ -902,6 +940,7 @@ function loadParty() {
     if (!d || !d.party || typeof d.party !== "object") return;
     PARTY = {}; partyOpen = true;
     for (const k of Object.keys(d.party)) if (Array.isArray(d.party[k])) PARTY[k] = d.party[k].map((n) => text(n).trim().slice(0, 40)).filter(Boolean).slice(0, 60);
+    if (view === "quests" && reader.hidden && !main.contains(document.activeElement)) showQuestLog(false);   /* the log is up: redraw it with the companies filled in */
   }).catch(() => {});
 }
 function company(q) {
@@ -937,7 +976,7 @@ function company(q) {
   box.append(ask);
 }
 function showQuest(q, from) {
-  if (view !== "files") showFiles();
+  if (view !== "files" && view !== "quests") showFiles();
   current = null; questFrom = from && from.isConnected ? from : null; setHash("");
   rwin.textContent = "";
   const head = el("div", "filehead"), meta = el("p", "meta"), goals = el("ul", "goals"), got = q.objectives.filter((o) => o.done).length;
@@ -1492,6 +1531,7 @@ $("#m-plants").addEventListener("click", () => showPlants(plantsKind, true));
 $("#m-photos").addEventListener("click", () => showPhotos(true));
 $("#m-map").addEventListener("click", () => showMap(true));
 $("#m-status").addEventListener("click", () => showStatus(true));
+$("#m-quests").addEventListener("click", () => showQuestLog(true));
 $("#m-about").addEventListener("click", () => showPage("about", "m-about", "About", ABOUT));
 $("#m-how").addEventListener("click", () => showPage("help", "m-how", "Help", HELP));
 
@@ -1779,6 +1819,7 @@ function linkedPost() {   /* the entry named after # in the address, if there is
   if (view === "bestiary") showBestiary(started);
   if (view === "plants") showPlants(plantsKind, started);
   if (view === "status") showStatus(started);
+  if (view === "quests") showQuestLog(started);
   if (view === "photos" || view === "album") showPhotos(started);
   if (view === "map") showMap(started);
   drawMini(); loadLand().then(drawMini); loadParty();
