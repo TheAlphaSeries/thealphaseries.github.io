@@ -190,6 +190,8 @@ content:
           values:
             - name: home
               label: Home base
+            - name: region
+              label: Region (a whole country or area, with its landmarks on the map)
             - name: fishing
               label: Fishing spot
             - name: landmark

@@ -206,7 +206,7 @@ h3 { font-size: 12px; line-height: 1.7; color: var(--accent); margin-top: 8px; }
 .chip[aria-pressed="true"] { color: var(--fg); opacity: 1; }
 .chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .dot { display: inline-block; width: 10px; height: 10px; flex: none; }
-.dot.fishing, .kind.fishing { color: #6fb7ff; } .dot.landmark, .kind.landmark { color: #ffd257; } .dot.home, .kind.home { color: #ffffff; } .dot.hike, .kind.hike { color: #7fd68a; } .dot.trip, .kind.trip { color: #c79bff; }
+.dot.fishing, .kind.fishing { color: #6fb7ff; } .dot.landmark, .kind.landmark { color: #ffd257; } .dot.home, .kind.home { color: #ffffff; } .dot.region, .kind.region { color: #ff8a5c; } .dot.hike, .kind.hike { color: #7fd68a; } .dot.trip, .kind.trip { color: #c79bff; }
 .dot { background: currentColor; }
 .maplist { margin-top: 16px; }
 .place { grid-template-columns: 18px 10px minmax(0, 1fr) auto; }
@@ -779,6 +779,7 @@ function showAlbum(a) {
    blown up so it looks like a game's world map. Pins come from the places/ folder. */
 const KINDS = {   /* label, colour, and a 7x7 picture for the pin */
   home: ["Home", "#ffffff", ["...#...", "..###..", ".#####.", "#######", ".#####.", ".##.##.", ".##.##."]],
+  region: ["Regions", "#ff8a5c", ["##.....", "######.", "#######", "######.", "##.....", "##.....", "##....."]],
   fishing: ["Fishing", "#6fb7ff", [".......", "#..###.", "#######", "#######", "#######", "#..###.", "......."]],
   landmark: ["Landmarks", "#ffd257", [".#####.", ".#####.", ".#####.", ".#.....", ".#.....", ".#.....", "###...."]],
   hike: ["Hikes", "#7fd68a", ["...#...", "..###..", "..###..", ".#####.", ".#####.", "#######", "#######"]],
@@ -811,7 +812,8 @@ function loadLand() {
         return p;
       };
       const rect = (box) => { const a = merc(box[3], box[0]), z = merc(box[1], box[2]); return [a[0], a[1], z[0] - a[0], z[1] - a[1]]; };   /* [west, south, east, north] to x, y, width, height */
-      bay = { box: rect(b.box), path: trace(b.bay), cityBox: rect(b.cityBox), city: trace(b.city), home: trace(b.home) };
+      bay = { box: rect(b.box), path: trace(b.bay), cityBox: rect(b.cityBox), city: trace(b.city), home: trace(b.home),
+        more: (Array.isArray(b.more) ? b.more : []).map((m) => ({ box: rect(m.box), path: trace(m.rings) })) };   /* other stretches of coast drawn finely (Hong Kong, Shanghai) */
     }).catch(() => {});
   }).catch(() => { landWait = null; });   /* no coastline: the map still works, as pins on open sea */
   return landWait;
@@ -857,6 +859,14 @@ function makeMap(canvas, cell, small) {
         c.fillStyle = "#ffff00"; c.fill(bay.home);
         c.restore();
       }
+      if (bay && v.scale > w * 6) for (const m of bay.more) {
+        if (v.x + reach < m.box[0] || v.x - reach > m.box[0] + m.box[2]) continue;
+        c.save(); c.setTransform(v.scale, 0, 0, v.scale, w / 2 - v.x * v.scale, h / 2 - v.y * v.scale);
+        c.beginPath(); c.rect(m.box[0], m.box[1], m.box[2], m.box[3]); c.clip();
+        c.fillStyle = "#000"; c.fillRect(m.box[0], m.box[1], m.box[2], m.box[3]);
+        c.fillStyle = "#fff"; c.fill(m.path, "evenodd");
+        c.restore();
+      }
       c.setTransform(1, 0, 0, 1, 0, 0);
     }
     const im = c.getImageData(0, 0, w, h), d = im.data, land = new Uint8Array(w * h), edgeCol = small ? COAST_DIM : COAST;
@@ -870,15 +880,6 @@ function makeMap(canvas, cell, small) {
     c.putImageData(im, 0, 0);
     v.hit = [];
     const pins = v.pins.filter((p) => p.lat != null), last = pins.indexOf(v.chosen);
-    v.marks = [];
-    if (!small && v.scale >= w * 200) for (const p of v.pins) for (const l of p.landmarks || []) {   /* a small box for each landmark that has its own spot: green and ticked if visited, hollow if not */
-      if (l.lat == null) continue;
-      const [x, y] = spot(l); if (x < -4 || y < -4 || x > w + 4 || y > h + 4) continue;
-      c.fillStyle = l === v.glow ? "#fff" : "#000"; c.fillRect(x - 3, y - 3, 7, 7);
-      if (l.visited) { c.fillStyle = "#7fd68a"; c.fillRect(x - 2, y - 2, 5, 5); c.fillStyle = "#0b3d16"; c.fillRect(x - 1, y, 1, 1); c.fillRect(x, y + 1, 1, 1); c.fillRect(x + 1, y, 1, 1); c.fillRect(x + 2, y - 1, 1, 1); }
-      else { c.fillStyle = "#a9adb8"; c.fillRect(x - 2, y - 2, 5, 5); c.fillStyle = "#15171c"; c.fillRect(x - 1, y - 1, 3, 3); }
-      v.marks.push([x, y, l, p]);
-    }
     c.fillStyle = small ? "#7d62b8" : "#a585e6";   /* a dotted line joins the stops of each trip, in order */
     for (const name of new Set(pins.map((p) => p.trip).filter(Boolean))) {
       const stops = tripStops(name, pins).map(spot);
@@ -904,6 +905,24 @@ function makeMap(canvas, cell, small) {
       }
       v.hit.push([x, y, p]);
     }
+    v.marks = [];
+    if (!small) for (const p of v.pins) {   /* a small box for each landmark that has its own spot: green and ticked if visited, hollow if not */
+      const spots = (p.landmarks || []).filter((l) => l.lat != null); if (!spots.length) continue;
+      if (p.spread == null) { const ms = spots.map((l) => merc(l.lat, l.lng)); p.spread = Math.max(Math.max(...ms.map((m) => m[0])) - Math.min(...ms.map((m) => m[0])), Math.max(...ms.map((m) => m[1])) - Math.min(...ms.map((m) => m[1]))); }
+      if (v.scale * p.spread < 34 && v.scale < w * 200) continue;   /* zoomed out so far they would all sit on one dot */
+      const order = spots.slice().sort((a, b) => (b === v.glow) - (a === v.glow) || b.visited - a.visited), placed = [];
+      for (const l of order) {
+        const [x, y] = spot(l); if (x < -4 || y < -4 || x > w + 4 || y > h + 4) continue;
+        if (l !== v.glow && placed.some((q) => Math.abs(q[0] - x) < 6 && Math.abs(q[1] - y) < 6)) continue;   /* too close to one already drawn: it appears when you zoom in */
+        placed.push([x, y, l, p]);
+      }
+      for (const [x, y, l] of placed.reverse()) {
+        c.fillStyle = l === v.glow ? "#fff" : "#000"; c.fillRect(x - 3, y - 3, 7, 7);
+        if (l.visited) { c.fillStyle = "#7fd68a"; c.fillRect(x - 2, y - 2, 5, 5); c.fillStyle = "#0b3d16"; c.fillRect(x - 1, y, 1, 1); c.fillRect(x, y + 1, 1, 1); c.fillRect(x + 1, y, 1, 1); c.fillRect(x + 2, y - 1, 1, 1); }
+        else { c.fillStyle = "#a9adb8"; c.fillRect(x - 2, y - 2, 5, 5); c.fillStyle = "#15171c"; c.fillRect(x - 1, y - 1, 3, 3); }
+      }
+      v.marks.push(...placed);
+    }
     if (v.after) v.after();
   }
   function fit(pins, minSpan) {   /* frame every pin, or the whole world when there are none */
@@ -922,7 +941,7 @@ function makeMap(canvas, cell, small) {
   }
   function zoomBy(factor) { const r = canvas.getBoundingClientRect(); zoomAt(r.left + r.width / 2, r.top + r.height / 2, factor); }
   function goTo(p) {   /* travel to a place: frame its own landmark markers if it has any, otherwise just move in close */
-    const spots = (p.landmarks || []).filter((l) => l.lat != null);
+    const spots = landmarksOf(p).filter((l) => l.lat != null);
     if (spots.length > 1) { fit(spots.concat(p), .0002); return; }
     if (p.lat == null) return;
     const m = merc(p.lat, p.lng); v.x = m[0]; v.y = m[1]; v.scale = Math.max(v.scale, w / .012);
@@ -937,7 +956,12 @@ function landmarkPic(icon, lit) {   /* lit: in colour (been there); otherwise a 
   rows.forEach((row, y) => { for (let i = 0; i < row.length; i++) { if (row[i] === ".") continue; x.fillStyle = lit ? (LANDMARK.pal[row[i]] || "#fff") : "#3a3d47"; x.fillRect(i, y, 1, 1); } });
   return c;
 }
-const been = (p) => p.landmarks.filter((l) => l.visited).length;
+function landmarksOf(p) {   /* a place's own landmarks; a pin with none of its own shows the ones other places have marked close by (a city inside a region) */
+  if (p.landmarks.length || p.lat == null) return p.landmarks;
+  if (!p.near) p.near = PLACES.filter((o) => o !== p).flatMap((o) => o.landmarks.filter((l) => l.lat != null && Math.abs(l.lat - p.lat) < .55 && Math.abs(l.lng - p.lng) < .5));
+  return p.near;
+}
+const been = (p) => landmarksOf(p).filter((l) => l.visited).length;
 const mapOff = new Set();   /* kinds of pin switched off with the buttons above the map */
 /* Entries, albums and fish name a place in words ("Pine Lake, California"). This finds the pin they mean. */
 function pinFor(where) {
@@ -973,7 +997,7 @@ function showMap(focusFirst, chooseFile) {
     if (tipFor !== hit[2]) {
       tipFor = hit[2]; tip.textContent = ""; tip.classList.toggle("big", !!m);
       if (m) tip.append(landmarkPic(mark.icon, mark.visited), el("span", null, mark.name), el("span", "state", mark.visited ? "Been there" : "Not yet"));
-      else tip.append(p.name + (p.landmarks.length ? "  " + been(p) + "/" + p.landmarks.length : ""));
+      else tip.append(p.name + (landmarksOf(p).length ? "  " + been(p) + "/" + landmarksOf(p).length : ""));
     }
     tip.style.left = (hit[0] / w * 100) + "%"; tip.style.top = (hit[1] / h * 100) + "%";
     tip.classList.toggle("left", hit[0] > w * .62); tip.hidden = false;
@@ -995,10 +1019,11 @@ function showMap(focusFirst, chooseFile) {
       card.append(row);
     }
     if (p.note) { const note = el("div", "post lore"); renderBody(p.note, note); card.append(note); }
-    if (p.landmarks.length) {   /* the landmarks here: in colour and ticked if visited, a dim outline if not */
+    const marks = landmarksOf(p);
+    if (marks.length) {   /* the landmarks here: in colour and ticked if visited, a dim outline if not */
       const head = el("p", "lmhead"), grid = el("ul", "lms"), done = been(p);
-      head.append(el("span", null, "Landmarks"), el("span", "lmcount", done + " / " + p.landmarks.length));
-      p.landmarks.forEach((l) => {
+      head.append(el("span", null, "Landmarks"), el("span", "lmcount", done + " / " + marks.length));
+      marks.forEach((l) => {
         const tile = el("li", "lm" + (l.visited ? " done" : ""));
         tile.append(landmarkPic(l.icon, l.visited), el("span", "lmname", l.name), el("span", "tick"));
         tile.setAttribute("aria-label", l.name + (l.visited ? ": been there" : ": not yet"));
@@ -1006,7 +1031,7 @@ function showMap(focusFirst, chooseFile) {
           tile.classList.add("spot");
           tile.addEventListener("pointerenter", () => { map.v.glow = l; map.draw(); });
           tile.addEventListener("pointerleave", () => { if (map.v.glow === l) { map.v.glow = null; map.draw(); } });
-          tile.addEventListener("click", () => { const m = merc(l.lat, l.lng); map.v.x = m[0]; map.v.y = m[1]; map.v.scale = Math.max(map.v.scale, map.cells()[0] * 1500); map.v.glow = l; mark = l; map.draw(); box.scrollIntoView({ block: "nearest", behavior: reduceMotion ? "auto" : "smooth" }); });
+          tile.addEventListener("click", () => { const m = merc(l.lat, l.lng); map.v.x = m[0]; map.v.y = m[1]; map.v.scale = Math.max(map.v.scale, map.cells()[0] * 1200); map.v.glow = l; mark = l; map.draw(); box.scrollIntoView({ block: "nearest", behavior: reduceMotion ? "auto" : "smooth" }); });
         }
         grid.append(tile);
       });
@@ -1035,9 +1060,9 @@ function showMap(focusFirst, chooseFile) {
     map.v.pins = shown; list.textContent = "";
     shown.forEach((p, i) => {
       const pick = () => { if (!quiet && b.getAttribute("aria-pressed") !== "true") choose(p, true); };
-      const b = opt(null, pick, "place"); b.dataset.place = p.file; b.addEventListener("focus", pick);
+      const b = opt(null, () => choose(p, true), "place"); b.dataset.place = p.file; b.addEventListener("focus", pick);   /* choosing a name always travels there, even if pointing at it already showed its card */
       b.addEventListener("pointerenter", (e) => { if (e.pointerType === "mouse" && map.v.chosen !== p) choose(p, false); });   /* pointing at a name shows that place */
-      b.append(el("span", "dot " + p.kind), el("span", "name", p.name), el("span", "qty", p.landmarks.length ? been(p) + "/" + p.landmarks.length : "")); b.style.setProperty("--i", Math.min(i, 6));
+      b.append(el("span", "dot " + p.kind), el("span", "name", p.name), el("span", "qty", landmarksOf(p).length ? been(p) + "/" + landmarksOf(p).length : "")); b.style.setProperty("--i", Math.min(i, 6));
       list.append(b);
     });
     if (!shown.includes(map.v.chosen)) choose(null); else choose(map.v.chosen);
@@ -1065,7 +1090,7 @@ function showMap(focusFirst, chooseFile) {
   const pinUnder = (e) => under(e, map.v.hit, 7), markUnder = (e) => under(e, map.v.marks, 4.5);
   const light = (l) => {   /* show which tile in the card belongs to the landmark being pointed at */
     card.querySelectorAll(".lm.lit").forEach((t) => t.classList.remove("lit"));
-    const p = map.v.chosen, i = l && p ? p.landmarks.indexOf(l) : -1, tile = i >= 0 && card.querySelectorAll(".lm")[i];
+    const p = map.v.chosen, i = l && p ? landmarksOf(p).indexOf(l) : -1, tile = i >= 0 && card.querySelectorAll(".lm")[i];
     if (tile) tile.classList.add("lit");
   };
   canvas.addEventListener("pointerleave", () => { if (hovered || mark) { hovered = null; mark = null; light(null); canvas.style.cursor = ""; map.draw(); } });
@@ -1103,7 +1128,7 @@ function showMap(focusFirst, chooseFile) {
   canvas.addEventListener("wheel", (e) => { if (!e.ctrlKey && !e.metaKey) return; e.preventDefault(); map.zoomAt(e.clientX, e.clientY, Math.exp(-e.deltaY * .01)); }, { passive: false });
   canvas.addEventListener("dblclick", (e) => { e.preventDefault(); map.zoomAt(e.clientX, e.clientY, 2); });
   wrap.append(list, card);
-  const marks = PLACES.reduce((n, p) => n + p.landmarks.length, 0), seen = PLACES.reduce((n, p) => n + been(p), 0);
+  const marks = PLACES.reduce((n, p) => n + p.landmarks.length, 0), seen = PLACES.reduce((n, p) => n + p.landmarks.filter((l) => l.visited).length, 0);
   main.append(el("p", "label", "Map"), el("p", "tally", count(PLACES.length, "place") + (marks ? "  /  " + seen + " of " + marks + " landmarks" : "")), chips, box, wrap, backRow());
   refresh(); map.fit(map.v.pins, .01);
   const homePin = PLACES.find((p) => p.kind === "home" && p.lat != null && !mapOff.has("home"));   /* with nothing else asked for, the map opens on home */
