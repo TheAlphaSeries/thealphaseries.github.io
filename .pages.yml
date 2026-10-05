@@ -367,6 +367,20 @@ content:
         type: date
         options:
           format: yyyy-MM-dd
+      - name: roles
+        label: Posts in the company (optional - friends can ask for one by name)
+        type: object
+        list: true
+        fields:
+          - name: name
+            label: Post (e.g. Land Surveyor)
+            type: string
+          - name: about
+            label: What is wanted of them (one line)
+            type: string
+          - name: held
+            label: Already held by (optional - leave empty if the post is open)
+            type: string
       - name: objectives
         label: Objectives (tick them off as you go)
         type: object

@@ -3,7 +3,7 @@
 //
 //   Anyone:
 //     GET  /api/party          the names accepted onto each quest
-//     POST /api/apply          ask to join a quest: { quest, name, note }
+//     POST /api/apply          ask to join a quest, optionally in a named post: { quest, name, note, role }
 //   The keeper only (must send the passphrase):
 //     GET  /api/keeper/state   whether a passphrase has been chosen yet
 //     POST /api/keeper/setup   choose the passphrase, once, with the one-time setup code
@@ -61,8 +61,13 @@ async function openQuests(request, env) {   // the quests that can be joined rig
   try {
     const r = await env.ASSETS.fetch(new Request(new URL("/posts.json", request.url)));
     const quests = (await r.json()).quests;
-    return (Array.isArray(quests) ? quests : []).filter((q) => q && q.status !== "completed" && typeof q.file === "string").map((q) => q.file);
-  } catch (e) { return []; }
+    const open = {};   // quest -> the posts in it that a friend may ask for
+    for (const q of Array.isArray(quests) ? quests : []) {
+      if (!q || q.status === "completed" || typeof q.file !== "string") continue;
+      open[q.file] = (Array.isArray(q.roles) ? q.roles : []).filter((r) => r && typeof r.name === "string" && !r.held).map((r) => r.name);
+    }
+    return open;
+  } catch (e) { return {}; }
 }
 
 async function api(request, env, path) {
@@ -70,22 +75,26 @@ async function api(request, env, path) {
   if (!db) return json({ error: "The ledger is not connected." }, 503);
 
   if (path === "/api/party" && method === "GET") {
-    const { results } = await db.prepare("SELECT quest, name FROM applications WHERE status = 'accepted' ORDER BY created").all();
-    const party = {}; for (const r of results) (party[r.quest] = party[r.quest] || []).push(r.name);
+    const { results } = await db.prepare("SELECT quest, name, role FROM applications WHERE status = 'accepted' ORDER BY created").all();
+    const party = {}; for (const r of results) (party[r.quest] = party[r.quest] || []).push({ name: r.name, role: r.role || "" });
     return json({ party }, 200, { "cache-control": "public, max-age=30" });
   }
 
   if (path === "/api/apply" && method === "POST") {
     const b = await body(request); if (!b) return json({ error: "That petition could not be read." }, 400);
     if (clean(b.website, 10)) return json({ ok: true });   // a field people never see; only a machine fills it in
-    const quest = clean(b.quest, 80), name = clean(b.name, 40), note = clean(b.note, 200);
+    const quest = clean(b.quest, 80), name = clean(b.name, 40), note = clean(b.note, 200), asked = clean(b.role, 60);
     if (!name || !/^[a-z0-9][a-z0-9-]*$/.test(quest)) return json({ error: "A petition needs a name." }, 400);
-    if (!(await openQuests(request, env)).includes(quest)) return json({ error: "That quest is not taking companions." }, 400);
+    const open = await openQuests(request, env);
+    if (!Object.prototype.hasOwnProperty.call(open, quest)) return json({ error: "That quest is not taking companions." }, 400);
+    const role = asked ? open[quest].find((r) => r.toLowerCase() === asked.toLowerCase()) : "";
+    if (asked && !role) return json({ error: "There is no such post in this company." }, 400);
+    if (role && (await db.prepare("SELECT id FROM applications WHERE quest = ? AND lower(role) = lower(?) AND status = 'accepted'").bind(quest, role).first())) return json({ error: "That post has been filled." }, 409);
     const now = Date.now();
     const busy = await db.prepare("SELECT (SELECT COUNT(*) FROM applications WHERE status = 'pending') AS waiting, (SELECT COUNT(*) FROM applications WHERE created > ?) AS lately").bind(now - 3600000).first();
     if (busy.waiting >= 150 || busy.lately >= 40) return json({ error: "The keeper's desk is buried. Try again in a while." }, 429);
     const twin = await db.prepare("SELECT id FROM applications WHERE quest = ? AND lower(name) = lower(?)").bind(quest, name).first();
-    if (!twin) await db.prepare("INSERT INTO applications (quest, name, note, status, created) VALUES (?, ?, ?, 'pending', ?)").bind(quest, name, note, now).run();
+    if (!twin) await db.prepare("INSERT INTO applications (quest, name, note, role, status, created) VALUES (?, ?, ?, ?, 'pending', ?)").bind(quest, name, note, role || "", now).run();
     return json({ ok: true });
   }
 
@@ -108,13 +117,19 @@ async function api(request, env, path) {
     if (await locked(db, request)) return json({ error: "Too many wrong tries. Wait a quarter of an hour." }, 429);
     if (!(await isKeeper(request, db))) return json({ error: "Wrong passphrase." }, 401);
     if (path === "/api/keeper/list" && method === "GET") {
-      const { results } = await db.prepare("SELECT id, quest, name, note, status, created FROM applications ORDER BY status DESC, created DESC LIMIT 500").all();
+      const { results } = await db.prepare("SELECT id, quest, name, note, role, status, created FROM applications ORDER BY status DESC, created DESC LIMIT 500").all();
       return json({ petitions: results });
     }
     if (path === "/api/keeper/decide" && method === "POST") {
       const b = await body(request), id = b && Number.isInteger(b.id) ? b.id : 0;
       if (!id || !["accept", "remove"].includes(b.action)) return json({ error: "Nothing to do." }, 400);
-      if (b.action === "accept") await db.prepare("UPDATE applications SET status = 'accepted' WHERE id = ?").bind(id).run();
+      if (b.action === "accept") {
+        const row = await db.prepare("SELECT quest, role FROM applications WHERE id = ?").bind(id).first();
+        if (!row) return json({ error: "That petition is gone." }, 404);
+        const holder = row.role ? await db.prepare("SELECT name FROM applications WHERE quest = ? AND lower(role) = lower(?) AND status = 'accepted' AND id != ?").bind(row.quest, row.role, id).first() : null;
+        if (holder) return json({ error: "That post is already held by " + holder.name + ". Remove them first, or deny this one." }, 409);   // one holder to a post
+        await db.prepare("UPDATE applications SET status = 'accepted' WHERE id = ?").bind(id).run();
+      }
       else await db.prepare("DELETE FROM applications WHERE id = ?").bind(id).run();   // denied or dismissed: gone, not filed away
       return json({ ok: true });
     }

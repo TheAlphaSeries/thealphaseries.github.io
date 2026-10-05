@@ -129,6 +129,9 @@ if (existsSync("quests")) {
       // the game side of a quest: how hard, what sort, what it pays. The day it was finished is in the past, so it may be shown.
       difficulty: Number.isFinite(parseInt(meta.difficulty, 10)) ? parseInt(meta.difficulty, 10) : null, kind: str(meta.kind).trim().toLowerCase(), reward: str(meta.reward).trim(),
       exp: Number.isFinite(parseInt(meta.exp, 10)) ? parseInt(meta.exp, 10) : null, completed: /^\d{4}-\d{2}-\d{2}/.test(str(meta.completed)) ? str(meta.completed).slice(0, 10) : "",
+      // posts in the company that a friend can ask for by name; "held" marks one already taken (by Chris, say)
+      roles: (Array.isArray(meta.roles) ? meta.roles : []).filter((r) => r && typeof r === "object" && String(r.name || "").trim())
+        .map((r) => ({ name: String(r.name).trim(), about: String(r.about || "").trim(), held: String(r.held || "").trim() })),
       objectives: (Array.isArray(meta.objectives) ? meta.objectives : []).filter((o) => o && typeof o === "object" && String(o.text || "").trim())
         .map((o) => ({ text: String(o.text).trim(), done: /^(true|yes|1)$/i.test(String(o.done || "").trim()) })) });
   }

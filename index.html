@@ -219,6 +219,12 @@ h3 { font-size: 12px; line-height: 1.7; color: var(--accent); margin-top: 8px; }
 .party { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 8px; }
 .party li { padding: 2px 10px; border: 2px solid rgba(255, 255, 255, .45); border-radius: 6px; font-size: 17px; overflow-wrap: anywhere; min-width: 0; }
 .partynote { margin: 8px 0 0; }
+.posts { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 8px; }
+.posts li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 14px; align-items: center; padding: 8px 10px; border: 2px solid rgba(255, 255, 255, .35); border-radius: 6px; }
+.posts .pwords { display: grid; gap: 2px; min-width: 0; } .posts .pname { font-family: var(--display); font-size: 11px; line-height: 1.7; } .posts .pabout { color: var(--dim); font-size: 15px; line-height: 1.35; overflow-wrap: anywhere; }
+.posts .pholder { font-size: 16px; text-align: right; overflow-wrap: anywhere; min-width: 0; } .posts .held .pholder { color: #7fd68a; } .posts .vacant .pholder { color: #ffd257; }
+.posts .papply { grid-column: 1 / -1; justify-self: start; margin-top: 4px; }
+.petition select { display: block; width: 100%; max-width: 420px; box-sizing: border-box; font: inherit; font-size: 17px; padding: 8px 10px; border: 2px solid rgba(255, 255, 255, .6); border-radius: 6px; background: #0a0f3c; color: inherit; }
 .petition { margin: 12px 0 4px; }
 .petition label { display: block; margin: 10px 0 4px; color: var(--dim); font-size: 15px; }
 .petition input { display: block; width: 100%; max-width: 420px; box-sizing: border-box; font: inherit; font-size: 17px; padding: 8px 10px; border: 2px solid rgba(255, 255, 255, .6); border-radius: 6px; background: rgba(0, 0, 20, .45); color: inherit; }
@@ -526,7 +532,7 @@ Nearly everything here pays experience: an entry written, a species caught (rare
 
 ## Quests
 
-The Quests tab is the full log: what is in hand, and what has been fulfilled. Each quest has a difficulty and pays experience when it is finished; harder ones and Great Works pay more. Open a quest to see who travels with it. To ask to join, choose Petition to join and give a name. No account is needed, and only what you write is kept. The keeper accepts or declines in his own time.`;
+The Quests tab is the full log: what is in hand, and what has been fulfilled. Each quest has a difficulty and pays experience when it is finished; harder ones and Great Works pay more. Open a quest to see who travels with it. Some quests have named posts to fill: choose Apply beside an open one. Otherwise choose Petition to join. Either way you only give a name. No account is needed, and only what you write is kept. The keeper accepts or declines in his own time.`;
 
 /* ==========================================================================
    2. HELPERS
@@ -639,12 +645,13 @@ function questTags(q) {   /* one line: what sort, how hard, what it pays */
 }
 function questRow(q, i) {
   const got = q.objectives.filter((o) => o.done).length, b = opt(null, () => showQuest(q, b), "quest" + (q.status === "completed" ? " fulfilled" : "")), bar = el("span", "qbar");
-  const names = owns(PARTY, q.file) ? PARTY[q.file] : [];
+  const ro = roster(q), names = (owns(PARTY, q.file) ? PARTY[q.file] : []).map((m) => m.name);
   q.objectives.slice(0, 24).forEach((o) => bar.append(el("i", o.done ? "on" : null)));
   b.append(el("span", "name", q.title), el("span", "when", q.status === "completed" ? "Fulfilled" + (q.completed ? " " + day(q.completed) : "") : q.when), questTags(q), bar, el("span", "qcount", q.objectives.length ? got + "/" + q.objectives.length : ""));
   if (q.reward) b.append(el("span", "qparty", "Spoils: " + q.reward));
   if (names.length) b.append(el("span", "qparty", "Company of " + (names.length + 1) + ": the keeper, " + names.join(", ")));
-  else if (partyOpen && q.status !== "completed") b.append(el("span", "qparty", "Seeking companions"));
+  else if (partyOpen && q.status !== "completed" && !ro.posts.length) b.append(el("span", "qparty", "Seeking companions"));
+  if (ro.posts.length) b.append(el("span", "qparty", "Posts: " + ro.filled + " of " + ro.posts.length + " filled" + (ro.filled < ro.posts.length && q.status !== "completed" ? "  -  seeking " + ro.posts.filter((p) => !p.holder).map((p) => p.name).join(", ") : "")));
   b.style.setProperty("--i", Math.min(i, 6));
   return b;
 }
@@ -1046,41 +1053,64 @@ function loadParty() {
   return fetch("/api/party", { cache: "no-cache" }).then((r) => (r.ok ? r.json() : null)).then((d) => {
     if (!d || !d.party || typeof d.party !== "object") return;
     PARTY = {}; partyOpen = true;
-    for (const k of Object.keys(d.party)) if (Array.isArray(d.party[k])) PARTY[k] = d.party[k].map((n) => text(n).trim().slice(0, 40)).filter(Boolean).slice(0, 60);
+    for (const k of Object.keys(d.party)) if (Array.isArray(d.party[k])) PARTY[k] = d.party[k].map((m) => ({ name: text(m && m.name).trim().slice(0, 40), role: text(m && m.role).trim().slice(0, 60) })).filter((m) => m.name).slice(0, 60);
     if (view === "quests" && reader.hidden && !main.contains(document.activeElement)) showQuestLog(false);   /* the log is up: redraw it with the companies filled in */
   }).catch(() => {});
 }
+/* Who holds each post of a quest: the name written into the quest itself ("held"), or else the accepted
+   companion who asked for it. Companions who asked for no post, or for one that no longer exists, are "others". */
+function roster(q) {
+  const members = owns(PARTY, q.file) ? PARTY[q.file] : [], used = new Set();
+  const posts = q.roles.map((r) => { const m = r.held ? null : members.find((x) => !used.has(x) && x.role.toLowerCase() === r.name.toLowerCase()); if (m) used.add(m); return { name: r.name, about: r.about, holder: r.held || (m ? m.name : "") }; });
+  return { posts, others: members.filter((m) => !used.has(m)).map((m) => m.name), filled: posts.filter((p) => p.holder).length };
+}
 function company(q) {
-  const names = owns(PARTY, q.file) ? PARTY[q.file] : [], open = partyOpen && q.file && q.status !== "completed";
-  if (!names.length && !open) return;   /* nothing to show, and no server to petition */
-  const head = el("p", "goalhead"); head.append(el("span", null, "Company"), el("span", "lmcount", names.length ? String(names.length) : ""));
+  const { posts, others } = roster(q), open = partyOpen && q.file && q.status !== "completed";
+  if (!posts.length && !others.length && !open) return;   /* nothing to show, and no server to petition */
+  const head = el("p", "goalhead"); head.append(el("span", null, "Company"), el("span", "lmcount", posts.length ? posts.filter((p) => p.holder).length + " / " + posts.length + " posts" : others.length ? String(others.length) : ""));
   rwin.append(head);
-  if (names.length) { const list = el("ul", "party"); names.forEach((n) => list.append(el("li", null, n))); rwin.append(list); }
-  else rwin.append(el("p", "sub partynote", "None yet has thrown in with this venture."));
-  if (!open) return;
-  const box = el("div", "petition"); rwin.append(box);
-  if (petitioned().includes(q.file)) { box.append(el("p", "sub partynote", "Your petition lies on the keeper's desk.")); return; }
-  const ask = opt("Petition to join", () => {
+  const box = el("div", "petition"), asked = petitioned().includes(q.file);
+  const form = (want) => {   /* the petition form; want: the post asked for, if the visitor chose one */
     box.textContent = "";
-    const form = el("form"), name = el("input"), note = el("input"), trap = el("input"), note2 = el("p", "sub partynote"), send = opt("Send petition"), l1 = el("label", null, "The name you travel under"), l2 = el("label", null, "A word in your favour (optional)");
+    const f = el("form"), name = el("input"), note = el("input"), trap = el("input"), note2 = el("p", "sub partynote"), send = opt("Send petition"), l1 = el("label", null, "The name you travel under"), l2 = el("label", null, "A word in your favour (optional)");
+    const free = posts.filter((p) => !p.holder), pick = el("select"), l0 = el("label", null, "The post you seek");
+    free.forEach((p) => { const o = el("option", null, p.name); o.value = p.name; pick.append(o); });
+    const none = el("option", null, "No particular post"); none.value = ""; pick.append(none); pick.value = want || (free[0] ? free[0].name : ""); pick.id = "prole"; l0.htmlFor = "prole";
     name.type = "text"; name.maxLength = 40; name.required = true; name.autocomplete = "off"; name.id = "pname"; l1.htmlFor = "pname";
     note.type = "text"; note.maxLength = 200; note.autocomplete = "off"; note.id = "pnote"; l2.htmlFor = "pnote";
     trap.type = "text"; trap.name = "website"; trap.tabIndex = -1; trap.autocomplete = "off"; trap.className = "trap"; trap.setAttribute("aria-hidden", "true");   /* people never see this; only a machine fills it in */
     send.type = "submit"; note2.setAttribute("role", "status"); note2.textContent = "Only what you write here is kept. The keeper decides at his leisure.";
-    form.append(l1, name, l2, note, trap, send, note2); box.append(form); name.focus();
-    form.addEventListener("submit", (e) => {
+    if (free.length) f.append(l0, pick);
+    f.append(l1, name, l2, note, trap, send, note2); box.append(f); name.focus();
+    f.addEventListener("submit", (e) => {
       e.preventDefault(); if (!name.value.trim() || send.disabled) return;
       send.disabled = true; note2.textContent = "Sending...";
-      fetch("/api/apply", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ quest: q.file, name: name.value, note: note.value, website: trap.value }) })
+      fetch("/api/apply", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ quest: q.file, name: name.value, note: note.value, role: free.length ? pick.value : "", website: trap.value }) })
         .then((r) => r.json().catch(() => ({})).then((d) => ({ ok: r.ok, d })))
         .then(({ ok, d }) => {
           if (!ok) { send.disabled = false; note2.textContent = text(d.error) || "The petition could not be carried. Try again."; return; }
           store.set("petitioned", JSON.stringify(petitioned().concat(q.file).slice(-40)));
           box.textContent = ""; box.append(el("p", "sub partynote", "Your petition has been carried to the keeper. He will consider it at his leisure, which is considerable."));
+          rwin.querySelectorAll(".posts .opt").forEach((b) => b.remove());
         }).catch(() => { send.disabled = false; note2.textContent = "The petition could not be carried. Try again."; });
     });
-  });
-  box.append(ask);
+  };
+  if (posts.length) {   /* the named posts: who holds each, or a way to ask for it */
+    const list = el("ul", "posts");
+    posts.forEach((p) => {
+      const li = el("li", p.holder ? "held" : "vacant"), words = el("span", "pwords"); words.append(el("span", "pname", p.name)); if (p.about) words.append(el("span", "pabout", p.about));
+      li.append(words, el("span", "pholder", p.holder || "Open"));
+      if (!p.holder && open && !asked) li.append(opt("Apply", () => form(p.name), "papply"));
+      list.append(li);
+    });
+    rwin.append(list);
+  }
+  if (others.length) { const list = el("ul", "party"); others.forEach((n) => list.append(el("li", null, n))); if (posts.length) rwin.append(el("p", "sub partynote", "Also of the company")); rwin.append(list); }
+  else if (!posts.length) rwin.append(el("p", "sub partynote", "None yet has thrown in with this venture."));
+  if (!open) return;
+  rwin.append(box);
+  if (asked) { box.append(el("p", "sub partynote", "Your petition lies on the keeper's desk.")); return; }
+  box.append(opt(posts.length ? "Petition without a post" : "Petition to join", () => form("")));
 }
 function showQuest(q, from) {
   if (view !== "files" && view !== "quests") showFiles();
@@ -1694,7 +1724,7 @@ document.addEventListener("keydown", (e) => {
     return;
   }
   const reading = !reader.hidden;
-  if (e.target && /^(INPUT|TEXTAREA)$/.test(e.target.tagName) && e.key !== "Escape") return;   /* typing in a box: the arrow keys belong to the text */
+  if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) && e.key !== "Escape") return;   /* typing in a box: the arrow keys belong to the text */
   if (e.key === "Escape") { if (reading) closePost(); else if (view === "album") showPhotos(true); else if (view !== "files") showFiles(true); return; }
   const dir = { ArrowDown: 1, ArrowUp: -1 }[e.key];
   const side = e.key === "ArrowLeft" || e.key === "ArrowRight";
@@ -1949,6 +1979,7 @@ function linkedPost() {   /* the entry named after # in the address, if there is
     QUESTS = (Array.isArray(data.quests) ? data.quests : []).filter((q) => q && typeof q === "object" && text(q.title).trim()).map((q) => ({
       file: text(q.file), title: text(q.title).trim(), status: text(q.status) === "completed" ? "completed" : "active",
       difficulty: Math.min(5, Math.max(1, Math.round(amount(q.difficulty) || 2))), kind: owns(QUEST_KINDS, text(q.kind)) ? text(q.kind) : "side", reward: text(q.reward).trim(),
+      roles: (Array.isArray(q.roles) ? q.roles : []).filter((r) => r && typeof r === "object" && text(r.name).trim()).slice(0, 12).map((r) => ({ name: text(r.name).trim().slice(0, 60), about: text(r.about).trim(), held: text(r.held).trim().slice(0, 40) })),
       exp: typeof q.exp === "number" && Number.isFinite(q.exp) ? Math.min(9999, Math.max(0, Math.round(q.exp))) : null, completed: /^\d{4}-\d{2}-\d{2}/.test(text(q.completed)) ? text(q.completed).slice(0, 10) : "", order: typeof q.order === "number" && Number.isFinite(q.order) ? q.order : 1e9, when: text(q.when), place: text(q.place), body: text(q.body),
       objectives: (Array.isArray(q.objectives) ? q.objectives : []).filter((o) => o && typeof o === "object" && text(o.text).trim()).map((o) => ({ text: text(o.text).trim(), done: o.done === true })) }))
       .sort((a, b) => a.order - b.order || a.title.localeCompare(b.title));

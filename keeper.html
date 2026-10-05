@@ -56,7 +56,7 @@ async function call(path, data) {
   const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || "Something went wrong."); return j;
 }
 function row(p, waiting) {
-  const li = el("li"); li.append(el("div", "who", p.name), el("div", "q", (titles[p.quest] || p.quest) + "  -  " + new Date(p.created).toLocaleDateString()));
+  const li = el("li"); li.append(el("div", "who", p.name + (p.role ? "  -  " + p.role : "")), el("div", "q", (titles[p.quest] || p.quest) + (p.role ? "" : "  -  no particular post") + "  -  " + new Date(p.created).toLocaleDateString()));
   if (p.note) li.append(el("div", "note", "“" + p.note + "”"));
   const act = async (action) => { try { await call("/api/keeper/decide", { id: p.id, action }); await load(); } catch (e) { alert(e.message); } };
   if (waiting) { const yes = el("button", null, "Accept"); yes.type = "button"; yes.onclick = () => act("accept"); li.append(yes); }
