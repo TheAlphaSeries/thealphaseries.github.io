@@ -1939,5 +1939,71 @@
       "note": "Three thousand pillars of stone stand here in a sea of mist, as though some sorcerer had begun a forest and lost interest before the leaves. The inhabitants have since attached elevators to the cliffs and paved the abysses with glass, on the theory that vertigo may be charged for.",
       "landmarks": []
     }
+  ],
+  "quests": [
+    {
+      "file": "hawaii",
+      "title": "The Islands of Fire",
+      "status": "active",
+      "start": "2026-10-19",
+      "end": "2026-10-28",
+      "when": "",
+      "place": "",
+      "body": "Far out upon the western ocean lies a chain of islands that the sea did not want and the earth insisted upon. One of them is still under construction: the ground there glows at night, and the inhabitants make offerings to the mountain and build their houses elsewhere.",
+      "objectives": [
+        {
+          "text": "Stand at the rim of Kilauea",
+          "done": false
+        },
+        {
+          "text": "Climb Diamond Head",
+          "done": false
+        },
+        {
+          "text": "Pass a night in Volcano Village",
+          "done": false
+        },
+        {
+          "text": "Photograph a field of new lava",
+          "done": false
+        },
+        {
+          "text": "Visit the Bishop Museum",
+          "done": false
+        }
+      ]
+    },
+    {
+      "file": "mammoth",
+      "title": "The Cold Lakes of Mammoth",
+      "status": "active",
+      "start": "2026-11-14",
+      "end": "2026-11-15",
+      "when": "Second weekend of November",
+      "place": "",
+      "body": "Eight travelers go up into the high country in the last days of the season, when the aspens have spent their gold and the lakes are making up their minds to freeze. The trout there are said to be fat, slow, and of the opinion that the year's fishing is over. They are to be corrected.",
+      "objectives": [
+        {
+          "text": "Land a brown trout",
+          "done": false
+        },
+        {
+          "text": "Land a brook trout",
+          "done": false
+        },
+        {
+          "text": "Fish Lake Mary from a boat",
+          "done": false
+        },
+        {
+          "text": "Walk the loop at Convict Lake",
+          "done": false
+        },
+        {
+          "text": "Endure one dawn below freezing without complaint",
+          "done": false
+        }
+      ]
+    }
   ]
 }
