@@ -800,7 +800,44 @@
       "photo": "",
       "trip": "China and Hong Kong",
       "stop": 1,
-      "note": ""
+      "note": "A city of teahouses, peppercorns and deliberate idleness, where the citizens have raised the afternoon nap to a civic art. The cuisine is designed to numb the mouth so that the visitor cannot complain of the heat, and the district's most celebrated residents are black and white, eat only bamboo, and decline all interviews.",
+      "landmarks": [
+        {
+          "name": "Giant Panda Base",
+          "icon": "panda",
+          "visited": true
+        },
+        {
+          "name": "People's Park Teahouse",
+          "icon": "cup",
+          "visited": true
+        },
+        {
+          "name": "Kuanzhai Alleys",
+          "icon": "house",
+          "visited": true
+        },
+        {
+          "name": "Wuhou Shrine",
+          "icon": "pagoda",
+          "visited": true
+        },
+        {
+          "name": "Jinli Street",
+          "icon": "lantern",
+          "visited": true
+        },
+        {
+          "name": "Anshun Bridge",
+          "icon": "bridge",
+          "visited": true
+        },
+        {
+          "name": "Leshan Giant Buddha",
+          "icon": "buddha",
+          "visited": false
+        }
+      ]
     },
     {
       "file": "chongqing",
@@ -812,7 +849,39 @@
       "photo": "",
       "trip": "China and Hong Kong",
       "stop": 3,
-      "note": ""
+      "note": "A city built on the theory that the ground is optional. Its towers climb out of the fog at every angle, its trains pass through the apartments of the citizens without apology, and what the map calls the first floor may be the twentieth upon inquiry.",
+      "landmarks": [
+        {
+          "name": "Hongya Cave",
+          "icon": "house",
+          "visited": true
+        },
+        {
+          "name": "Liziba Station",
+          "icon": "tram",
+          "visited": true
+        },
+        {
+          "name": "Yangtze Cableway",
+          "icon": "cablecar",
+          "visited": true
+        },
+        {
+          "name": "Shancheng Alley",
+          "icon": "lantern",
+          "visited": true
+        },
+        {
+          "name": "Jiefangbei",
+          "icon": "skyline",
+          "visited": true
+        },
+        {
+          "name": "Ciqikou Old Town",
+          "icon": "pagoda",
+          "visited": false
+        }
+      ]
     },
     {
       "file": "guangzhou",
@@ -824,7 +893,39 @@
       "photo": "",
       "trip": "China and Hong Kong",
       "stop": 5,
-      "note": ""
+      "note": "An old trading port where anything may be had for a price and the price is never the first one mentioned. Jade is weighed here by the hundredweight, breakfast is served in forty small baskets, and perfume is studied with the gravity other cities reserve for law.",
+      "landmarks": [
+        {
+          "name": "Hualin Jade Market",
+          "icon": "gem",
+          "visited": true
+        },
+        {
+          "name": "Xuelei Fragrance Museum",
+          "icon": "museum",
+          "visited": true
+        },
+        {
+          "name": "Dongshankou",
+          "icon": "house",
+          "visited": true
+        },
+        {
+          "name": "Canton Tower",
+          "icon": "tower",
+          "visited": false
+        },
+        {
+          "name": "Chen Clan Ancestral Hall",
+          "icon": "pagoda",
+          "visited": false
+        },
+        {
+          "name": "Shamian Island",
+          "icon": "tree",
+          "visited": false
+        }
+      ]
     },
     {
       "file": "hattiesburg",
@@ -836,7 +937,29 @@
       "photo": "",
       "trip": "New Orleans to Meridian",
       "stop": 2,
-      "note": ""
+      "note": "A pine-country town at the meeting of two railways, called the Hub City by those who feel the title requires no further defense. The traveler finds here a long green trail where the trains once ran, and a museum kept in an alley.",
+      "landmarks": [
+        {
+          "name": "Longleaf Trace",
+          "icon": "tree",
+          "visited": false
+        },
+        {
+          "name": "Pocket Museum",
+          "icon": "museum",
+          "visited": false
+        },
+        {
+          "name": "The Lucky Rabbit",
+          "icon": "house",
+          "visited": false
+        },
+        {
+          "name": "Hattiesburg Zoo",
+          "icon": "tree",
+          "visited": false
+        }
+      ]
     },
     {
       "file": "hong-kong",
@@ -848,7 +971,44 @@
       "photo": "",
       "trip": "China and Hong Kong",
       "stop": 6,
-      "note": ""
+      "note": "A city stacked upon a rock, where the towers crowd to the water's edge like spectators at an execution. A green ferry has crossed the harbor every few minutes for longer than anyone can recall, and at night the whole place is lit as if to signal something very far away.",
+      "landmarks": [
+        {
+          "name": "Victoria Peak",
+          "icon": "peak",
+          "visited": true
+        },
+        {
+          "name": "Star Ferry",
+          "icon": "boat",
+          "visited": true
+        },
+        {
+          "name": "Nan Lian Garden",
+          "icon": "pagoda",
+          "visited": true
+        },
+        {
+          "name": "Temple Street Night Market",
+          "icon": "lantern",
+          "visited": true
+        },
+        {
+          "name": "Man Wah Lane",
+          "icon": "house",
+          "visited": true
+        },
+        {
+          "name": "PMQ",
+          "icon": "museum",
+          "visited": true
+        },
+        {
+          "name": "Tian Tan Buddha",
+          "icon": "buddha",
+          "visited": false
+        }
+      ]
     },
     {
       "file": "lake-chabot",
@@ -860,7 +1020,24 @@
       "photo": "",
       "trip": "",
       "stop": null,
-      "note": ""
+      "note": "A reservoir in the eastern hills, dug in a former age to water a city and since given over to anglers, who line its banks at dawn in attitudes of patient suspicion. The catfish arrive by truck, a fact the catfish do not discuss.",
+      "landmarks": [
+        {
+          "name": "The Marina",
+          "icon": "boat",
+          "visited": true
+        },
+        {
+          "name": "The Dam",
+          "icon": "bridge",
+          "visited": false
+        },
+        {
+          "name": "Honker Bay",
+          "icon": "lake",
+          "visited": false
+        }
+      ]
     },
     {
       "file": "meridian",
@@ -872,7 +1049,29 @@
       "photo": "",
       "trip": "New Orleans to Meridian",
       "stop": 3,
-      "note": ""
+      "note": "Once the largest city of its state and still inclined to mention it. An antique carousel turns in the park as it has for a century, the father of country music is remembered in a small museum, and one tall ornamented tower surveys the rest with composure.",
+      "landmarks": [
+        {
+          "name": "Dentzel Carousel",
+          "icon": "carousel",
+          "visited": false
+        },
+        {
+          "name": "The MAX",
+          "icon": "museum",
+          "visited": false
+        },
+        {
+          "name": "Threefoot Building",
+          "icon": "skyline",
+          "visited": false
+        },
+        {
+          "name": "Jimmie Rodgers Museum",
+          "icon": "note",
+          "visited": false
+        }
+      ]
     },
     {
       "file": "new-orleans",
@@ -884,7 +1083,39 @@
       "photo": "",
       "trip": "New Orleans to Meridian",
       "stop": 1,
-      "note": ""
+      "note": "A city below the level of its own river, which it regards as a technicality. The dead are kept above ground, the music is kept in the street, and the hour at which one ought to go home has never been established to anyone's satisfaction.",
+      "landmarks": [
+        {
+          "name": "Jackson Square",
+          "icon": "cathedral",
+          "visited": false
+        },
+        {
+          "name": "Cafe du Monde",
+          "icon": "cup",
+          "visited": false
+        },
+        {
+          "name": "St. Charles Streetcar",
+          "icon": "tram",
+          "visited": false
+        },
+        {
+          "name": "Frenchmen Street",
+          "icon": "note",
+          "visited": false
+        },
+        {
+          "name": "Garden District",
+          "icon": "tree",
+          "visited": false
+        },
+        {
+          "name": "Steamboat Natchez",
+          "icon": "boat",
+          "visited": false
+        }
+      ]
     },
     {
       "file": "ojai",
@@ -896,7 +1127,29 @@
       "photo": "",
       "trip": "",
       "stop": null,
-      "note": ""
+      "note": "A small valley town among orange groves, much favored by mystics, potters and persons recovering from Los Angeles. At sunset the mountains to the east turn the color of a ripe peach, and the population stops in the street to approve.",
+      "landmarks": [
+        {
+          "name": "Bart's Books",
+          "icon": "house",
+          "visited": false
+        },
+        {
+          "name": "The Pink Moment",
+          "icon": "peak",
+          "visited": false
+        },
+        {
+          "name": "Libbey Park",
+          "icon": "tree",
+          "visited": false
+        },
+        {
+          "name": "Lake Casitas",
+          "icon": "lake",
+          "visited": false
+        }
+      ]
     },
     {
       "file": "pine-lake",
@@ -908,7 +1161,19 @@
       "photo": "",
       "trip": "",
       "stop": null,
-      "note": ""
+      "note": "A cold clear lake in the pine country, ringed by granite and held in place by a dam of respectable age. The hills hereabouts are hollow: caverns run beneath them hung with stone icicles, into which travelers are lowered on ropes for their own amusement.",
+      "landmarks": [
+        {
+          "name": "The Lake",
+          "icon": "lake",
+          "visited": true
+        },
+        {
+          "name": "The Caverns",
+          "icon": "cave",
+          "visited": false
+        }
+      ]
     },
     {
       "file": "shanghai",
@@ -920,7 +1185,39 @@
       "photo": "",
       "trip": "China and Hong Kong",
       "stop": 4,
-      "note": ""
+      "note": "On one bank of the river stand the counting-houses of a vanished empire; on the other, towers raised by its successors to look down upon them. The traveler is invited to stand between and draw his own conclusions, preferably after shopping.",
+      "landmarks": [
+        {
+          "name": "The Bund",
+          "icon": "skyline",
+          "visited": true
+        },
+        {
+          "name": "Tianzifang",
+          "icon": "house",
+          "visited": true
+        },
+        {
+          "name": "French Concession",
+          "icon": "tree",
+          "visited": true
+        },
+        {
+          "name": "M50 Art District",
+          "icon": "museum",
+          "visited": true
+        },
+        {
+          "name": "Oriental Pearl Tower",
+          "icon": "tower",
+          "visited": false
+        },
+        {
+          "name": "Yu Garden",
+          "icon": "pagoda",
+          "visited": false
+        }
+      ]
     },
     {
       "file": "washington-dc",
@@ -932,7 +1229,64 @@
       "photo": "",
       "trip": "",
       "stop": null,
-      "note": ""
+      "note": "The capital, laid out in avenues wide enough to march an army down, as has occasionally been necessary. Its citizens have assembled the treasures of the continent in marble halls and charge nothing to view them, a liberality unknown in lesser empires.",
+      "landmarks": [
+        {
+          "name": "Natural History Museum",
+          "icon": "museum",
+          "visited": true
+        },
+        {
+          "name": "National Gallery of Art",
+          "icon": "museum",
+          "visited": true
+        },
+        {
+          "name": "African American History Museum",
+          "icon": "museum",
+          "visited": true
+        },
+        {
+          "name": "Air and Space Museum",
+          "icon": "museum",
+          "visited": true
+        },
+        {
+          "name": "National Archives",
+          "icon": "museum",
+          "visited": true
+        },
+        {
+          "name": "American History Museum",
+          "icon": "museum",
+          "visited": true
+        },
+        {
+          "name": "White House",
+          "icon": "dome",
+          "visited": true
+        },
+        {
+          "name": "Washington Monument",
+          "icon": "obelisk",
+          "visited": true
+        },
+        {
+          "name": "Lincoln Memorial",
+          "icon": "museum",
+          "visited": true
+        },
+        {
+          "name": "National Arboretum",
+          "icon": "tree",
+          "visited": true
+        },
+        {
+          "name": "The Capitol",
+          "icon": "dome",
+          "visited": false
+        }
+      ]
     },
     {
       "file": "zhangjiajie",
@@ -944,7 +1298,44 @@
       "photo": "",
       "trip": "China and Hong Kong",
       "stop": 2,
-      "note": ""
+      "note": "Three thousand pillars of stone stand here in a sea of mist, as though some sorcerer had begun a forest and lost interest before the leaves. The inhabitants have since attached elevators to the cliffs and paved the abysses with glass, on the theory that vertigo may be charged for.",
+      "landmarks": [
+        {
+          "name": "Yuanjiajie Pillars",
+          "icon": "pillars",
+          "visited": true
+        },
+        {
+          "name": "Bailong Elevator",
+          "icon": "cablecar",
+          "visited": true
+        },
+        {
+          "name": "Golden Whip Stream",
+          "icon": "tree",
+          "visited": true
+        },
+        {
+          "name": "Tianmen Cableway",
+          "icon": "cablecar",
+          "visited": true
+        },
+        {
+          "name": "Heaven's Gate",
+          "icon": "cave",
+          "visited": true
+        },
+        {
+          "name": "Glass Skywalk",
+          "icon": "bridge",
+          "visited": true
+        },
+        {
+          "name": "Grand Canyon Glass Bridge",
+          "icon": "bridge",
+          "visited": false
+        }
+      ]
     }
   ]
 }
