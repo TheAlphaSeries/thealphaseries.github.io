@@ -351,6 +351,7 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
   <nav class="win" id="menu" aria-label="Commands">
     <button class="opt" type="button" id="m-files">Log</button>
     <button class="opt" type="button" id="m-bestiary">Bestiary</button>
+    <button class="opt" type="button" id="m-plants">Herbarium</button>
     <button class="opt" type="button" id="m-photos">Photos</button>
     <button class="opt" type="button" id="m-map">Map</button>
     <button class="opt locked" type="button" id="m-prints" disabled>Shop</button>
@@ -418,7 +419,7 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
       2. Helpers            small tools used everywhere
       3. Home screen        the log, the quest log, and simple pages (About, Help)
       4. Bestiary           the fish pictures and the fish screen
-   4b. Herbarium         the plant pictures, the plant screen, and its strip on the home screen
+   4b. Herbarium         the plant pictures and the plant screen
       5. Entry text         turning what the editor saves into paragraphs, photos, links
       6. Pop-out window     an opened entry or quest
       7. Photo viewer       one enlarged photo, or a set to step through
@@ -524,7 +525,6 @@ function showFiles(focusFirst) {
   main.append(list);
   if (!sorted.length) main.append(el("p", "sub", loadNote));
   showQuests();
-  showGarden();
   if (focusFirst) { const f = list.querySelector(".opt"); if (f) f.focus(); }
 }
 /* ----- the quest log: a small strip under the entries. Each quest shows its name, a vague "when" and
@@ -735,21 +735,10 @@ function drawPlant(canvas, kind, dead) {
     c.fillStyle = col; c.fillRect(x, y, 1, 1);
   } });
 }
-/* the strip on the home screen, under the quests: one tile per collection with its count */
-function showGarden() {
-  if (!PLANTS.length && !PLANT_INTRO.bonsai && !PLANT_INTRO.house) return;
-  const wrap = el("div", "quests");
-  Object.keys(COLLECTIONS).forEach((k, i) => {
-    const b = opt(null, () => showPlants(k, true), "quest");
-    b.append(el("span", "name", COLLECTIONS[k]), el("span", "when", censusText(census(PLANTS.filter((p) => p.kind === k)))));
-    b.style.setProperty("--i", Math.min(i, 6)); wrap.append(b);
-  });
-  main.append(el("p", "label questhead", "Herbarium"), wrap);
-}
 /* the Herbarium screen. kind: which collection to show, "house" or "bonsai" */
 function showPlants(kind, focusFirst) {
   if (!Object.prototype.hasOwnProperty.call(COLLECTIONS, kind)) kind = "house";
-  openScreen("plants", null); plantsKind = kind;
+  openScreen("plants", "m-plants"); plantsKind = kind;
   const set = PLANTS.filter((p) => p.kind === kind), tabs = el("div", "chips");
   main.append(el("p", "label", "Herbarium"), el("p", "tally", censusText(census(PLANTS))));
   Object.keys(COLLECTIONS).forEach((k) => {
@@ -1418,6 +1407,7 @@ window.addEventListener("resize", () => { drawMini(); if (mapRedraw) mapRedraw()
    ========================================================================== */
 $("#m-files").addEventListener("click", () => showFiles(true));
 $("#m-bestiary").addEventListener("click", () => showBestiary(true));
+$("#m-plants").addEventListener("click", () => showPlants(plantsKind, true));
 $("#m-photos").addEventListener("click", () => showPhotos(true));
 $("#m-map").addEventListener("click", () => showMap(true));
 $("#m-about").addEventListener("click", () => showPage("about", "m-about", "About", ABOUT));
