@@ -58,23 +58,24 @@ class Canvas:
         hl = np.clip(n @ Hh, 0, 1) ** 26 * gloss; c = c + (255 - c) * hl[..., None]
         under = s.a & m & (d < .85); c[under] *= seam
         s.put(m, np.clip(c, 0, 255)); return m
-    def limb(s, pts, w0, w1, col, bulge=None, **kw):   # a tapering tube along a path
+    def limb(s, pts, w0, w1, col, bulge=None, clip=None, **kw):   # a tapering tube along a path
         c = resample(pts, 40); g = np.gradient(c, axis=0); g /= np.maximum(np.linalg.norm(g, axis=1), 1e-6)[:, None]; nr = np.stack([-g[:, 1], g[:, 0]], 1)
         w = np.linspace(w0, w1, len(c))[:, None] / 2
         poly = np.r_[c + nr * w, (c - nr * w)[::-1]]
         m = s.polymask(poly, smooth=False)
         for (x, y), ww in ((c[0], w0), (c[-1], w1)):
             m |= (XX - x) ** 2 + (YY - y) ** 2 < (ww / 2) ** 2
+        if clip is not None: m &= clip
         return s.part(None, col, bulge=bulge or max(w0, w1) / 2, mask=m, **kw)
     def disc(s, x, y, r, col, **kw): return s.part(None, col, bulge=kw.pop('bulge', r), mask=(XX - x) ** 2 + (YY - y) ** 2 < r * r, **kw)
     def stamp(s, x, y, col): s.stamps.append((int(round(x)), int(round(y)), tuple(int(v) for v in C(col))))
-    def eye(s, x, y, rad=2.4, iris='#d8b85a', pupil='#0a0a0c', socket='#16181c', glint=True):
+    def eye(s, x, y, rad=2.4, iris='#d8b85a', pupil='#0a0a0c', socket=None, glint=True):
         cx, cy = int(math.floor(x)), int(math.floor(y)); n = int(rad) + 2
         for dy in range(-n, n + 1):
             for dx in range(-n, n + 1):
                 d = math.hypot(dx, dy)
                 if d > rad: continue
-                if rad >= 3 and d > rad - .7: c = socket
+                if socket and d > rad - .8: c = socket
                 elif d > 1.5: c = iris
                 else: c = pupil
                 s.stamp(cx + dx, cy + dy, c)
@@ -86,10 +87,10 @@ class Canvas:
             k = (int(math.floor(x)), int(math.floor(y)))
             if k not in seen: seen.add(k); (s.late if late else s.stamps).append((k[0], k[1], tuple(int(v) for v in C(col))))
 class Spine:
-    def __init__(s, way, n=400):
+    def __init__(s, way, n=400, flip=False):   # flip: for a fish heading left, so its belly still faces down
         d = cr(way, 200); seg = np.hypot(*np.diff(d, axis=0).T); cum = np.r_[0, np.cumsum(seg)]; s.len = cum[-1]; s.n = n
         tt = np.linspace(0, s.len, n + 1); s.p = np.stack([np.interp(tt, cum, d[:, 0]), np.interp(tt, cum, d[:, 1])], 1)
-        g = np.gradient(s.p, axis=0); s.tan = g / np.linalg.norm(g, axis=1)[:, None]; s.nrm = np.stack([-s.tan[:, 1], s.tan[:, 0]], 1)
+        g = np.gradient(s.p, axis=0); s.tan = g / np.linalg.norm(g, axis=1)[:, None]; s.sg = -1. if flip else 1.; s.nrm = np.stack([-s.tan[:, 1], s.tan[:, 0]], 1) * s.sg
         _, idx = cKDTree(s.p).query(np.stack([XX.ravel(), YY.ravel()], 1)); idx = idx.reshape(R, R); s.idx = idx
         q = s.p[idx]; dx = XX - q[..., 0]; dy = YY - q[..., 1]
         al = dx * s.tan[idx][..., 0] + dy * s.tan[idx][..., 1]
@@ -98,19 +99,19 @@ class Spine:
         t = np.asarray(t, float); tc = np.clip(t, 0, 1) * s.n; i = np.minimum(tc.astype(int), s.n - 1); f = (tc - i)[..., None]
         p = s.p[i] * (1 - f) + s.p[i + 1] * f; tn = s.tan[i] * (1 - f) + s.tan[i + 1] * f; tn /= np.linalg.norm(tn, axis=-1)[..., None]
         p = p + tn * ((t - np.clip(t, 0, 1)) * s.len)[..., None]
-        return p, tn, np.stack([-tn[..., 1], tn[..., 0]], -1)
+        return p, tn, np.stack([-tn[..., 1], tn[..., 0]], -1) * s.sg
     def P(s, t, v):
         p, tn, nr = s.frame(t); return p + nr * np.asarray(v, float)[..., None]
 class Fish:
-    def __init__(s, way, top, bot, seed=1, k=1.):   # k: one knob that fattens the body and grows the fins together
-        s.sp = Spine(way); s.k = k; s.cv = Canvas(); s.seed = seed; s.rs = np.random.RandomState(seed)
+    def __init__(s, way, top, bot, seed=1, k=1., flip=False):   # k: one knob that fattens the body and grows the fins together
+        s.sp = Spine(way, flip=flip); s.k = k; s.cv = Canvas(); s.seed = seed; s.rs = np.random.RandomState(seed)
         s.top = PchipInterpolator([a for a, b in top], [b * k for a, b in top]); s.bot = PchipInterpolator([a for a, b in bot], [b * k for a, b in bot])
     def P(s, t, v): return tuple(s.sp.P(t, v))
     def E(s, t, side, extra=0.):   # a point on the body's edge (d = back, v = belly), pushed out by extra
         tc = min(max(t, 0), 1); return s.P(t, -(float(s.top(tc)) + extra) if side == 'd' else float(s.bot(tc)) + extra)
     def dirv(s, t, ang):   # a direction: 0 = straight back toward the tail, positive angles swing toward the belly
         p, tn, nr = s.sp.frame(t); a = math.radians(ang); return -tn * math.cos(a) + nr * math.sin(a)
-    def fin(s, root, outer, c0, c1, rays=10, duty=.36, dark=.68, serr=0., edge=.82, lit=1., smooth=True, tex=None, sroot=True, lead=None):
+    def fin(s, root, outer, c0, c1, rays=10, duty=.36, dark=.68, serr=0., edge=.82, lit=1., smooth=True, tex=None, sroot=True, lead=None, lead2=None, rim=None, rimw=.14):
         S, Hn = 520, 200
         rt = resample(root, S, sroot); ot = resample(outer, S, smooth)
         hh = np.linspace(0, 1, Hn)[:, None]; ss = np.broadcast_to(np.linspace(0, 1, S)[None, :], (Hn, S)); hv = np.broadcast_to(hh, (Hn, S))
@@ -120,7 +121,9 @@ class Fish:
         col = lerp3(np.broadcast_to(C(c0), (Hn, S, 3)), C(c1), hv ** .8)
         ray = np.mod(ss * rays + duty / 2, 1) < duty; col = col * np.where(ray, dark, 1.06)[..., None]
         col = col * np.where(hv > .94, edge, 1)[..., None]
-        if lead is not None: col = lerp3(col, C(lead), (ss < .07) * .9)
+        if lead is not None: col = lerp3(col, C(lead), (ss < .08) * .92)
+        if lead2 is not None: col = lerp3(col, C(lead2), ((ss >= .08) & (ss < .15)) * .9)
+        if rim is not None: col = lerp3(col, C(rim), (hv > 1 - rimw) * .9)
         if tex is not None: col = tex(col, ss, hv, pts)
         col = np.clip(col * lit, 0, 255)
         ix = np.floor(pts[..., 0] * Q).astype(int); iy = np.floor(pts[..., 1] * Q).astype(int)
@@ -195,7 +198,7 @@ class Fish:
         m = (np.abs(uu) / a + np.abs(dv) / b < 1) & (s.t > t0) & (s.t < t1)
         sh = (np.abs(uu + .9) / a + np.abs(dv - 1.0) / b < 1) & (s.t > t0) & (s.t < t1) & ~m; s.shade(sh, f=.62); s.shade(m, f, col)
     def whisker(s, pts, col, late=True): s.cv.line([s.P(t, v) for t, v in pts], col, late=late)
-def finish(cv, seed, ex, ncol=28, dith=5., power=1., jets=None, drips=True):
+def finish(cv, seed, ex=48, ncol=28, dith=5., power=1., jets=None, drips=True, water=True):
     a3 = cv.a.reshape(G, Q, G, Q); cnt = a3.sum((1, 3)); m = cnt >= 5
     rgb = (cv.rgb * cv.a[..., None]).reshape(G, Q, G, Q, 3).sum((1, 3)) / np.maximum(cnt, 1)[..., None]
     bayer = (np.array([[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]]) / 16 - .47)
@@ -215,7 +218,7 @@ def finish(cv, seed, ex, ncol=28, dith=5., power=1., jets=None, drips=True):
     for x, y, c in cv.late:
         if 0 <= x < G and 0 <= y < G and not m[y, x]: out[y, x] = c; m2[y, x] = True
     px = [[tuple(int(v) for v in out[y, x]) if m2[y, x] else None for x in range(G)] for y in range(G)]
-    splash(px, ex, seed, power, jets, cv.drips if drips else [])
+    if water: splash(px, ex, seed, power, jets, cv.drips if drips else [])
     return px
 def splash(px, ex, seed, power=1., jets=None, drips=()):
     rnd = random.Random(seed * 13 + 5); T = lambda h: tuple(int(v) for v in C(h))
@@ -259,6 +262,7 @@ def splash(px, ex, seed, power=1., jets=None, drips=()):
             if rnd.random() < .3: put(x + 1, y + 1, WMID)
     for (dx, dy) in drips:   # water still running off the tail
         dx += rnd.uniform(-1, 1); y = dy + 2
+        if dy > BASE - 3: continue
         while y < BASE - 1:
             if rnd.random() < .5: put(dx + rnd.choice((0, 0, 1, -1)), y, rnd.choice((FOAM, WLIGHT, WLIGHT))); 
             y += rnd.uniform(1.5, 4)

@@ -30,6 +30,8 @@ Saving there creates or changes a file in one of the folders below. The site upd
 | `pages/status.md` | The name, class and blurb on the Status screen. Its numbers are counted by the site. |
 | `photos/` | Photos as uploaded. `thumbs/` and `large/` are smaller copies made automatically; do not edit those. |
 | `posts.json` | The list the site loads. Rebuilt automatically; do not edit by hand. |
+| `sprites.json` | Every Bestiary and Herbarium picture. Written by the scripts in `tools/sprites`; do not edit by hand. |
+| `tools/sprites/` | The scripts that draw those pictures. Not published. See the README inside. |
 | `map-land.json`, `map-bay.json` | Coastlines for the map (the world, and finer detail around San Francisco, Hong Kong and Shanghai). |
 | `og.png` | The picture shown when the link is shared. |
 | `.pages.yml` | The editor's forms. |
