@@ -89,7 +89,10 @@ if (existsSync("albums")) {
     if (!name.endsWith(".md")) continue;
     const { meta, body } = parse(readFileSync("albums/" + name, "utf8"));
     const file = name.replace(/\.md$/, "");
-    albums.push({ file, title: str(meta.title) || file, date: isoDay(meta.date) || isoDay(name), place: str(meta.place), photos: list(meta.photos), body });
+    albums.push({ file, title: str(meta.title) || file, date: isoDay(meta.date) || isoDay(name), place: str(meta.place), photos: list(meta.photos), body,
+      // captions: which photo, and what to say under it. Kept apart from the photo list so photos can still be added many at a time.
+      captions: (Array.isArray(meta.captions) ? meta.captions : []).filter((c) => c && typeof c === "object" && str(c.photo).trim() && str(c.caption).trim())
+        .map((c) => ({ photo: str(c.photo).trim(), caption: str(c.caption).trim() })) });
   }
 }
 albums.sort((a, b) => b.date.localeCompare(a.date) || b.file.localeCompare(a.file));
@@ -142,11 +145,14 @@ if (existsSync("plants")) {
 }
 const page = (f) => (existsSync("pages/" + f) ? parse(readFileSync("pages/" + f, "utf8")).body : "");
 const plantsIntro = { bonsai: page("bonsai.md"), house: page("houseplants.md") };
+// The Status screen: a name, a class and a few words (pages/status.md). The numbers on that screen are counted by the site itself.
+const statusPage = existsSync("pages/status.md") ? parse(readFileSync("pages/status.md", "utf8")) : { meta: {}, body: "" };
+const status = { name: str(statusPage.meta.name), class: str(statusPage.meta.class), home: str(statusPage.meta.home), body: statusPage.body };
 const about = existsSync("pages/about.md") ? parse(readFileSync("pages/about.md", "utf8")).body : "";
 // "source" records where this copy of the list was built, which helps when checking the site.
 const source = process.env.GITHUB_ACTIONS ? "github" : (process.env.WORKERS_CI || process.env.WORKERS_CI_BUILD_UUID) ? "cloudflare" : "other";
 const bestiaryIntro = existsSync("pages/bestiary.md") ? parse(readFileSync("pages/bestiary.md", "utf8")).body : "";
-writeFileSync("posts.json", JSON.stringify({ source, about, bestiary_intro: bestiaryIntro, posts, bestiary, albums, places, quests, plants, plants_intro: plantsIntro }, null, 2) + "\n");
+writeFileSync("posts.json", JSON.stringify({ source, about, bestiary_intro: bestiaryIntro, posts, bestiary, albums, places, quests, plants, plants_intro: plantsIntro, status }, null, 2) + "\n");
 // A small stamp, written only at publish time, to confirm this script ran there.
 if (!process.env.GITHUB_ACTIONS) writeFileSync("build.json", JSON.stringify({ source, entries: posts.length, built: new Date().toISOString() }) + "\n");
 console.log("posts.json: " + posts.length + " entries");

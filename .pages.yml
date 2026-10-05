@@ -167,6 +167,17 @@ content:
         options:
           multiple:
             max: 300
+      - name: captions
+        label: Captions (optional - add one for each photo you want to caption)
+        type: object
+        list: true
+        fields:
+          - name: photo
+            label: Which photo
+            type: image
+          - name: caption
+            label: Caption
+            type: string
       - name: body
         label: A few words about it (optional)
         type: rich-text
@@ -373,6 +384,8 @@ content:
               label: Orchid
             - name: bonsai
               label: Bonsai tree
+            - name: grove
+              label: Bonsai grove (several trunks in one tray)
             - name: plant
               label: Other plant
       - name: status
@@ -455,6 +468,26 @@ content:
     fields:
       - name: body
         label: Shown at the top of the House plants collection
+        type: rich-text
+        options:
+          format: markdown
+  - name: status
+    label: Status page
+    type: file
+    path: pages/status.md
+    format: yaml-frontmatter
+    fields:
+      - name: name
+        label: Name
+        type: string
+      - name: class
+        label: Class (e.g. Wandering Chronicler)
+        type: string
+      - name: home
+        label: Home (keep it general - the site is public)
+        type: string
+      - name: body
+        label: A few words about the character
         type: rich-text
         options:
           format: markdown
