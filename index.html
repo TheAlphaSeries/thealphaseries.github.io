@@ -104,6 +104,7 @@ h3 { font-size: 12px; line-height: 1.7; color: var(--accent); margin-top: 8px; }
 .opt[aria-pressed="true"] { color: var(--accent); }
 #menu .opt, .row .opt { font-family: var(--display); font-size: 12px; line-height: 1.7; }
 
+.intro { margin: -4px 0 16px; font-size: 18px; max-width: 58ch; }
 .tally { color: var(--dim); margin: -6px 0 14px 24px; font-variant-numeric: tabular-nums; }
 .beasts { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 18px; align-items: start; }
 .beastlist { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
@@ -276,6 +277,7 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
    gathers them into posts.json, which this page loads when it opens.
    ========================================================================== */
 let ABOUT = "";          /* the About text, loaded from posts.json */
+let BESTIARY_INTRO = "";   /* the short blurb at the top of the Bestiary, loaded from posts.json */
 let BESTIARY = [];       /* the creatures, loaded from posts.json */
 let sorted = [];         /* the entries, newest first, loaded from posts.json */
 let loadNote = "Loading...";   /* shown in the log while there is nothing to list */
@@ -427,6 +429,7 @@ function pips(filled, cls) {   /* a row of five small squares, some lit, like a 
 function showBestiary(focusFirst) {
   openScreen("bestiary", "m-bestiary");
   main.append(el("p", "label", "Bestiary"));
+  if (BESTIARY_INTRO) { const intro = el("div", "post lore intro"); renderBody(BESTIARY_INTRO, intro); main.append(intro); }
   if (!BESTIARY.length) { main.append(el("p", "sub", loadNote === "Loading..." ? loadNote : "Nothing recorded yet."), backRow()); return; }
   /* A species is whatever was picked in the editor's Species list; an entry left on the
      generic choice is told apart by its name instead. */
@@ -799,7 +802,7 @@ function linkedPost() {   /* the entry named after # in the address, if there is
     if (!r.ok) throw new Error("status " + r.status);
     const data = (await r.json()) || {};
     /* Tidy everything on the way in, so one odd or half-filled entry can never break a screen. */
-    ABOUT = text(data.about);
+    ABOUT = text(data.about); BESTIARY_INTRO = text(data.bestiary_intro);
     BESTIARY = (Array.isArray(data.bestiary) ? data.bestiary : []).filter((b) => b && typeof b === "object").map((b) => ({
       name: text(b.name).trim() || "Unknown", sprite: text(b.sprite) || "fish", date: text(b.date), weight: amount(b.weight), length: amount(b.length),
       location: text(b.location), photo: text(b.photo), lore: text(b.lore),
@@ -809,7 +812,7 @@ function linkedPost() {   /* the entry named after # in the address, if there is
       file: text(p.file), title: text(p.title) || text(p.file), date: text(p.date), body: text(p.body) }))
       .sort((a, b) => b.date.localeCompare(a.date) || b.file.localeCompare(a.file));
     loadNote = "No entries yet.";
-  } catch (e) { ABOUT = ""; BESTIARY = []; sorted = []; loadNote = "Could not load the log. Refresh to try again."; }
+  } catch (e) { ABOUT = ""; BESTIARY_INTRO = ""; BESTIARY = []; sorted = []; loadNote = "Could not load the log. Refresh to try again."; }
   $("#count").textContent = sorted.length;
   $("#latest").textContent = sorted[0] ? day(sorted[0].date).split(",")[0] || "-" : "-";
   pendingPost = linkedPost();

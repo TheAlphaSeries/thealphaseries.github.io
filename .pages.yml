@@ -114,6 +114,17 @@ content:
         type: rich-text
         options:
           format: markdown
+  - name: bestiary_intro
+    label: Bestiary intro
+    type: file
+    path: pages/bestiary.md
+    format: yaml-frontmatter
+    fields:
+      - name: body
+        label: Short blurb shown at the top of the Bestiary
+        type: rich-text
+        options:
+          format: markdown
   - name: about
     label: About page
     type: file

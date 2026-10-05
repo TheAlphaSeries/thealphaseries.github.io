@@ -56,7 +56,8 @@ if (existsSync("bestiary")) {
 const about = existsSync("pages/about.md") ? parse(readFileSync("pages/about.md", "utf8")).body : "";
 // "source" records where this copy of the list was built, which helps when checking the site.
 const source = process.env.GITHUB_ACTIONS ? "github" : (process.env.WORKERS_CI || process.env.WORKERS_CI_BUILD_UUID) ? "cloudflare" : "other";
-writeFileSync("posts.json", JSON.stringify({ source, about, posts, bestiary }, null, 2) + "\n");
+const bestiaryIntro = existsSync("pages/bestiary.md") ? parse(readFileSync("pages/bestiary.md", "utf8")).body : "";
+writeFileSync("posts.json", JSON.stringify({ source, about, bestiary_intro: bestiaryIntro, posts, bestiary }, null, 2) + "\n");
 // A small stamp, written only at publish time, to confirm this script ran there.
 if (!process.env.GITHUB_ACTIONS) writeFileSync("build.json", JSON.stringify({ source, entries: posts.length, built: new Date().toISOString() }) + "\n");
 console.log("posts.json: " + posts.length + " entries");
