@@ -79,6 +79,13 @@ if (existsSync("albums")) {
   }
 }
 albums.sort((a, b) => b.date.localeCompare(a.date) || b.file.localeCompare(a.file));
+// Reads coordinates pasted as "37.7297, -122.1040" (or with N/S/E/W). Gives [null, null] if they make no sense.
+function coords(v) {
+  const c = /(-?\d+(?:\.\d+)?)\s*°?\s*([NS])?[\s,;]+(-?\d+(?:\.\d+)?)\s*°?\s*([EW])?/i.exec(str(v));
+  if (!c) return [null, null];
+  const lat = parseFloat(c[1]) * (/s/i.test(c[2] || "") ? -1 : 1), lng = parseFloat(c[3]) * (/w/i.test(c[4] || "") ? -1 : 1);
+  return Math.abs(lat) <= 90 && Math.abs(lng) <= 180 ? [lat, lng] : [null, null];
+}
 // Map pins: one file per place in places/. Coordinates are pasted as "latitude, longitude".
 const places = [];
 if (existsSync("places")) {
@@ -86,16 +93,11 @@ if (existsSync("places")) {
     if (!name.endsWith(".md")) continue;
     const { meta, body } = parse(readFileSync("places/" + name, "utf8"));
     const file = name.replace(/\.md$/, "");
-    const c = /(-?\d+(?:\.\d+)?)\s*°?\s*([NS])?[\s,;]+(-?\d+(?:\.\d+)?)\s*°?\s*([EW])?/i.exec(str(meta.coordinates));
-    let lat = null, lng = null;
-    if (c) {
-      lat = parseFloat(c[1]) * (/s/i.test(c[2] || "") ? -1 : 1); lng = parseFloat(c[3]) * (/w/i.test(c[4] || "") ? -1 : 1);
-      if (!(Math.abs(lat) <= 90 && Math.abs(lng) <= 180)) { lat = null; lng = null; }
-    }
+    const [lat, lng] = coords(meta.coordinates);
     places.push({ file, name: str(meta.name) || file, kind: str(meta.kind).toLowerCase() || "landmark", lat, lng, date: isoDay(meta.date), photo: str(meta.photo),
       trip: str(meta.trip).trim(), stop: Number.isFinite(parseFloat(meta.stop)) ? parseFloat(meta.stop) : null, note: body,
       landmarks: (Array.isArray(meta.landmarks) ? meta.landmarks : []).filter((l) => l && typeof l === "object" && String(l.name || "").trim())
-        .map((l) => ({ name: String(l.name).trim(), icon: String(l.icon || "").trim().toLowerCase(), visited: /^(true|yes|1)$/i.test(String(l.visited || "").trim()) })) });
+        .map((l) => { const [lat, lng] = coords(l.coordinates); return { name: String(l.name).trim(), icon: String(l.icon || "").trim().toLowerCase(), visited: /^(true|yes|1)$/i.test(String(l.visited || "").trim()), lat, lng }; }) });
   }
 }
 const about = existsSync("pages/about.md") ? parse(readFileSync("pages/about.md", "utf8")).body : "";

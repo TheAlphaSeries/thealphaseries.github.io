@@ -188,6 +188,8 @@ content:
         type: select
         options:
           values:
+            - name: home
+              label: Home base
             - name: fishing
               label: Fishing spot
             - name: landmark
@@ -275,6 +277,9 @@ content:
           - name: visited
             label: Been there
             type: boolean
+          - name: coordinates
+            label: Coordinates (optional - only for landmarks that should show as their own marker on the map)
+            type: string
       - name: photo
         label: Photo (optional)
         type: image

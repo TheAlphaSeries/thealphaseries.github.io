@@ -206,7 +206,7 @@ h3 { font-size: 12px; line-height: 1.7; color: var(--accent); margin-top: 8px; }
 .chip[aria-pressed="true"] { color: var(--fg); opacity: 1; }
 .chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .dot { display: inline-block; width: 10px; height: 10px; flex: none; }
-.dot.fishing, .kind.fishing { color: #6fb7ff; } .dot.landmark, .kind.landmark { color: #ffd257; } .dot.hike, .kind.hike { color: #7fd68a; } .dot.trip, .kind.trip { color: #c79bff; }
+.dot.fishing, .kind.fishing { color: #6fb7ff; } .dot.landmark, .kind.landmark { color: #ffd257; } .dot.home, .kind.home { color: #ffffff; } .dot.hike, .kind.hike { color: #7fd68a; } .dot.trip, .kind.trip { color: #c79bff; }
 .dot { background: currentColor; }
 .maplist { margin-top: 16px; }
 .place { grid-template-columns: 18px 10px minmax(0, 1fr) auto; }
@@ -215,6 +215,10 @@ h3 { font-size: 12px; line-height: 1.7; color: var(--accent); margin-top: 8px; }
 .maptip { position: absolute; z-index: 1; transform: translate(14px, -50%); pointer-events: none; white-space: nowrap; max-width: 60%; overflow: hidden; text-overflow: ellipsis;
   font-family: var(--display); font-size: 9px; line-height: 1.6; color: var(--fg); background: #000; border: 2px solid var(--border); border-radius: 5px; padding: 3px 7px; }
 .maptip.left { transform: translate(calc(-100% - 14px), -50%); }
+.maptip.big { display: flex; align-items: center; gap: 8px; padding: 5px 9px 5px 5px; }
+.maptip.big canvas { width: 32px; height: 32px; image-rendering: pixelated; background: #121419; border-radius: 3px; flex: none; }
+.maptip .state { color: var(--dim); }
+.lm.spot { cursor: pointer; } .lm.spot:hover, .lm.lit { border-color: #ffd257; box-shadow: 0 0 0 2px #ffd257; }
 .lmhead { display: flex; justify-content: space-between; align-items: baseline; margin: 16px 0 0; font-family: var(--display); font-size: 11px; line-height: 1.6; color: var(--accent); border-top: 2px solid rgba(255, 255, 255, .3); padding-top: 12px; }
 .lmcount { color: var(--dim); font-family: var(--body); font-size: 16px; font-variant-numeric: tabular-nums; }
 .lms { list-style: none; margin: 10px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 8px; }
@@ -377,7 +381,7 @@ Select an entry to open it. Select Back, or tap outside the window, to close it.
 
 ## Map
 
-Drag to move. Pinch, or use + and -, to zoom. Point at a pin or a name to see the place and its landmarks.`;
+Drag to move. Pinch, or use + and -, to zoom. Point at a pin or a name to see the place and its landmarks. Near home, each small box is a landmark: point at one to name it.`;
 
 /* ==========================================================================
    2. HELPERS
@@ -774,6 +778,7 @@ function showAlbum(a) {
    The coastline comes from map-land.json (loaded the first time it is needed). It is painted small and
    blown up so it looks like a game's world map. Pins come from the places/ folder. */
 const KINDS = {   /* label, colour, and a 7x7 picture for the pin */
+  home: ["Home", "#ffffff", ["...#...", "..###..", ".#####.", "#######", ".#####.", ".##.##.", ".##.##."]],
   fishing: ["Fishing", "#6fb7ff", [".......", "#..###.", "#######", "#######", "#######", "#..###.", "......."]],
   landmark: ["Landmarks", "#ffd257", [".#####.", ".#####.", ".#####.", ".#.....", ".#.....", ".#.....", "###...."]],
   hike: ["Hikes", "#7fd68a", ["...#...", "..###..", "..###..", ".#####.", ".#####.", "#######", "#######"]],
@@ -781,6 +786,7 @@ const KINDS = {   /* label, colour, and a 7x7 picture for the pin */
 };
 const merc = (lat, lng) => [(lng + 180) / 360, (1 - Math.log(Math.tan(Math.PI / 4 + Math.max(-85, Math.min(85, lat)) * Math.PI / 360)) / Math.PI) / 2];
 let landPath = null, landWait = null;
+let bay = null;   /* finer coastline around San Francisco Bay: { box, path, cityBox, city, home }, all in map units */
 function loadLand() {
   if (!landWait) landWait = fetch("map-land.json").then((r) => { if (!r.ok) throw new Error("status " + r.status); return r.json(); }).then((d) => {
     const path = new Path2D(), q = d.q || 100;
@@ -793,13 +799,27 @@ function loadLand() {
       path.closePath();
     }
     landPath = path;
+    return fetch("map-bay.json").then((r) => (r.ok ? r.json() : null)).then((b) => {   /* optional: without it the Bay is just drawn coarsely */
+      if (!b || !Array.isArray(b.bay)) return;
+      const trace = (rings) => {
+        const p = new Path2D();
+        for (const ring of rings || []) {
+          let x = ring[0], y = ring[1], m = merc(y / b.q, x / b.q); p.moveTo(m[0], m[1]);
+          for (let i = 2; i + 1 < ring.length; i += 2) { x += ring[i]; y += ring[i + 1]; m = merc(y / b.q, x / b.q); p.lineTo(m[0], m[1]); }
+          p.closePath();
+        }
+        return p;
+      };
+      const rect = (box) => { const a = merc(box[3], box[0]), z = merc(box[1], box[2]); return [a[0], a[1], z[0] - a[0], z[1] - a[1]]; };   /* [west, south, east, north] to x, y, width, height */
+      bay = { box: rect(b.box), path: trace(b.bay), cityBox: rect(b.cityBox), city: trace(b.city), home: trace(b.home) };
+    }).catch(() => {});
   }).catch(() => { landWait = null; });   /* no coastline: the map still works, as pins on open sea */
   return landWait;
 }
-const SEA = [5, 7, 10], SEA_DOT = [20, 28, 42], LAND_A = [42, 47, 55], LAND_B = [54, 60, 69], COAST = [214, 214, 224], COAST_DIM = [140, 140, 152];
+const SEA = [5, 7, 10], SEA_DOT = [20, 28, 42], LAND_A = [42, 47, 55], LAND_B = [54, 60, 69], COAST = [214, 214, 224], COAST_DIM = [140, 140, 152], HOME_A = [92, 80, 44], HOME_B = [112, 98, 54];
 function makeMap(canvas, cell, small) {
   const c = canvas.getContext("2d", { willReadFrequently: true });
-  const v = { x: .5, y: .4, scale: 1, pins: [], chosen: null, hit: [], blink: false };   /* x, y: centre of the view (0 to 1 across the world); scale: map dots per world width */
+  const v = { x: .5, y: .4, scale: 1, pins: [], chosen: null, hit: [], marks: [], glow: null, blink: false };   /* x, y: centre of the view (0 to 1 across the world); scale: map dots per world width */
   let w = 8, h = 8;
   function size() {
     w = Math.max(8, Math.round(canvas.clientWidth / cell)); h = Math.max(8, Math.round(canvas.clientHeight / cell));
@@ -826,19 +846,39 @@ function makeMap(canvas, cell, small) {
         if (v.x + reach < k - 1 || v.x - reach > k + 2) continue;
         c.setTransform(v.scale, 0, 0, v.scale, w / 2 - (v.x - k) * v.scale, h / 2 - v.y * v.scale); c.fill(landPath, "evenodd");
       }
+      if (bay && v.scale > w * 6 && v.x + reach > bay.box[0] && v.x - reach < bay.box[0] + bay.box[2]) {
+        /* near home the coarse coast is wiped and redrawn finely: the Bay, then the city itself, then the home neighbourhood in its own colour */
+        c.save(); c.setTransform(v.scale, 0, 0, v.scale, w / 2 - v.x * v.scale, h / 2 - v.y * v.scale);
+        c.beginPath(); c.rect(bay.box[0], bay.box[1], bay.box[2], bay.box[3]); c.clip();
+        c.fillStyle = "#000"; c.fillRect(bay.box[0], bay.box[1], bay.box[2], bay.box[3]);
+        c.fillStyle = "#fff"; c.fill(bay.path, "evenodd");
+        c.fillStyle = "#000"; c.fillRect(bay.cityBox[0], bay.cityBox[1], bay.cityBox[2], bay.cityBox[3]);
+        c.fillStyle = "#fff"; c.fill(bay.city);
+        c.fillStyle = "#ffff00"; c.fill(bay.home);
+        c.restore();
+      }
       c.setTransform(1, 0, 0, 1, 0, 0);
     }
     const im = c.getImageData(0, 0, w, h), d = im.data, land = new Uint8Array(w * h), edgeCol = small ? COAST_DIM : COAST;
-    for (let i = 0; i < w * h; i++) land[i] = d[i * 4] > 110 ? 1 : 0;
+    for (let i = 0; i < w * h; i++) land[i] = d[i * 4] > 110 ? (d[i * 4 + 2] < 100 ? 2 : 1) : 0;   /* 2 = the home neighbourhood */
     for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
       const i = y * w + x; let col;
-      if (land[i]) col = ((x > 0 && !land[i - 1]) || (x < w - 1 && !land[i + 1]) || (y > 0 && !land[i - w]) || (y < h - 1 && !land[i + w])) ? edgeCol : ((x + y) % 2 ? LAND_A : LAND_B);
+      if (land[i]) col = ((x > 0 && !land[i - 1]) || (x < w - 1 && !land[i + 1]) || (y > 0 && !land[i - w]) || (y < h - 1 && !land[i + w])) ? edgeCol : land[i] === 2 ? ((x + y) % 2 ? HOME_A : HOME_B) : ((x + y) % 2 ? LAND_A : LAND_B);
       else col = (x % 4 === 0 && y % 4 === 2) ? SEA_DOT : SEA;
       d[i * 4] = col[0]; d[i * 4 + 1] = col[1]; d[i * 4 + 2] = col[2]; d[i * 4 + 3] = 255;
     }
     c.putImageData(im, 0, 0);
     v.hit = [];
     const pins = v.pins.filter((p) => p.lat != null), last = pins.indexOf(v.chosen);
+    v.marks = [];
+    if (!small && v.scale >= w * 200) for (const p of v.pins) for (const l of p.landmarks || []) {   /* a small box for each landmark that has its own spot: green and ticked if visited, hollow if not */
+      if (l.lat == null) continue;
+      const [x, y] = spot(l); if (x < -4 || y < -4 || x > w + 4 || y > h + 4) continue;
+      c.fillStyle = l === v.glow ? "#fff" : "#000"; c.fillRect(x - 3, y - 3, 7, 7);
+      if (l.visited) { c.fillStyle = "#7fd68a"; c.fillRect(x - 2, y - 2, 5, 5); c.fillStyle = "#0b3d16"; c.fillRect(x - 1, y, 1, 1); c.fillRect(x, y + 1, 1, 1); c.fillRect(x + 1, y, 1, 1); c.fillRect(x + 2, y - 1, 1, 1); }
+      else { c.fillStyle = "#a9adb8"; c.fillRect(x - 2, y - 2, 5, 5); c.fillStyle = "#15171c"; c.fillRect(x - 1, y - 1, 3, 3); }
+      v.marks.push([x, y, l, p]);
+    }
     c.fillStyle = small ? "#7d62b8" : "#a585e6";   /* a dotted line joins the stops of each trip, in order */
     for (const name of new Set(pins.map((p) => p.trip).filter(Boolean))) {
       const stops = tripStops(name, pins).map(spot);
@@ -881,7 +921,12 @@ function makeMap(canvas, cell, small) {
     v.scale = Math.max(w, Math.min(w * 6000, v.scale * factor)); v.x = mx - cx / v.scale; v.y = my - cy / v.scale; draw();
   }
   function zoomBy(factor) { const r = canvas.getBoundingClientRect(); zoomAt(r.left + r.width / 2, r.top + r.height / 2, factor); }
-  function goTo(p) { if (p.lat == null) return; const m = merc(p.lat, p.lng); v.x = m[0]; v.y = m[1]; v.scale = Math.max(v.scale, w / .012); }
+  function goTo(p) {   /* travel to a place: frame its own landmark markers if it has any, otherwise just move in close */
+    const spots = (p.landmarks || []).filter((l) => l.lat != null);
+    if (spots.length > 1) { fit(spots.concat(p), .0002); return; }
+    if (p.lat == null) return;
+    const m = merc(p.lat, p.lng); v.x = m[0]; v.y = m[1]; v.scale = Math.max(v.scale, w / .012);
+  }
   return { v, draw, fit, zoomAt, zoomBy, goTo, cells: () => [w, h] };
 }
 /* Landmark pictures: 16 x 16, one letter per pixel, each letter a colour in "pal". */
@@ -920,11 +965,16 @@ function showMap(focusFirst, chooseFile) {
   key("+", "Zoom in", () => map.zoomBy(1.8)); key("-", "Zoom out", () => map.zoomBy(1 / 1.8)); key("All", "Show every pin", () => { map.fit(map.v.pins, .01); map.draw(); }, "wide");
   const tip = el("div", "maptip"); tip.hidden = true;
   box.append(canvas, tip, keys);
-  let hovered = null;
-  map.v.after = () => {   /* keep a name label beside the pin being pointed at, or else the chosen one */
-    const p = hovered || map.v.chosen, hit = p && map.v.hit.find((h) => h[2] === p), [w, h] = map.cells();
+  let hovered = null, mark = null, tipFor = null;
+  map.v.after = () => {   /* keep a label beside the landmark being pointed at, or the pin being pointed at, or else the chosen pin */
+    const [w, h] = map.cells(), m = mark && map.v.marks.find((k) => k[2] === mark);
+    const p = m ? null : (hovered || map.v.chosen), hit = m || (p && map.v.hit.find((k) => k[2] === p));
     if (!hit || hit[0] < 0 || hit[1] < 0 || hit[0] > w || hit[1] > h) { tip.hidden = true; return; }
-    tip.textContent = p.name + (p.landmarks.length ? "  " + been(p) + "/" + p.landmarks.length : "");
+    if (tipFor !== hit[2]) {
+      tipFor = hit[2]; tip.textContent = ""; tip.classList.toggle("big", !!m);
+      if (m) tip.append(landmarkPic(mark.icon, mark.visited), el("span", null, mark.name), el("span", "state", mark.visited ? "Been there" : "Not yet"));
+      else tip.append(p.name + (p.landmarks.length ? "  " + been(p) + "/" + p.landmarks.length : ""));
+    }
     tip.style.left = (hit[0] / w * 100) + "%"; tip.style.top = (hit[1] / h * 100) + "%";
     tip.classList.toggle("left", hit[0] > w * .62); tip.hidden = false;
   };
@@ -952,6 +1002,12 @@ function showMap(focusFirst, chooseFile) {
         const tile = el("li", "lm" + (l.visited ? " done" : ""));
         tile.append(landmarkPic(l.icon, l.visited), el("span", "lmname", l.name), el("span", "tick"));
         tile.setAttribute("aria-label", l.name + (l.visited ? ": been there" : ": not yet"));
+        if (l.lat != null) {   /* this one has its own marker: pointing at the tile lights the marker, choosing it moves the map there */
+          tile.classList.add("spot");
+          tile.addEventListener("pointerenter", () => { map.v.glow = l; map.draw(); });
+          tile.addEventListener("pointerleave", () => { if (map.v.glow === l) { map.v.glow = null; map.draw(); } });
+          tile.addEventListener("click", () => { const m = merc(l.lat, l.lng); map.v.x = m[0]; map.v.y = m[1]; map.v.scale = Math.max(map.v.scale, map.cells()[0] * 1500); map.v.glow = l; mark = l; map.draw(); box.scrollIntoView({ block: "nearest", behavior: reduceMotion ? "auto" : "smooth" }); });
+        }
         grid.append(tile);
       });
       card.append(head, grid);
@@ -1000,17 +1056,26 @@ function showMap(focusFirst, chooseFile) {
     fingers.set(e.pointerId, [e.clientX, e.clientY]); if (fingers.size === 1) moved = 0; if (fingers.size === 2) spread = gap();
     canvas.classList.add("dragging");
   });
-  const pinUnder = (e) => {   /* the pin nearest the pointer, if one is close */
+  const under = (e, list, reach) => {   /* the pin (or landmark marker) nearest the pointer, if one is close */
     const r = canvas.getBoundingClientRect(), [w, h] = map.cells(), x = (e.clientX - r.left) / r.width * w, y = (e.clientY - r.top) / r.height * h;
-    let best = null, near = 7;
-    for (const [px, py, p] of map.v.hit) { const far = Math.hypot(px - x, py - y); if (far < near) { near = far; best = p; } }
+    let best = null, near = reach;
+    for (const k of list) { const far = Math.hypot(k[0] - x, k[1] - y); if (far < near) { near = far; best = k[2]; } }
     return best;
   };
-  canvas.addEventListener("pointerleave", () => { if (hovered) { hovered = null; canvas.style.cursor = ""; map.draw(); } });
+  const pinUnder = (e) => under(e, map.v.hit, 7), markUnder = (e) => under(e, map.v.marks, 4.5);
+  const light = (l) => {   /* show which tile in the card belongs to the landmark being pointed at */
+    card.querySelectorAll(".lm.lit").forEach((t) => t.classList.remove("lit"));
+    const p = map.v.chosen, i = l && p ? p.landmarks.indexOf(l) : -1, tile = i >= 0 && card.querySelectorAll(".lm")[i];
+    if (tile) tile.classList.add("lit");
+  };
+  canvas.addEventListener("pointerleave", () => { if (hovered || mark) { hovered = null; mark = null; light(null); canvas.style.cursor = ""; map.draw(); } });
   canvas.addEventListener("pointermove", (e) => {
-    if (!fingers.size && e.pointerType === "mouse") {   /* pointing at a pin shows that place */
-      const p = pinUnder(e);
-      if (p !== hovered) { hovered = p; canvas.style.cursor = p ? "pointer" : ""; if (p && p !== map.v.chosen) choose(p, false); else map.draw(); }
+    if (!fingers.size && e.pointerType === "mouse") {   /* pointing at a landmark names it; pointing at a pin shows that place */
+      const m = markUnder(e), p = m ? null : pinUnder(e);
+      if (m !== mark || p !== hovered) {
+        mark = m; hovered = p; canvas.style.cursor = m || p ? "pointer" : ""; light(m);
+        if (p && p !== map.v.chosen) choose(p, false); else map.draw();
+      }
       return;
     }
     const was = fingers.get(e.pointerId); if (!was) return;
@@ -1030,7 +1095,8 @@ function showMap(focusFirst, chooseFile) {
     if (fingers.size) return;
     canvas.classList.remove("dragging");
     if (e.type !== "pointerup" || moved > 8) return;
-    const best = pinUnder(e);   /* a tap chooses the nearest pin, if one is close */
+    const m = markUnder(e), best = m ? null : pinUnder(e);   /* a tap names the nearest landmark, or chooses the nearest pin */
+    if (m || mark) { mark = m; light(m); map.draw(); }
     if (best) choose(best, false);
   };
   canvas.addEventListener("pointerup", lift); canvas.addEventListener("pointercancel", lift);
@@ -1040,7 +1106,8 @@ function showMap(focusFirst, chooseFile) {
   const marks = PLACES.reduce((n, p) => n + p.landmarks.length, 0), seen = PLACES.reduce((n, p) => n + been(p), 0);
   main.append(el("p", "label", "Map"), el("p", "tally", count(PLACES.length, "place") + (marks ? "  /  " + seen + " of " + marks + " landmarks" : "")), chips, box, wrap, backRow());
   refresh(); map.fit(map.v.pins, .01);
-  if (wantedPin) choose(wantedPin, true); else map.draw();
+  const homePin = PLACES.find((p) => p.kind === "home" && p.lat != null && !mapOff.has("home"));   /* with nothing else asked for, the map opens on home */
+  if (wantedPin) choose(wantedPin, true); else if (homePin) choose(homePin, true); else map.draw();
   loadLand().then(() => { if (canvas.isConnected) map.draw(); });
   if (!reduceMotion) {   /* the frame around the chosen pin blinks */
     const timer = setInterval(() => { if (!canvas.isConnected) return clearInterval(timer); if (document.hidden || !map.v.chosen) return; map.v.blink = !map.v.blink; map.draw(); }, 480);
@@ -1300,7 +1367,10 @@ function linkedPost() {   /* the entry named after # in the address, if there is
       return { file: text(p.file) || "place-" + i, name: text(p.name).trim() || "Unnamed place", kind: Object.prototype.hasOwnProperty.call(KINDS, text(p.kind)) ? text(p.kind) : "landmark",
         lat: good ? lat : null, lng: good ? lng : null, date: text(p.date), photo: text(p.photo), note: text(p.note),
         trip: text(p.trip).trim(), stop: typeof p.stop === "number" && Number.isFinite(p.stop) ? p.stop : null,
-        landmarks: (Array.isArray(p.landmarks) ? p.landmarks : []).filter((l) => l && typeof l === "object" && text(l.name).trim()).map((l) => ({ name: text(l.name).trim(), icon: text(l.icon), visited: l.visited === true })) };
+        landmarks: (Array.isArray(p.landmarks) ? p.landmarks : []).filter((l) => l && typeof l === "object" && text(l.name).trim()).map((l) => {
+          const at = typeof l.lat === "number" && typeof l.lng === "number" && Math.abs(l.lat) <= 90 && Math.abs(l.lng) <= 180;
+          return { name: text(l.name).trim(), icon: text(l.icon), visited: l.visited === true, lat: at ? l.lat : null, lng: at ? l.lng : null };
+        }) };
     });
     const kindOrder = Object.keys(KINDS);   /* list order: by kind, then trips together in stop order, then by name */
     PLACES.sort((a, b) => kindOrder.indexOf(a.kind) - kindOrder.indexOf(b.kind) || a.trip.localeCompare(b.trip) ||
