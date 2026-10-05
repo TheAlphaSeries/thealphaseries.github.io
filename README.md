@@ -42,6 +42,12 @@ Saving there creates or changes a file in one of the folders below. The site upd
 
 The site and this repository are public. Past trips are shown as they were. Anything in the future is kept vague:
 quests have no dates, and their names and objectives do not name real places. The home marker on the map is the
-middle of the neighbourhood, not an address. The page stores nothing about visitors.
+middle of the neighbourhood, not an address.
+
+The page stores nothing about visitors, with one exception they choose themselves: a friend can petition to join a
+quest by typing a name and a short note. Only those two things, the quest and the time are kept. No e-mail, address
+or cookie is kept, and nobody has an account. Petitions wait unseen until accepted or denied at `/keeper.html`
+(passphrase only); a denied petition is deleted. The program behind this is `scripts/worker.js`, and the data is in
+a small Cloudflare database named `halflife-quests`.
 
 The page that used to live in this repository (Polymath Robotics Terminal) is kept on the `polymath-terminal-backup` branch.

@@ -5,6 +5,8 @@
   "compatibility_date": "2026-09-01",
   // Everything in this folder is the website, except what .assetsignore lists.
   "assets": { "directory": ".", "binding": "ASSETS" },
+  // The small database that holds petitions to join a quest (see scripts/worker.js).
+  "d1_databases": [{ "binding": "QUESTS_DB", "database_name": "halflife-quests", "database_id": "e394b9ce-de5c-42df-b34d-22a1a32dbbf6" }],
   // Rebuild the entry list from posts/ before every publish.
   "build": { "command": "node scripts/build-index.mjs" }
 }

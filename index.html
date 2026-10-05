@@ -201,6 +201,16 @@ h3 { font-size: 12px; line-height: 1.7; color: var(--accent); margin-top: 8px; }
 #readerwin .goals { font-size: 19px; }
 .goalhead { display: flex; justify-content: space-between; align-items: baseline; margin: 14px 0 0; padding-top: 10px; border-top: 2px solid rgba(255, 255, 255, .3); font-family: var(--display); font-size: 10px; line-height: 1.6; color: var(--accent); }
 .goals { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 5px; }
+/* the company of a quest and the form for asking to join it */
+.party { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 8px; }
+.party li { padding: 2px 10px; border: 2px solid rgba(255, 255, 255, .45); border-radius: 6px; font-size: 17px; overflow-wrap: anywhere; min-width: 0; }
+.partynote { margin: 8px 0 0; }
+.petition { margin: 12px 0 4px; }
+.petition label { display: block; margin: 10px 0 4px; color: var(--dim); font-size: 15px; }
+.petition input { display: block; width: 100%; max-width: 420px; box-sizing: border-box; font: inherit; font-size: 17px; padding: 8px 10px; border: 2px solid rgba(255, 255, 255, .6); border-radius: 6px; background: rgba(0, 0, 20, .45); color: inherit; }
+.petition input:focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
+.petition .opt { margin-top: 12px; } .petition .opt:disabled { opacity: .5; }
+.petition .trap { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
 .goals li { display: grid; grid-template-columns: 13px minmax(0, 1fr); gap: 10px; align-items: start; color: var(--dim); }
 .goals li.done { color: var(--fg); }
 .goals .tick { position: relative; margin-top: 7px; width: 9px; height: 9px; border: 2px solid currentColor; background: #000; }
@@ -481,7 +491,11 @@ Select an entry to open it. Select Back, or tap outside the window, to close it.
 
 ## Map
 
-Drag to move. Pinch, or use + and -, to zoom. Point at a pin or a name to see the place and its landmarks. Near home, each small box is a landmark: point at one to name it.`;
+Drag to move. Pinch, or use + and -, to zoom. Point at a pin or a name to see the place and its landmarks. Near home, each small box is a landmark: point at one to name it.
+
+## Quests
+
+Open a quest to see who travels with it. To ask to join, choose Petition to join and give a name. No account is needed, and only what you write is kept. The keeper accepts or declines in his own time.`;
 
 /* ==========================================================================
    2. HELPERS
@@ -878,6 +892,50 @@ function showPost(p) {
 }
 /* open a quest: its story and its objectives */
 let questFrom = null;   /* the quest's button on the home screen, to put the cursor back on afterwards */
+/* The company of a quest: the friends accepted onto it, and a way to ask to join. Petitions go to a small
+   server program (scripts/worker.js) and wait there until Chris accepts or denies them at /keeper.html.
+   No account is needed; only the name and note typed here are kept. */
+let PARTY = {}, partyOpen = false;   /* accepted names per quest, and whether the server answered at all */
+const petitioned = () => { try { const v = JSON.parse(store.get("petitioned") || "[]"); return Array.isArray(v) ? v.map(text) : []; } catch (e) { return []; } };
+function loadParty() {
+  return fetch("/api/party", { cache: "no-cache" }).then((r) => (r.ok ? r.json() : null)).then((d) => {
+    if (!d || !d.party || typeof d.party !== "object") return;
+    PARTY = {}; partyOpen = true;
+    for (const k of Object.keys(d.party)) if (Array.isArray(d.party[k])) PARTY[k] = d.party[k].map((n) => text(n).trim().slice(0, 40)).filter(Boolean).slice(0, 60);
+  }).catch(() => {});
+}
+function company(q) {
+  const names = owns(PARTY, q.file) ? PARTY[q.file] : [], open = partyOpen && q.file && q.status !== "completed";
+  if (!names.length && !open) return;   /* nothing to show, and no server to petition */
+  const head = el("p", "goalhead"); head.append(el("span", null, "Company"), el("span", "lmcount", names.length ? String(names.length) : ""));
+  rwin.append(head);
+  if (names.length) { const list = el("ul", "party"); names.forEach((n) => list.append(el("li", null, n))); rwin.append(list); }
+  else rwin.append(el("p", "sub partynote", "None yet has thrown in with this venture."));
+  if (!open) return;
+  const box = el("div", "petition"); rwin.append(box);
+  if (petitioned().includes(q.file)) { box.append(el("p", "sub partynote", "Your petition lies on the keeper's desk.")); return; }
+  const ask = opt("Petition to join", () => {
+    box.textContent = "";
+    const form = el("form"), name = el("input"), note = el("input"), trap = el("input"), note2 = el("p", "sub partynote"), send = opt("Send petition"), l1 = el("label", null, "The name you travel under"), l2 = el("label", null, "A word in your favour (optional)");
+    name.type = "text"; name.maxLength = 40; name.required = true; name.autocomplete = "off"; name.id = "pname"; l1.htmlFor = "pname";
+    note.type = "text"; note.maxLength = 200; note.autocomplete = "off"; note.id = "pnote"; l2.htmlFor = "pnote";
+    trap.type = "text"; trap.name = "website"; trap.tabIndex = -1; trap.autocomplete = "off"; trap.className = "trap"; trap.setAttribute("aria-hidden", "true");   /* people never see this; only a machine fills it in */
+    send.type = "submit"; note2.setAttribute("role", "status"); note2.textContent = "Only what you write here is kept. The keeper decides at his leisure.";
+    form.append(l1, name, l2, note, trap, send, note2); box.append(form); name.focus();
+    form.addEventListener("submit", (e) => {
+      e.preventDefault(); if (!name.value.trim() || send.disabled) return;
+      send.disabled = true; note2.textContent = "Sending...";
+      fetch("/api/apply", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ quest: q.file, name: name.value, note: note.value, website: trap.value }) })
+        .then((r) => r.json().catch(() => ({})).then((d) => ({ ok: r.ok, d })))
+        .then(({ ok, d }) => {
+          if (!ok) { send.disabled = false; note2.textContent = text(d.error) || "The petition could not be carried. Try again."; return; }
+          store.set("petitioned", JSON.stringify(petitioned().concat(q.file).slice(-40)));
+          box.textContent = ""; box.append(el("p", "sub partynote", "Your petition has been carried to the keeper. He will consider it at his leisure, which is considerable."));
+        }).catch(() => { send.disabled = false; note2.textContent = "The petition could not be carried. Try again."; });
+    });
+  });
+  box.append(ask);
+}
 function showQuest(q, from) {
   if (view !== "files") showFiles();
   current = null; questFrom = from && from.isConnected ? from : null; setHash("");
@@ -889,6 +947,7 @@ function showQuest(q, from) {
   if (q.body) { const story = el("div", "post"); renderBody(q.body, story); rwin.append(story); }
   q.objectives.forEach((o) => { const li = el("li", o.done ? "done" : null); li.append(el("span", "tick"), el("span", null, o.text)); li.setAttribute("aria-label", o.text + (o.done ? ": done" : ": not yet")); goals.append(li); });
   if (q.objectives.length) { const tally = el("p", "goalhead"); tally.append(el("span", null, "Objectives"), el("span", "lmcount", got + " / " + q.objectives.length)); rwin.append(tally, goals); }
+  company(q);
   const nav = el("div", "row group"), pin = pinFor(q.place);
   nav.append(opt("Back", closePost));
   if (pin) nav.append(opt("Show on map", () => { closePost(); showMap(true, pin.file); }));
@@ -1451,6 +1510,7 @@ document.addEventListener("keydown", (e) => {
     return;
   }
   const reading = !reader.hidden;
+  if (e.target && /^(INPUT|TEXTAREA)$/.test(e.target.tagName) && e.key !== "Escape") return;   /* typing in a box: the arrow keys belong to the text */
   if (e.key === "Escape") { if (reading) closePost(); else if (view === "album") showPhotos(true); else if (view !== "files") showFiles(true); return; }
   const dir = { ArrowDown: 1, ArrowUp: -1 }[e.key];
   const side = e.key === "ArrowLeft" || e.key === "ArrowRight";
@@ -1703,7 +1763,7 @@ function linkedPost() {   /* the entry named after # in the address, if there is
     const intro = data.plants_intro && typeof data.plants_intro === "object" ? data.plants_intro : {};
     PLANT_INTRO = { bonsai: text(intro.bonsai), house: text(intro.house) };
     QUESTS = (Array.isArray(data.quests) ? data.quests : []).filter((q) => q && typeof q === "object" && text(q.title).trim()).map((q) => ({
-      title: text(q.title).trim(), status: text(q.status) === "completed" ? "completed" : "active", order: typeof q.order === "number" && Number.isFinite(q.order) ? q.order : 1e9, when: text(q.when), place: text(q.place), body: text(q.body),
+      file: text(q.file), title: text(q.title).trim(), status: text(q.status) === "completed" ? "completed" : "active", order: typeof q.order === "number" && Number.isFinite(q.order) ? q.order : 1e9, when: text(q.when), place: text(q.place), body: text(q.body),
       objectives: (Array.isArray(q.objectives) ? q.objectives : []).filter((o) => o && typeof o === "object" && text(o.text).trim()).map((o) => ({ text: text(o.text).trim(), done: o.done === true })) }))
       .sort((a, b) => a.order - b.order || a.title.localeCompare(b.title));
     sorted = (Array.isArray(data.posts) ? data.posts : []).filter((p) => p && typeof p === "object" && text(p.file)).map((p) => ({
@@ -1721,7 +1781,7 @@ function linkedPost() {   /* the entry named after # in the address, if there is
   if (view === "status") showStatus(started);
   if (view === "photos" || view === "album") showPhotos(started);
   if (view === "map") showMap(started);
-  drawMini(); loadLand().then(drawMini);
+  drawMini(); loadLand().then(drawMini); loadParty();
   if (view === "about") showPage("about", "m-about", "About", ABOUT);
   if (pendingPost && started) { showPost(pendingPost); pendingPost = null; }
 })();

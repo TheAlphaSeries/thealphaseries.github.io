@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>The Keeper's Desk</title>
+<style>
+  /* The keeper's desk: where Chris accepts or turns away petitions to join a quest. Linked from nowhere. */
+  body { margin: 0; padding: 20px; background: #03040f; color: #fff; font: 17px/1.5 ui-monospace, Menlo, Consolas, monospace; }
+  main { max-width: 640px; margin: 0 auto; }
+  .win { border: 3px solid #e8e8f4; border-radius: 9px; padding: 18px; margin: 0 0 16px; background: linear-gradient(#2a3da6, #080d48); box-shadow: 0 0 0 2px #000 inset; }
+  h1 { font-size: 20px; margin: 0 0 6px; } h2 { font-size: 15px; margin: 0 0 10px; color: #b9c4f5; text-transform: uppercase; letter-spacing: .08em; }
+  p { margin: 0 0 12px; } .dim { color: #b9c4f5; } .err { color: #ffd27a; min-height: 1.5em; }
+  label { display: block; margin: 0 0 4px; color: #b9c4f5; font-size: 14px; }
+  input { width: 100%; box-sizing: border-box; font: inherit; padding: 9px 10px; margin: 0 0 12px; border: 2px solid #b9c4f5; border-radius: 6px; background: #050830; color: #fff; }
+  button { font: inherit; padding: 8px 14px; margin: 0 8px 8px 0; border: 2px solid #e8e8f4; border-radius: 6px; background: #1a2676; color: #fff; cursor: pointer; }
+  button:hover, button:focus-visible { background: #3348c4; } button.no { border-color: #b9c4f5; background: transparent; }
+  ul { list-style: none; margin: 0; padding: 0; } li { padding: 12px 0; border-top: 2px solid rgba(255, 255, 255, .25); }
+  li:first-child { border-top: 0; padding-top: 0; }
+  .who { font-size: 19px; overflow-wrap: anywhere; } .note { font-style: italic; overflow-wrap: anywhere; margin: 4px 0 8px; } .q { color: #b9c4f5; font-size: 14px; margin: 0 0 8px; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <div class="win"><h1>The Keeper's Desk</h1><p class="dim">Petitions to join a quest wait here until accepted or turned away. A petition turned away is destroyed.</p></div>
+
+  <form class="win" id="setup" hidden>
+    <h2>First visit</h2>
+    <p>Choose the passphrase that will open this desk from now on. You need the one-time setup code.</p>
+    <label for="code">Setup code</label><input id="code" autocomplete="off" required>
+    <label for="newpass">New passphrase (ten characters or more)</label><input id="newpass" type="password" autocomplete="new-password" minlength="10" required>
+    <button>Set passphrase</button><p class="err" id="setuperr" role="alert"></p>
+  </form>
+
+  <form class="win" id="door" hidden>
+    <label for="pass">Passphrase</label><input id="pass" type="password" autocomplete="current-password" required>
+    <button>Open</button><p class="err" id="doorerr" role="alert"></p>
+  </form>
+
+  <div id="desk" hidden>
+    <div class="win"><h2>Waiting</h2><ul id="waiting"></ul></div>
+    <div class="win"><h2>Accepted</h2><ul id="accepted"></ul></div>
+    <p><button class="no" id="refresh" type="button">Refresh</button><a href="/" style="color:#b9c4f5">Back to the site</a></p>
+  </div>
+</main>
+<script>
+/* The passphrase is kept only in this page's memory: close the tab and it is forgotten. */
+const $ = (s) => document.querySelector(s);
+let pass = "", titles = {};
+const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+async function call(path, data) {
+  const r = await fetch(path, { method: data ? "POST" : "GET", cache: "no-store",
+    headers: Object.assign(pass ? { authorization: "Bearer " + pass } : {}, data ? { "content-type": "application/json" } : {}), body: data ? JSON.stringify(data) : undefined });
+  const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || "Something went wrong."); return j;
+}
+function row(p, waiting) {
+  const li = el("li"); li.append(el("div", "who", p.name), el("div", "q", (titles[p.quest] || p.quest) + "  -  " + new Date(p.created).toLocaleDateString()));
+  if (p.note) li.append(el("div", "note", "“" + p.note + "”"));
+  const act = async (action) => { try { await call("/api/keeper/decide", { id: p.id, action }); await load(); } catch (e) { alert(e.message); } };
+  if (waiting) { const yes = el("button", null, "Accept"); yes.type = "button"; yes.onclick = () => act("accept"); li.append(yes); }
+  const no = el("button", "no", waiting ? "Deny" : "Remove from quest"); no.type = "button"; no.onclick = () => { if (confirm((waiting ? "Deny " : "Remove ") + p.name + "? This cannot be undone.")) act("remove"); }; li.append(no);
+  return li;
+}
+async function load() {
+  const { petitions } = await call("/api/keeper/list");
+  const w = $("#waiting"), a = $("#accepted"); w.textContent = ""; a.textContent = "";
+  petitions.forEach((p) => (p.status === "pending" ? w : a).append(row(p, p.status === "pending")));
+  if (!w.firstChild) w.append(el("li", "dim", "No one is waiting."));
+  if (!a.firstChild) a.append(el("li", "dim", "No companions yet."));
+  $("#door").hidden = true; $("#desk").hidden = false;
+}
+$("#door").addEventListener("submit", async (e) => { e.preventDefault(); pass = $("#pass").value; try { await load(); $("#pass").value = ""; } catch (err) { pass = ""; $("#doorerr").textContent = err.message; } });
+$("#setup").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  try { await call("/api/keeper/setup", { code: $("#code").value.trim(), passphrase: $("#newpass").value }); pass = $("#newpass").value; $("#setup").hidden = true; await load(); }
+  catch (err) { $("#setuperr").textContent = err.message; }
+});
+$("#refresh").addEventListener("click", () => load().catch((e) => alert(e.message)));
+(async () => {
+  try { const d = await (await fetch("/posts.json", { cache: "no-cache" })).json(); (d.quests || []).forEach((q) => { titles[q.file] = q.title; }); } catch (e) {}
+  try { const s = await call("/api/keeper/state"); $(s.ready ? "#door" : "#setup").hidden = false; } catch (e) { $("#door").hidden = false; $("#doorerr").textContent = e.message; }
+})();
+</script>
+</body>
+</html>
