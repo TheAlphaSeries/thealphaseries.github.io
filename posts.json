@@ -96,12 +96,92 @@
   "albums": [],
   "places": [
     {
+      "file": "chengdu",
+      "name": "Chengdu",
+      "kind": "trip",
+      "lat": 30.5728,
+      "lng": 104.0668,
+      "date": "2026-03-21",
+      "photo": "",
+      "note": ""
+    },
+    {
+      "file": "chongqing",
+      "name": "Chongqing",
+      "kind": "trip",
+      "lat": 29.563,
+      "lng": 106.5516,
+      "date": "2026-03-27",
+      "photo": "",
+      "note": ""
+    },
+    {
+      "file": "guangzhou",
+      "name": "Guangzhou",
+      "kind": "trip",
+      "lat": 23.1291,
+      "lng": 113.2644,
+      "date": "2026-04-01",
+      "photo": "",
+      "note": ""
+    },
+    {
+      "file": "hong-kong",
+      "name": "Hong Kong",
+      "kind": "trip",
+      "lat": 22.3193,
+      "lng": 114.1694,
+      "date": "2026-04-04",
+      "photo": "",
+      "note": ""
+    },
+    {
       "file": "lake-chabot",
       "name": "Lake Chabot",
       "kind": "fishing",
       "lat": 37.7297,
       "lng": -122.104,
       "date": "",
+      "photo": "",
+      "note": ""
+    },
+    {
+      "file": "ojai",
+      "name": "Ojai",
+      "kind": "trip",
+      "lat": 34.448,
+      "lng": -119.2429,
+      "date": "2026-06-05",
+      "photo": "",
+      "note": ""
+    },
+    {
+      "file": "pine-lake",
+      "name": "Pine Lake",
+      "kind": "fishing",
+      "lat": 38.1993,
+      "lng": -119.988,
+      "date": "",
+      "photo": "",
+      "note": ""
+    },
+    {
+      "file": "shanghai",
+      "name": "Shanghai",
+      "kind": "trip",
+      "lat": 31.2304,
+      "lng": 121.4737,
+      "date": "2026-03-29",
+      "photo": "",
+      "note": ""
+    },
+    {
+      "file": "zhangjiajie",
+      "name": "Zhangjiajie",
+      "kind": "trip",
+      "lat": 29.325,
+      "lng": 110.435,
+      "date": "2026-03-24",
       "photo": "",
       "note": ""
     }
