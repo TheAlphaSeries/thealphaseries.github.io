@@ -211,11 +211,75 @@ content:
       - name: stop
         label: Stop number on that trip (1, 2, 3 ...)
         type: string
+      - name: landmarks
+        label: Landmarks at this place (tick the ones you have been to)
+        type: object
+        list: true
+        fields:
+          - name: name
+            label: Landmark
+            type: string
+          - name: icon
+            label: Picture
+            type: select
+            options:
+              values:
+                  - name: pagoda
+                    label: Temple or pagoda
+                  - name: museum
+                    label: Museum or columned hall
+                  - name: dome
+                    label: Domed building
+                  - name: cathedral
+                    label: Cathedral or church
+                  - name: house
+                    label: Shop, house or old street
+                  - name: lantern
+                    label: Market or lantern street
+                  - name: skyline
+                    label: City skyline or tall building
+                  - name: tower
+                    label: Tower
+                  - name: obelisk
+                    label: Monument
+                  - name: bridge
+                    label: Bridge or dam
+                  - name: peak
+                    label: Mountain or viewpoint
+                  - name: pillars
+                    label: Stone pillars
+                  - name: cave
+                    label: Cave or arch
+                  - name: lake
+                    label: Lake or water
+                  - name: tree
+                    label: Park, garden or trail
+                  - name: buddha
+                    label: Statue
+                  - name: boat
+                    label: Boat or harbor
+                  - name: cablecar
+                    label: Cable car or lift
+                  - name: tram
+                    label: Tram or train
+                  - name: carousel
+                    label: Carousel or fairground
+                  - name: cup
+                    label: Cafe or teahouse
+                  - name: note
+                    label: Music
+                  - name: gem
+                    label: Treasure or shopping
+                  - name: panda
+                    label: Panda
+          - name: visited
+            label: Been there
+            type: boolean
       - name: photo
         label: Photo (optional)
         type: image
       - name: body
-        label: Note (optional)
+        label: About this place
         type: rich-text
         options:
           format: markdown

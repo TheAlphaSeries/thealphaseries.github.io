@@ -209,7 +209,21 @@ h3 { font-size: 12px; line-height: 1.7; color: var(--accent); margin-top: 8px; }
 .dot.fishing, .kind.fishing { color: #6fb7ff; } .dot.landmark, .kind.landmark { color: #ffd257; } .dot.hike, .kind.hike { color: #7fd68a; } .dot.trip, .kind.trip { color: #c79bff; }
 .dot { background: currentColor; }
 .maplist { margin-top: 16px; }
-.place { grid-template-columns: 18px 10px minmax(0, 1fr); }
+.place { grid-template-columns: 18px 10px minmax(0, 1fr) auto; }
+.place .qty { color: var(--dim); font-variant-numeric: tabular-nums; font-size: 14px; }
+.maplist { grid-template-columns: minmax(0, .8fr) minmax(0, 1.4fr); }
+.maptip { position: absolute; z-index: 1; transform: translate(14px, -50%); pointer-events: none; white-space: nowrap; max-width: 60%; overflow: hidden; text-overflow: ellipsis;
+  font-family: var(--display); font-size: 9px; line-height: 1.6; color: var(--fg); background: #000; border: 2px solid var(--border); border-radius: 5px; padding: 3px 7px; }
+.maptip.left { transform: translate(calc(-100% - 14px), -50%); }
+.lmhead { display: flex; justify-content: space-between; align-items: baseline; margin: 16px 0 0; font-family: var(--display); font-size: 11px; line-height: 1.6; color: var(--accent); border-top: 2px solid rgba(255, 255, 255, .3); padding-top: 12px; }
+.lmcount { color: var(--dim); font-family: var(--body); font-size: 16px; font-variant-numeric: tabular-nums; }
+.lms { list-style: none; margin: 10px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 8px; }
+.lm { position: relative; background: #121419; border: 2px solid #343741; border-radius: 6px; padding: 10px 5px 7px; text-align: center; font-size: 13.5px; line-height: 1.25; color: var(--off); overflow-wrap: anywhere; }
+.lm.done { border-color: var(--border); color: var(--fg); background: #191c23; }
+.lm canvas { display: block; width: 48px; height: 48px; margin: 0 auto 6px; image-rendering: pixelated; }
+.lm .tick { position: absolute; top: 4px; right: 4px; width: 9px; height: 9px; border: 2px solid currentColor; background: #000; }
+.lm.done .tick { background: #7fd68a; border-color: #7fd68a; }
+.lm.done .tick::after { content: ""; position: absolute; left: 2px; top: -1px; width: 3px; height: 6px; border: solid #000; border-width: 0 2px 2px 0; transform: rotate(45deg); }
 .place .name { font-family: var(--display); font-size: 12px; line-height: 1.8; overflow-wrap: anywhere; }
 .caughthere { display: flex; flex-wrap: wrap; gap: 0 14px; margin-top: 10px; }
 #minimap { grid-area: map; align-self: start; display: block; width: 100%; padding: 6px; cursor: pointer; color: var(--dim); font: inherit; text-align: left; position: relative; transition: transform .5s var(--spring); }
@@ -263,6 +277,8 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
   body { padding-bottom: 170px; }
   .beasts { grid-template-columns: minmax(0, 1fr); }
   .beastlist { max-height: 34vh; }
+  .maplist { grid-template-columns: minmax(0, 1fr); }
+  .lm { font-size: 12px; padding-inline: 3px; }
   .stage { grid-template-columns: minmax(0, 1fr); grid-template-areas: "help" "main" "status" "map"; grid-template-rows: auto; }
   .albums { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; }
@@ -361,7 +377,7 @@ Select an entry to open it. Select Back, or tap outside the window, to close it.
 
 ## Map
 
-Drag to move. Pinch, or use + and -, to zoom. Select a pin or a name to see the place.`;
+Drag to move. Pinch, or use + and -, to zoom. Point at a pin or a name to see the place and its landmarks.`;
 
 /* ==========================================================================
    2. HELPERS
@@ -848,6 +864,7 @@ function makeMap(canvas, cell, small) {
       }
       v.hit.push([x, y, p]);
     }
+    if (v.after) v.after();
   }
   function fit(pins, minSpan) {   /* frame every pin, or the whole world when there are none */
     size();
@@ -867,6 +884,15 @@ function makeMap(canvas, cell, small) {
   function goTo(p) { if (p.lat == null) return; const m = merc(p.lat, p.lng); v.x = m[0]; v.y = m[1]; v.scale = Math.max(v.scale, w / .012); }
   return { v, draw, fit, zoomAt, zoomBy, goTo, cells: () => [w, h] };
 }
+/* Landmark pictures: 16 x 16, one letter per pixel, each letter a colour in "pal". */
+const LANDMARK = {"pal": {"k": "#0b0b0e", "w": "#f4f4f0", "g": "#8a8f9a", "d": "#4a4f5a", "r": "#c8443a", "R": "#7d2a24", "o": "#e08a3c", "y": "#ffd257", "n": "#5fae62", "N": "#2f6b3c", "b": "#6fb7ff", "B": "#2f5f9a", "t": "#c9a66b", "T": "#7a5230", "p": "#c79bff", "s": "#b9b4a6", "S": "#6e6a60"}, "icons": {"pagoda": [".......yy.......", ".......rr.......", ".....RrrrrR.....", "...RRrrrrrrRR...", "..R...tttt...R..", "......tkkt......", "....RrrrrrrR....", "..RRrrrrrrrrRR..", ".R....tttt....R.", "......tkkt......", "...RrrrrrrrrR...", ".RRrrrrrrrrrrRR.", "R....tttttt....R", ".....tkTTkt.....", ".....tkTTkt.....", "...SSSSSSSSSS..."], "tower": [".......w........", ".......w........", ".......g........", "......gwg.......", "......pwp.......", ".....ppwpp......", "......pwp.......", "......gwg.......", ".......g........", "......ggg.......", "......gwg.......", ".....pgwgp......", ".....ggwgg......", "....gg.w.gg.....", "...gg..w..gg....", "..SSSSSSSSSSS..."], "obelisk": [".......w........", "......www.......", "......wsw.......", "......wss.......", "......wss.......", "......wss.......", "......wss.......", "......wss.......", "......wss.......", "......wss.......", "......wss.......", "......wss.......", "......wss.......", ".....wwsss......", "..nnnSSSSSSnnn..", ".NNNNNNNNNNNNNN."], "skyline": ["................", ".......g........", ".......g..d.....", "..d...ggg.dd....", "..dd..gyg.dyd...", "..dyd.ggg.ddd.g.", ".ddyd.gyg.dyd.g.", ".dddddggg.ddddgg", ".dydddgygdddydgy", ".dddddgggdddddgg", ".dydydgygdydydgy", ".dddddgggdddddgg", ".dydydgygdydydgy", "SSSSSSSSSSSSSSSS", "BbBBbBBBbBBbBBbB", "BBBbBBbBBBBBbBBB"], "bridge": ["................", "................", "...r........r...", "...r........r...", "..rrr......rrr..", "..rRr......rRr..", ".rrRrr....rrRrr.", "r.rRr.rrrr.rRr.r", "..rRr......rRr..", "rrrrrrrrrrrrrrrr", "RRRRRRRRRRRRRRRR", "..rRr......rRr..", "..rRr......rRr..", "BbBRBBbBBBbBRBBb", "BBBbBBBBbBBBBbBB", "bBBBBbBBBBbBBBBB"], "peak": ["................", ".......w........", "......www.......", "......wws.......", ".....wwsss......", ".....wsssS......", "....sssssSS.....", "....ssssSSS..w..", "...ssssSSSSSwws.", "...sssSSSSSSssSS", "..nssSSSSSSssSSS", "..nnsSSSSSnsSSSS", ".nnnnNSSSnnnNSSS", ".nnnNNNNnnnNNNNS", "nnnNNNNNnnNNNNNN", "NNNNNNNNNNNNNNNN"], "pillars": ["................", "...n.......n....", "..nnn.....nNn...", "..sNs..n..sNs...", "..sss.nNn.sSs...", "..sSs.sNs.sSs.n.", "..sSs.sss.sSs.Nn", "..sSs.sSs.sSsnsS", "..sSs.sSs.sSs.sS", ".wsSs.sSs.sSs.sS", "wwsSswsSswsSs.sS", "..sSswwSs.sSswsS", "w.sSs.sSswwSswwS", "ww.Ss.sSs.wSs.wS", ".wwwwwwSwwwwwww.", "..wwwwwwwwwwww.."], "cave": ["................", "....SSSSSSS.....", "..SSsssssssSS...", ".SsssssssssssS..", ".SsssSSSSSsssSS.", "SsssSkkkkkSsssS.", "SssSkkkkkkkSssS.", "SssSkkkkkkkkSsSS", "SsSkkkkkkkkkSssS", "SsSkkkkkkkkkkSsS", "SsSkkkkwkkkkkSsS", "SsSkkkkwwkkkkSsS", "sSkkkkwwwkkkkkSs", "nSkkkwwwwwkkkkSn", "nnNkkwwwwwwkkNnn", "NNNNNNNNNNNNNNNN"], "museum": ["................", "................", ".......ww.......", ".....wwsswww....", "...wwssssssww...", ".wwsssssssssssw.", "wwwwwwwwwwwwwwww", ".SSSSSSSSSSSSSS.", "..w.w.w..w.w.w..", "..w.w.w..w.w.w..", "..w.w.wkkw.w.w..", "..w.w.wkkw.w.w..", "..w.w.wkkw.w.w..", ".ssssssssssssss.", "SSSSSSSSSSSSSSSS", ".SSSSSSSSSSSSSS."], "dome": [".......y........", ".......w........", "......www.......", ".....wwsww......", "....wwsssww.....", "....wsssssw.....", "....wwwwwww.....", ".....w.w.w......", "....wwwwwww.....", "..wwwsssssswww..", ".wwwwwwwwwwwwww.", "..w.w.w.w.w.w.w.", "..w.w.wkkkw.w.w.", "..w.w.wkkkw.w.w.", ".ssssssssssssss.", "SSSSSSSSSSSSSSSS"], "house": ["................", "................", "......RR........", "....RRrrRR...d..", "..RRrrrrrrRR.d..", ".RrrrrrrrrrrRd..", "RrrrrrrrrrrrrrR.", ".tttttttttttttt.", ".tbbtttttttbbtt.", ".tbbtttttttbbtt.", ".ttttttTTttttttt", ".yoyoyoTToyoyoy.", ".ttttttTTtttttt.", ".ttttttTyttttt..", ".ttttttTTtttttt.", "SSSSSSSSSSSSSSSS"], "lantern": [".......T........", ".......T........", ".....yyyyy......", "....RrrrrrR.....", "...RrrrorrrR....", "..RrrroyorrrR...", "..RrroyyyorrR...", "..RrroyyyorrR...", "..RrrroyorrrR...", "...RrrrorrrR....", "....RrrrrrR.....", ".....yyyyy......", "......y.y.......", "......y.y.......", "......y.y.......", "................"], "buddha": [".......dd.......", "......gggg......", "......gkkg......", "......gggg......", ".....gggggg.....", "...gggggggggg...", "..ggggggggggdg..", "..gggdggggdggg..", "..ggg.dggd.ggg..", "...ggggyygggg...", "..gggggggggggg..", ".gggdddggdddggg.", ".ggggggggggggdg.", "..SSSSSSSSSSSS..", ".SSsSSsSSsSSsSS.", "SSSSSSSSSSSSSSSS"], "boat": ["................", ".......d........", ".......d..r.....", "......gdg.......", ".....ggdgg......", "....wwwwwwww....", "....wbbwbbww....", "..wwwwwwwwwwww..", "..wbbwbbwbbwbw..", ".nnnnnnnnnnnnnn.", ".NnnnnnnnnnnnnN.", "..NNnnnnnnnnNN..", "bBBNNNNNNNNNNBBb", "BBbBBBbBBBBbBBBB", "BBBBbBBBBbBBBBbB", "bBBBBBBbBBBBBBBB"], "cablecar": ["................", "dd..............", "..ddd...........", ".....dddd.......", ".......k.dddd...", ".......k.....ddd", "......kkk.......", "....rrrrrrr.....", "...rrrrrrrrr....", "...rbbrbbrbr....", "...rbbrbbrbr....", "...rrrrrrrrr....", "...RRRRRRRRR....", "....RRRRRRR.....", "................", "nNnnNNnnnNnnNNnn"], "tram": ["................", "......k.........", ".....k.k........", "....k...k.......", "..NNNNNNNNNNNN..", ".NnnnnnnnnnnnnN.", ".nbbnbbnbbnbbnn.", ".nbbnbbnbbnbbnn.", ".nnnnnnnnnnnnnn.", ".yNNNNNNNNNNNNy.", ".NNNNNNNNNNNNNN.", ".RRRRRRRRRRRRRR.", "..dkd......dkd..", "..kdk......kdk..", "dddddddddddddddd", "S.S.S.S.S.S.S.S."], "tree": ["................", "......nnnn......", "....nnnnnnnn....", "...nnnNnnnnnn...", "..nnnnnnnnNnnn..", "..nnNnnnnnnnnN..", ".nnnnnnnNnnnnNN.", ".nnnnnnnnnnnNNN.", ".NnnnNnnnnnNNNN.", "..NNnnnnnNNNNN..", "...NNNNNNNNNN...", "......TTT.......", "......TtT.......", "......TtT.......", ".....TTtTT......", "nnNnnnNNnnnNnnNn"], "panda": ["................", "..kkk......kkk..", ".kkkkk....kkkkk.", ".kkkwwwwwwwwkkk.", "..kwwwwwwwwwwk..", "..wwwwwwwwwwww..", ".wwkkkwwwwkkkww.", ".wkkwkkwwkkwkkw.", ".wkkkkkwwkkkkkw.", ".wwkkkwwwwkkkww.", ".wwwwwwkkwwwwww.", "..wwwwwkkwwwww..", "..wwwkwwwwkwww..", "...wwwkkkkwww...", "....wwwwwwww....", "................"], "lake": ["................", "......N.........", ".....NNN....N...", "....NNnNN..NNN..", "...NNnnnNNNNnNN.", "..NNnnnnnNNnnnNN", ".NNnnnnnnnNnnnnN", "NNNNNNNNNNNNNNNN", "bbbbbbbbbbbbbbbb", "bBbbbwwbbbbBbbbb", "bbbbBbbbbwwbbbBb", "BbbbbbbBbbbbbbbb", "bbwwbbbbbbbBbbbb", "BBbbbbBbbbbbbwwb", "bbbBbbbbbBbbbbbB", "BBBBBBBBBBBBBBBB"], "cathedral": [".......y........", ".......y........", "..y....w....y...", "..w...www...w...", ".www..wsw..www..", ".wsw..wsw..wsw..", ".wsw.wwsww.wsw..", ".wswwwsssswwsw..", ".wswssssssswsw..", ".wswsskkksswsw..", ".wswskbbbkswsw..", ".wswskbbbkswsw..", ".wswssTTTsswsw..", ".wswssTTTsswsw..", "SSSSSSSSSSSSSSSS", ".SSSSSSSSSSSSSS."], "carousel": [".......y........", ".......r........", ".....rrwrr......", "...rrwwrwwrr....", ".rrwwrrwrrwwrr..", "rwwrrwwrwwrrwwr.", "yyyyyyyyyyyyyyy.", ".d...d...d...d..", ".d.w.d...d.w.d..", ".dwwwd...dwwwd..", ".d.w.d.w.d.w.d..", ".d...dwwwd...d..", ".d...d.w.d...d..", ".rrrrrrrrrrrrr..", "RRRRRRRRRRRRRRR.", ".SSSSSSSSSSSSS.."], "cup": ["................", ".....w...w......", "....w...w.......", ".....w...w......", "....w...w.......", "................", "..wwwwwwwwww....", "..wTTTTTTTTwww..", "..wTTTTTTTTw.ww.", "..wwwwwwwwww..w.", "..wwwwwwwwww.ww.", "...wwwwwwwwww...", "...wwwwwwww.....", "....wwwwww......", ".ssssssssssss...", "..SSSSSSSSSS...."], "note": ["................", "......yyyyyyyy..", "......yyyyyyyy..", "......y......y..", "......y......y..", "......y......y..", "......y......y..", "......y......y..", "......y......y..", "...yyyy...yyyy..", "..yyyyy..yyyyy..", "..yyyyy..yyyyy..", "...yyy....yyy...", "................", "................", "................"], "gem": ["................", "................", "....nnnnnnnn....", "...nwwnnnnnNn...", "..nwwnnnnnnNNn..", ".nnnnnnnnnnnNNn.", ".NNNNNNNNNNNNNN.", ".nnnNnnnnnNNNNN.", "..nnnNnnnNNNNN..", "...nnnNnNNNNN...", "....nnnNNNNN....", ".....nnNNNN.....", "......nNNN......", ".......NN.......", "................", "................"]}};
+function landmarkPic(icon, lit) {   /* lit: in colour (been there); otherwise a dim outline */
+  const c = el("canvas"), x = c.getContext("2d"); c.width = c.height = 16; c.setAttribute("aria-hidden", "true");
+  const rows = Object.prototype.hasOwnProperty.call(LANDMARK.icons, icon) ? LANDMARK.icons[icon] : LANDMARK.icons.museum;
+  rows.forEach((row, y) => { for (let i = 0; i < row.length; i++) { if (row[i] === ".") continue; x.fillStyle = lit ? (LANDMARK.pal[row[i]] || "#fff") : "#3a3d47"; x.fillRect(i, y, 1, 1); } });
+  return c;
+}
+const been = (p) => p.landmarks.filter((l) => l.visited).length;
 const mapOff = new Set();   /* kinds of pin switched off with the buttons above the map */
 /* Entries, albums and fish name a place in words ("Pine Lake, California"). This finds the pin they mean. */
 function pinFor(where) {
@@ -892,10 +918,19 @@ function showMap(focusFirst, chooseFile) {
   const map = makeMap(canvas, 3, false);
   const key = (text, label, fn, cls) => { const b = el("button", cls, text); b.type = "button"; b.setAttribute("aria-label", label); b.addEventListener("click", fn); keys.append(b); };
   key("+", "Zoom in", () => map.zoomBy(1.8)); key("-", "Zoom out", () => map.zoomBy(1 / 1.8)); key("All", "Show every pin", () => { map.fit(map.v.pins, .01); map.draw(); }, "wide");
-  box.append(canvas, keys);
+  const tip = el("div", "maptip"); tip.hidden = true;
+  box.append(canvas, tip, keys);
+  let hovered = null;
+  map.v.after = () => {   /* keep a name label beside the pin being pointed at, or else the chosen one */
+    const p = hovered || map.v.chosen, hit = p && map.v.hit.find((h) => h[2] === p), [w, h] = map.cells();
+    if (!hit || hit[0] < 0 || hit[1] < 0 || hit[0] > w || hit[1] > h) { tip.hidden = true; return; }
+    tip.textContent = p.name + (p.landmarks.length ? "  " + been(p) + "/" + p.landmarks.length : "");
+    tip.style.left = (hit[0] / w * 100) + "%"; tip.style.top = (hit[1] / h * 100) + "%";
+    tip.classList.toggle("left", hit[0] > w * .62); tip.hidden = false;
+  };
   function showCard(p) {
     card.textContent = "";
-    if (!p) { card.append(el("p", "sub", PLACES.length ? "Choose a pin, or a place from the list." : "No places marked yet.")); return; }
+    if (!p) { card.append(el("p", "sub", PLACES.length ? "Point at a pin, or a place in the list." : "No places marked yet.")); return; }
     const kind = KINDS[p.kind] || KINDS.landmark, facts = el("dl", "facts"), fact = (k, node) => { const dd = el("dd"); dd.append(node); facts.append(el("dt", null, k), dd); return dd; };
     fact("Kind", kind[0].replace(/s$/, "")).className = "kind " + p.kind;
     if (p.date) fact("Date", day(p.date));
@@ -909,6 +944,18 @@ function showMap(focusFirst, chooseFile) {
       if (stops[at + 1]) row.append(opt("Next stop", () => { mapOff.delete(stops[at + 1].kind); choose(stops[at + 1], true); }));
       card.append(row);
     }
+    if (p.note) { const note = el("div", "post lore"); renderBody(p.note, note); card.append(note); }
+    if (p.landmarks.length) {   /* the landmarks here: in colour and ticked if visited, a dim outline if not */
+      const head = el("p", "lmhead"), grid = el("ul", "lms"), done = been(p);
+      head.append(el("span", null, "Landmarks"), el("span", "lmcount", done + " / " + p.landmarks.length));
+      p.landmarks.forEach((l) => {
+        const tile = el("li", "lm" + (l.visited ? " done" : ""));
+        tile.append(landmarkPic(l.icon, l.visited), el("span", "lmname", l.name), el("span", "tick"));
+        tile.setAttribute("aria-label", l.name + (l.visited ? ": been there" : ": not yet"));
+        grid.append(tile);
+      });
+      card.append(head, grid);
+    }
     const linked = (label, items) => {   /* things elsewhere on the site that name this place */
       if (!items.length) return;
       const row = el("div", "row caughthere"), tag = el("span", "sub", label); tag.style.margin = "0"; row.append(tag);
@@ -916,9 +963,7 @@ function showMap(focusFirst, chooseFile) {
     };
     linked("Photos:", ALBUMS.filter((a) => pinFor(a.place) === p).map((a) => [a.title, () => showAlbum(a)]));
     linked("Log:", sorted.filter((e) => pinFor(e.place) === p).map((e) => [e.title, () => showPost(e)]));
-    const fish = fishAt(p);
-    linked("Caught here:", fish.map(([b, i]) => [b.name, () => showBestiary(true, i)]));
-    if (p.note) { const note = el("div", "post lore"); renderBody(p.note, note); card.append(note); }
+    linked("Caught here:", fishAt(p).map(([b, i]) => [b.name, () => showBestiary(true, i)]));
     if (p.photo) { const row = el("div", "row"); const b = opt("View photo", () => zoom(p.photo, p.name, b)); row.append(b); card.append(row); }
     card.classList.remove("pop"); void card.offsetWidth; card.classList.add("pop");
   }
@@ -935,7 +980,8 @@ function showMap(focusFirst, chooseFile) {
     shown.forEach((p, i) => {
       const pick = () => { if (!quiet && b.getAttribute("aria-pressed") !== "true") choose(p, true); };
       const b = opt(null, pick, "place"); b.dataset.place = p.file; b.addEventListener("focus", pick);
-      b.append(el("span", "dot " + p.kind), el("span", "name", p.name)); b.style.setProperty("--i", Math.min(i, 6));
+      b.addEventListener("pointerenter", (e) => { if (e.pointerType === "mouse" && map.v.chosen !== p) choose(p, false); });   /* pointing at a name shows that place */
+      b.append(el("span", "dot " + p.kind), el("span", "name", p.name), el("span", "qty", p.landmarks.length ? been(p) + "/" + p.landmarks.length : "")); b.style.setProperty("--i", Math.min(i, 6));
       list.append(b);
     });
     if (!shown.includes(map.v.chosen)) choose(null); else choose(map.v.chosen);
@@ -954,7 +1000,19 @@ function showMap(focusFirst, chooseFile) {
     fingers.set(e.pointerId, [e.clientX, e.clientY]); if (fingers.size === 1) moved = 0; if (fingers.size === 2) spread = gap();
     canvas.classList.add("dragging");
   });
+  const pinUnder = (e) => {   /* the pin nearest the pointer, if one is close */
+    const r = canvas.getBoundingClientRect(), [w, h] = map.cells(), x = (e.clientX - r.left) / r.width * w, y = (e.clientY - r.top) / r.height * h;
+    let best = null, near = 7;
+    for (const [px, py, p] of map.v.hit) { const far = Math.hypot(px - x, py - y); if (far < near) { near = far; best = p; } }
+    return best;
+  };
+  canvas.addEventListener("pointerleave", () => { if (hovered) { hovered = null; canvas.style.cursor = ""; map.draw(); } });
   canvas.addEventListener("pointermove", (e) => {
+    if (!fingers.size && e.pointerType === "mouse") {   /* pointing at a pin shows that place */
+      const p = pinUnder(e);
+      if (p !== hovered) { hovered = p; canvas.style.cursor = p ? "pointer" : ""; if (p && p !== map.v.chosen) choose(p, false); else map.draw(); }
+      return;
+    }
     const was = fingers.get(e.pointerId); if (!was) return;
     fingers.set(e.pointerId, [e.clientX, e.clientY]);
     const r = canvas.getBoundingClientRect(), [w] = map.cells(), per = w / (r.width || 1);
@@ -972,16 +1030,15 @@ function showMap(focusFirst, chooseFile) {
     if (fingers.size) return;
     canvas.classList.remove("dragging");
     if (e.type !== "pointerup" || moved > 8) return;
-    const r = canvas.getBoundingClientRect(), [w, h] = map.cells(), x = (e.clientX - r.left) / r.width * w, y = (e.clientY - r.top) / r.height * h;
-    let best = null, near = 7;   /* a tap chooses the nearest pin, if one is close */
-    for (const [px, py, p] of map.v.hit) { const far = Math.hypot(px - x, py - y); if (far < near) { near = far; best = p; } }
+    const best = pinUnder(e);   /* a tap chooses the nearest pin, if one is close */
     if (best) choose(best, false);
   };
   canvas.addEventListener("pointerup", lift); canvas.addEventListener("pointercancel", lift);
   canvas.addEventListener("wheel", (e) => { if (!e.ctrlKey && !e.metaKey) return; e.preventDefault(); map.zoomAt(e.clientX, e.clientY, Math.exp(-e.deltaY * .01)); }, { passive: false });
   canvas.addEventListener("dblclick", (e) => { e.preventDefault(); map.zoomAt(e.clientX, e.clientY, 2); });
   wrap.append(list, card);
-  main.append(el("p", "label", "Map"), chips, box, wrap, backRow());
+  const marks = PLACES.reduce((n, p) => n + p.landmarks.length, 0), seen = PLACES.reduce((n, p) => n + been(p), 0);
+  main.append(el("p", "label", "Map"), el("p", "tally", count(PLACES.length, "place") + (marks ? "  /  " + seen + " of " + marks + " landmarks" : "")), chips, box, wrap, backRow());
   refresh(); map.fit(map.v.pins, .01);
   if (wantedPin) choose(wantedPin, true); else map.draw();
   loadLand().then(() => { if (canvas.isConnected) map.draw(); });
@@ -1242,7 +1299,8 @@ function linkedPost() {   /* the entry named after # in the address, if there is
       const lat = typeof p.lat === "number" ? p.lat : NaN, lng = typeof p.lng === "number" ? p.lng : NaN, good = Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
       return { file: text(p.file) || "place-" + i, name: text(p.name).trim() || "Unnamed place", kind: Object.prototype.hasOwnProperty.call(KINDS, text(p.kind)) ? text(p.kind) : "landmark",
         lat: good ? lat : null, lng: good ? lng : null, date: text(p.date), photo: text(p.photo), note: text(p.note),
-        trip: text(p.trip).trim(), stop: typeof p.stop === "number" && Number.isFinite(p.stop) ? p.stop : null };
+        trip: text(p.trip).trim(), stop: typeof p.stop === "number" && Number.isFinite(p.stop) ? p.stop : null,
+        landmarks: (Array.isArray(p.landmarks) ? p.landmarks : []).filter((l) => l && typeof l === "object" && text(l.name).trim()).map((l) => ({ name: text(l.name).trim(), icon: text(l.icon), visited: l.visited === true })) };
     });
     const kindOrder = Object.keys(KINDS);   /* list order: by kind, then trips together in stop order, then by name */
     PLACES.sort((a, b) => kindOrder.indexOf(a.kind) - kindOrder.indexOf(b.kind) || a.trip.localeCompare(b.trip) ||

@@ -24,11 +24,14 @@ function parse(text) {
     if (inline) { meta[k[1]] = inline[1].trim() ? inline[1].split(",").map(unquote).filter(Boolean) : []; continue; }   // photos: [a, b]
     if (value === "" && i + 1 < lines.length && /^\s*-(\s|$)/.test(lines[i + 1])) {                                   // a list, one "- item" per line
       const list = [];
+      const pair = /^([A-Za-z_][\w-]*):(?:\s+(.*))?$/;       // "name: value" inside a list item makes that item a small record
       while (i + 1 < lines.length && (/^\s*-(\s|$)/.test(lines[i + 1]) || (/^\s+\S/.test(lines[i + 1]) && list.length))) {
-        const line = lines[++i], item = /^\s*-\s*(.*)$/.exec(line);
-        if (item) list.push(unquote(item[1])); else list[list.length - 1] += " " + line.trim();
+        const line = lines[++i], item = /^\s*-\s*(.*)$/.exec(line), last = list[list.length - 1];
+        if (item) { const kv = pair.exec(item[1].trim()); list.push(kv ? { [kv[1]]: unquote(kv[2] || "") } : unquote(item[1])); }
+        else if (last && typeof last === "object") { const kv = pair.exec(line.trim()); if (kv) last[kv[1]] = unquote(kv[2] || ""); }
+        else list[list.length - 1] += " " + line.trim();
       }
-      meta[k[1]] = list.filter(Boolean); continue;
+      meta[k[1]] = list.filter((x) => (typeof x === "object" ? Object.keys(x).length : x)); continue;
     }
     const block = /^[>|][+-]?$/.test(value);                // a long value wrapped over several indented lines
     const parts = block ? [] : [value];
@@ -38,7 +41,7 @@ function parse(text) {
   return { meta, body: m[2].trim() };
 }
 const str = (v) => (Array.isArray(v) ? v.join(" ") : String(v == null ? "" : v));
-const list = (v) => (Array.isArray(v) ? v : str(v) ? [str(v)] : []).map((x) => String(x).trim()).filter(Boolean);
+const list = (v) => (Array.isArray(v) ? v : str(v) ? [str(v)] : []).filter((x) => typeof x !== "object").map((x) => String(x).trim()).filter(Boolean);
 const isoDay = (v) => { const d = /^\d{4}-\d{2}-\d{2}/.exec(str(v)); return d ? d[0] : ""; };
 
 const posts = [];
@@ -90,7 +93,9 @@ if (existsSync("places")) {
       if (!(Math.abs(lat) <= 90 && Math.abs(lng) <= 180)) { lat = null; lng = null; }
     }
     places.push({ file, name: str(meta.name) || file, kind: str(meta.kind).toLowerCase() || "landmark", lat, lng, date: isoDay(meta.date), photo: str(meta.photo),
-      trip: str(meta.trip).trim(), stop: Number.isFinite(parseFloat(meta.stop)) ? parseFloat(meta.stop) : null, note: body });
+      trip: str(meta.trip).trim(), stop: Number.isFinite(parseFloat(meta.stop)) ? parseFloat(meta.stop) : null, note: body,
+      landmarks: (Array.isArray(meta.landmarks) ? meta.landmarks : []).filter((l) => l && typeof l === "object" && String(l.name || "").trim())
+        .map((l) => ({ name: String(l.name).trim(), icon: String(l.icon || "").trim().toLowerCase(), visited: /^(true|yes|1)$/i.test(String(l.visited || "").trim()) })) });
   }
 }
 const about = existsSync("pages/about.md") ? parse(readFileSync("pages/about.md", "utf8")).body : "";
