@@ -126,6 +126,16 @@
       "note": ""
     },
     {
+      "file": "hattiesburg",
+      "name": "Hattiesburg",
+      "kind": "trip",
+      "lat": 31.3271,
+      "lng": -89.2903,
+      "date": "",
+      "photo": "",
+      "note": ""
+    },
+    {
       "file": "hong-kong",
       "name": "Hong Kong",
       "kind": "trip",
@@ -142,6 +152,26 @@
       "lat": 37.7297,
       "lng": -122.104,
       "date": "",
+      "photo": "",
+      "note": ""
+    },
+    {
+      "file": "meridian",
+      "name": "Meridian",
+      "kind": "trip",
+      "lat": 32.3643,
+      "lng": -88.7037,
+      "date": "2026-07-18",
+      "photo": "",
+      "note": ""
+    },
+    {
+      "file": "new-orleans",
+      "name": "New Orleans",
+      "kind": "trip",
+      "lat": 29.9511,
+      "lng": -90.0715,
+      "date": "2026-07-14",
       "photo": "",
       "note": ""
     },
@@ -172,6 +202,16 @@
       "lat": 31.2304,
       "lng": 121.4737,
       "date": "2026-03-29",
+      "photo": "",
+      "note": ""
+    },
+    {
+      "file": "washington-dc",
+      "name": "Washington, DC",
+      "kind": "trip",
+      "lat": 38.9072,
+      "lng": -77.0369,
+      "date": "",
       "photo": "",
       "note": ""
     },
