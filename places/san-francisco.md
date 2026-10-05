@@ -2,7 +2,7 @@
 name: San Francisco
 kind: home
 coordinates: 37.7599, -122.4148
-date: 2026-10-04
+date: 2023-10-13
 landmarks:
   - name: Golden Gate Bridge
     icon: bridge
