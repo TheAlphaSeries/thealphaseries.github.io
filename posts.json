@@ -92,5 +92,18 @@
       "photo": "",
       "lore": "A whiskered dignitary of the lake bottom, smooth as a river stone and wholly without scales, which it appears to regard as an affectation of lesser fish. It goes abroad by night, tasting the mud with its barbels and finding nothing beneath its notice.\n\nThe spines of its fins deliver a sharp rebuke to careless hands. Those so instructed seldom require a second lesson."
     }
+  ],
+  "albums": [],
+  "places": [
+    {
+      "file": "lake-chabot",
+      "name": "Lake Chabot",
+      "kind": "fishing",
+      "lat": 37.7297,
+      "lng": -122.104,
+      "date": "",
+      "photo": "",
+      "note": ""
+    }
   ]
 }
