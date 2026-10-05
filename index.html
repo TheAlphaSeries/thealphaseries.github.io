@@ -210,7 +210,7 @@ h3 { font-size: 12px; line-height: 1.7; color: var(--accent); margin-top: 8px; }
 /* ----- the status screen: portrait and level on the left, the numbers on the right ----- */
 .sheet { display: grid; grid-template-columns: minmax(0, 220px) minmax(0, 1fr); gap: 22px; align-items: start; }
 .who { border: 3px solid var(--border); border-radius: 9px; box-shadow: inset 0 0 0 2px var(--border-shade); padding: 16px 14px; text-align: center; overflow-wrap: anywhere; }
-.portrait { display: block; width: 120px; height: 160px; margin: 0 auto 10px; image-rendering: pixelated; }
+.portrait { display: block; width: 132px; height: 176px; margin: 0 auto 10px; image-rendering: pixelated; }
 .who .class { margin: 4px 0 0; color: var(--dim); }
 .who .level { margin: 12px 0 6px; font-family: var(--display); font-size: 12px; line-height: 1.7; color: #ffd257; }
 .xpbar { height: 12px; border: 2px solid var(--border); background: rgba(0, 0, 0, .45); }
@@ -313,7 +313,7 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
 #intro.done { opacity: 0; pointer-events: none; visibility: hidden; transition: opacity .4s, visibility 0s .4s; }
 #intro .titlewrap { position: relative; width: min(100%, 440px); }
 /* the sprite stands behind the title box and springs up to wave over its top edge */
-#sprite { position: absolute; right: 12%; bottom: 100%; width: 96px; height: auto; image-rendering: pixelated; z-index: 0;
+#sprite { position: absolute; right: 12%; bottom: 100%; width: 99px; height: auto; image-rendering: pixelated; z-index: 0;
   transform: translateY(102%); transition: transform .9s var(--spring); }
 #sprite.up { transform: translateY(20%); }
 #intro .win { position: relative; z-index: 1; width: 100%; padding: 30px 20px 26px; text-align: center; animation: rise 1.2s var(--spring) backwards; }
@@ -394,7 +394,7 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
 </div>
 
 <div id="intro"><div class="titlewrap">
-  <canvas id="sprite" width="24" height="32" aria-hidden="true"></canvas>
+  <canvas id="sprite" width="33" height="44" aria-hidden="true"></canvas>
   <div class="win">
   <div class="name">HALF LIFE</div>
   <div class="tagline">Still receiving.</div>
@@ -1395,7 +1395,7 @@ function tally() {
 function showStatus(focusFirst) {
   openScreen("status", "m-status");
   const t = tally(), wrap = el("div", "sheet"), who = el("div", "who"), pic = el("canvas", "portrait"), facts = el("dl", "facts stats"), bar = el("div", "xpbar"), fill = el("i");
-  pic.width = 24; pic.height = 32; pic.setAttribute("aria-hidden", "true");
+  pic.width = SPRITE_FRAMES[0][0].length; pic.height = SPRITE_FRAMES[0].length; pic.setAttribute("aria-hidden", "true");
   const px = pic.getContext("2d");   /* the same figure that waves from the title screen */
   SPRITE_FRAMES[0].forEach((row, y) => { for (let x = 0; x < row.length; x++) { const c = SPRITE_COLOURS[row[x]]; if (c) { px.fillStyle = c; px.fillRect(x, y, 1, 1); } } });
   fill.style.width = Math.max(2, Math.min(100, t.into / t.span * 100)) + "%"; bar.append(fill);
@@ -1487,10 +1487,13 @@ introBox.addEventListener("click", endIntro);
 /* ==========================================================================
    12. TITLE SCREEN SPRITE
    A small pixel figure of Chris that pops up from behind the title box and
-   waves. Each string is one row of pixels; each letter is a colour below.
+   waves: black cap, black sunglasses, black tee, black jeans, black boots.
+   Each string is one row of pixels; each letter is a colour below. The
+   outline is a shade lighter than the clothes so the black reads on a
+   dark page. The Status screen shows the same figure.
    ========================================================================== */
-const SPRITE_COLOURS = {"o": "#2b2b34", "h": "#0b0b0e", "H": "#25252d", "s": "#6e4429", "d": "#523019", "m": "#3a2012", "n": "#c9c9d2", "p": "#8fd6c4", "g": "#050505", "w": "#777784", "c": "#0f0f12", "C": "#24242b", "x": "#040405", "b": "#0a0a0c", "S": "#3a3a42"};
-const SPRITE_FRAMES = [ [ "........................", "........oooooo..........", ".......ohhhhhho.........", "......ohhHHhhhho........", ".....ohhHhhhhhhho.......", ".....ohHhhhHhhhho.......", ".....ohhhhhhHhhho.ooo...", ".....ohhhhhhhHhhoossso..", ".....ohgwgggggghoossso..", "....ohhgggssggghosssso..", "....ohosssssssso.ossso..", "...ohHodssmmssdo.ocCo...", "...ohhoossssssoo.occo...", "....oocxxddddxxcoocco...", "...ooccccnxxnccccocco...", "..oCccCccnxcnccccccco...", "..occcCccnxcncccccco....", "..occcCcccnncccccoo.....", "..occcCcccnnccccco......", "..occcCcccppccccco......", "..occcCcccncccccco......", "..occcCcccxcccccco......", "..osscCcccxccccccco.....", "..osscCcccxccccccco.....", "...occCcccxccccccco.....", "...occCcccxccccccco.....", "...occCcccxccccccco.....", "...oxxxxxxxxxxxxxxo.....", "....oobbbboobbbboo......", ".....obbbboobbbbo.......", "....oSSSSSooSSSSSo......", ".....ooooo..ooooo......." ], [ "........................", "........oooooo..........", ".......ohhhhhho.........", "......ohhHHhhhho........", ".....ohhHhhhhhhho.......", ".....ohHhhhHhhhho.......", ".....ohhhhhhHhhho...ooo.", ".....ohhhhhhhHhho..ossso", ".....ohgwggggggho..ossso", "....ohhgggssgggho.osssso", "....ohosssssssso...ossso", "...ohHodssmmssdo..ocCoo.", "...ohhoossssssoo..occo..", "....oocxxddddxxcooccco..", "...ooccccnxxnccccocco...", "..oCccCccnxcnccccccco...", "..occcCccnxcncccccco....", "..occcCcccnncccccoo.....", "..occcCcccnnccccco......", "..occcCcccppccccco......", "..occcCcccncccccco......", "..occcCcccxcccccco......", "..osscCcccxccccccco.....", "..osscCcccxccccccco.....", "...occCcccxccccccco.....", "...occCcccxccccccco.....", "...occCcccxccccccco.....", "...oxxxxxxxxxxxxxxo.....", "....oobbbboobbbboo......", ".....obbbboobbbbo.......", "....oSSSSSooSSSSSo......", ".....ooooo..ooooo......." ] ];
+const SPRITE_COLOURS = {"o": "#33333e", "k": "#0c0c0f", "K": "#1d1d24", "j": "#2e2e38", "g": "#040405", "G": "#565664", "r": "#22222a", "s": "#6e4429", "d": "#523019", "m": "#3a2012", "l": "#87583a", "t": "#17171c", "T": "#26262e", "u": "#0b0b0e", "v": "#34343e", "b": "#0f0f14", "B": "#22222c", "c": "#07070a", "x": "#08080a", "X": "#3e3e4a", "z": "#1c1c22", "y": "#15151a"};
+const SPRITE_FRAMES = [["...........oooooooo.......o.o....", ".........ookkkKkkkkoo....ososo...", "........okkjjkKkkkkkko...osdsso..", ".......okkjkkkKkkkkkkko.osslsso..", "......okkjjkkkKkkkkkkkkoossslso..", "......okkjkkkkKkkkkkkkkosssssso..", "......okkkkkkkKkkkkkkkkoodsssso..", "......okKKKKKKKKKKKKKKko.ossoo...", "......okrgGGgggggGgggrko.osso....", "......okggrgggrrggrgggko.osso....", "......okkgggggssgggggkko.osso....", "......okKdssssddsssslkkoouuuuo...", "......okkdssssssssslskkootttto...", ".......okksssmmmmssskko.ottTto...", "........ooodssssssdooo.otttTto...", ".......ooooooddddooooooottTtto...", "....oootttttsssssstttttttttto....", "...ottttttttvssssvtttttuttto.....", "..oTttuttttttvvvvttttttuooo......", ".otTttutTttttttttttttutto........", ".otTttutTttTtttttttttutto........", ".otTttutTttttttutttttutto........", ".otTttutTttTttttuttttutto........", ".otTttutTttTtttttttttutto........", ".ottttutTttttttttttttutto........", ".ouuuuutTttTtutttttttutto........", "..odsoutTttTutttttuttutto........", "..ossoutTttttttttttttutto........", "..ossotuuuuuuuuuuuuuuuuto........", "..ossotttTtttttttttTttto.........", "..ossoottttttcbbcttttto..........", "..ossloobbBbbcbbcbbBbbo..........", "..osssoobbBbbccccbbBbbo..........", "...odo.obbBbbccccbbBbbo..........", "....o..obBBbbccccbbBBbo..........", ".......obBBbbccccbbBBbo..........", "......obbbBbbccccbbBbbbo.........", "......obbbBbbccccbbBbbbo.........", "......obcbbBbccccbBbbcbo.........", "......oxxxxxxooooxxxxxxo.........", "......oxXxxxxo..oxxxxXxo.........", ".....oxXxyxxxxooxxxxyxXxo........", ".....ozzzzzzzzoozzzzzzzzo........", "......oooooooo..oooooooo........."], ["...........oooooooo........o.o...", ".........ookkkKkkkkoo.....ososo..", "........okkjjkKkkkkkko....osdsso.", ".......okkjkkkKkkkkkkko..osslsso.", "......okkjjkkkKkkkkkkkko.ossslso.", "......okkjkkkkKkkkkkkkkoosssssso.", "......okkkkkkkKkkkkkkkko.odsssso.", "......okKKKKKKKKKKKKKKko..ossoo..", "......okrgGGgggggGgggrko..osso...", "......okggrgggrrggrgggko..osso...", "......okkgggggssgggggkko.ossso...", "......okKdssssddsssslkkoouuuuo...", "......okkdssssssssslskkootttto...", ".......okksssmmmmssskko.ottTto...", "........ooodssssssdooo.otttTto...", ".......ooooooddddooooooottTtto...", "....oootttttsssssstttttttttto....", "...ottttttttvssssvtttttuttto.....", "..oTttuttttttvvvvttttttuooo......", ".otTttutTttttttttttttutto........", ".otTttutTttTtttttttttutto........", ".otTttutTttttttutttttutto........", ".otTttutTttTttttuttttutto........", ".otTttutTttTtttttttttutto........", ".ottttutTttttttttttttutto........", ".ouuuuutTttTtutttttttutto........", "..odsoutTttTutttttuttutto........", "..ossoutTttttttttttttutto........", "..ossotuuuuuuuuuuuuuuuuto........", "..ossotttTtttttttttTttto.........", "..ossoottttttcbbcttttto..........", "..ossloobbBbbcbbcbbBbbo..........", "..osssoobbBbbccccbbBbbo..........", "...odo.obbBbbccccbbBbbo..........", "....o..obBBbbccccbbBBbo..........", ".......obBBbbccccbbBBbo..........", "......obbbBbbccccbbBbbbo.........", "......obbbBbbccccbbBbbbo.........", "......obcbbBbccccbBbbcbo.........", "......oxxxxxxooooxxxxxxo.........", "......oxXxxxxo..oxxxxXxo.........", ".....oxXxyxxxxooxxxxyxXxo........", ".....ozzzzzzzzoozzzzzzzzo........", "......oooooooo..oooooooo........."]];
 const spriteBox = $("#sprite"), spx = spriteBox.getContext("2d");
 let waveTimer = null;
 function drawSprite(n) {
