@@ -43,7 +43,7 @@ content:
         type: string
         required: true
       - name: sprite
-        label: Species
+        label: Picture (body shape)
         type: select
         options:
           values:
@@ -57,6 +57,22 @@ content:
               label: Bass
             - name: catfish
               label: Catfish
+            - name: flatfish
+              label: Flatfish (halibut, flounder, sanddab)
+            - name: tuna
+              label: Tuna shape (tuna, mackerel, bonito, yellowtail)
+            - name: shark
+              label: Shark
+            - name: ray
+              label: Ray
+            - name: sturgeon
+              label: Sturgeon
+            - name: crab
+              label: Crab
+            - name: lobster
+              label: Lobster or crayfish
+            - name: squid
+              label: Squid
             - name: fish
               label: Other fish
       - name: date

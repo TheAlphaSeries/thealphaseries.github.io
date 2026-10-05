@@ -1,6 +1,6 @@
 ---
-name: Halibut
-sprite: fish
+name: California Halibut
+sprite: flatfish
 status: wanted
 location: San Francisco Bay
 rarity: epic
