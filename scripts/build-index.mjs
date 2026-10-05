@@ -1,5 +1,18 @@
-// Reads every entry in posts/ and the About page, and writes posts.json,
-// the single file the site loads. Run automatically after each change.
+// Gathers everything written in the editor into posts.json, the single file the site loads.
+//
+//   posts/      log entries            ->  "posts"
+//   bestiary/   one file per fish      ->  "bestiary"   (pages/bestiary.md -> "bestiary_intro")
+//   albums/     photo albums           ->  "albums"
+//   places/     map pins and landmarks ->  "places"
+//   quests/     the quest log          ->  "quests"     (no dates are published, on purpose)
+//   pages/about.md                     ->  "about"
+//
+// Each file is a small header between two "---" lines (name: value pairs, and lists) followed by
+// the writing itself. parse() reads that shape; the rest of this script picks out the fields the
+// site needs and tidies them (dates, numbers, coordinates).
+//
+// It runs by itself in two places after every change: on GitHub (.github/workflows/build-index.yml)
+// and again when Cloudflare publishes the site (wrangler.jsonc). Never edit posts.json by hand.
 import { readdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 
 function unquote(v) {
