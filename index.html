@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Half Life</title>
 <meta name="description" content="Half Life. Photographs, a log, a bestiary of fish and a map of where it all happened. By Chris.">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#02040f">
 <meta property="og:title" content="Half Life">
 <meta property="og:description" content="Photographs, a log, a bestiary of fish and a map of where it all happened. By Chris.">
 <meta property="og:site_name" content="Half Life">
@@ -41,11 +41,11 @@ img { max-width: 100%; }
    Layout: a 16-bit RPG menu screen. Title bar across the top, a large main window
    (log list / About / Help), a command window and a status window on the right.
    A title screen with a Start button covers it first; an opened entry pops out as a
-   translucent window. Single black look by choice. */
+   translucent window. The classic blue menu look: to change it, edit --win-a and --win-b just below. */
 :root {
   color-scheme: dark;
-  --win-a: #1c1c1c;       /* window gradient, top */
-  --win-b: #000000;       /* window gradient, bottom */
+  --win-a: #2a3da6;       /* window gradient, top: the classic menu blue */
+  --win-b: #080d48;       /* window gradient, bottom */
   --accent: #ffffff;      /* cursor, headings */
   --bg: color-mix(in srgb, var(--win-b) 28%, #000);            /* field behind the windows */
   --veil: color-mix(in srgb, var(--bg) 62%, transparent);
@@ -254,8 +254,8 @@ h3 { font-size: 12px; line-height: 1.7; color: var(--accent); margin-top: 8px; }
 .lmhead { display: flex; justify-content: space-between; align-items: baseline; margin: 16px 0 0; font-family: var(--display); font-size: 11px; line-height: 1.6; color: var(--accent); border-top: 2px solid rgba(255, 255, 255, .3); padding-top: 12px; }
 .lmcount { color: var(--dim); font-family: var(--body); font-size: 16px; font-variant-numeric: tabular-nums; }
 .lms { list-style: none; margin: 10px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 8px; }
-.lm { position: relative; background: #121419; border: 2px solid #343741; border-radius: 6px; padding: 10px 5px 7px; text-align: center; font-size: 13.5px; line-height: 1.25; color: var(--off); overflow-wrap: anywhere; }
-.lm.done { border-color: var(--border); color: var(--fg); background: #191c23; }
+.lm { position: relative; background: rgba(0, 0, 0, .34); border: 2px solid rgba(255, 255, 255, .22); border-radius: 6px; padding: 10px 5px 7px; text-align: center; font-size: 13.5px; line-height: 1.25; color: var(--off); overflow-wrap: anywhere; }
+.lm.done { border-color: var(--border); color: var(--fg); background: rgba(0, 0, 0, .2); }
 .lm canvas { display: block; width: 48px; height: 48px; margin: 0 auto 6px; image-rendering: pixelated; }
 .lm .tick { position: absolute; top: 4px; right: 4px; width: 9px; height: 9px; border: 2px solid currentColor; background: #000; }
 .lm.done .tick { background: #7fd68a; border-color: #7fd68a; }
