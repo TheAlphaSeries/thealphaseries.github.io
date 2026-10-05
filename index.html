@@ -60,8 +60,8 @@ body {
   max-width: 960px; margin-inline: auto;
   display: grid; gap: 10px;
   grid-template-columns: minmax(0, 1fr) 220px;
-  grid-template-areas: "help help" "main menu" "main status";
-  grid-template-rows: auto auto 1fr;
+  grid-template-areas: "help help" "main menu" "main status" "main map";
+  grid-template-rows: auto auto auto 1fr;
 }
 .win {
   background: linear-gradient(to bottom, var(--win-a), var(--win-b));
@@ -162,6 +162,47 @@ h3 { font-size: 12px; line-height: 1.7; color: var(--accent); margin-top: 8px; }
 .post code { font-family: var(--body); font-size: .85em; }
 .post hr { width: 100%; border: 0; border-top: 2px solid rgba(255, 255, 255, .3); margin: 6px 0; }
 .sub { color: var(--dim); margin: 14px 0 0 24px; }
+/* ----- photo albums ----- */
+.albums { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; }
+.album { display: block; width: 100%; padding: 0; text-align: left; }
+.album::before { display: none; }
+.album:hover, .album:focus-visible { transform: translateY(-4px); }
+.album .cover { display: block; aspect-ratio: 4 / 3; background: #000; border: 3px solid var(--border); border-radius: 6px; overflow: hidden; }
+.album:focus-visible .cover { box-shadow: 0 0 0 3px var(--accent); }
+.album .cover img, .thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.album .name { display: block; font-family: var(--display); font-size: 12px; line-height: 1.8; margin-top: 8px; overflow-wrap: anywhere; }
+.album .date { display: block; color: var(--dim); font-size: 15px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-top: 14px; }
+.thumb { aspect-ratio: 1; }
+.thumb.missing { display: grid; place-items: center; color: var(--dim); font-size: 13px; cursor: default; }
+.albumhead { margin-bottom: 4px; }
+.zoomnav { display: flex; align-items: center; gap: 18px; color: var(--dim); font-variant-numeric: tabular-nums; cursor: default; }
+.zoomnav button { font-family: var(--display); font-size: 12px; line-height: 1.7; color: var(--fg); background: #000; border: 3px solid var(--border); border-radius: 6px; padding: 6px 12px; cursor: pointer; }
+.zoomnav button:hover, .zoomnav button:focus-visible { background: var(--accent); color: #000; outline: none; }
+/* ----- the map ----- */
+.mapbox { position: relative; border: 3px solid var(--border); border-radius: 9px; box-shadow: inset 0 0 0 2px var(--border-shade); overflow: hidden; background: #05070a; height: clamp(260px, 52vh, 460px); }
+.mapbox canvas, #minimap canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; }
+.mapbox canvas { cursor: grab; touch-action: none; }
+.mapbox canvas.dragging { cursor: grabbing; }
+.mapkeys { position: absolute; top: 8px; right: 8px; display: flex; flex-direction: column; gap: 4px; }
+.mapkeys button { width: 34px; height: 34px; font-family: var(--display); font-size: 12px; color: var(--fg); background: #000; border: 3px solid var(--border); border-radius: 6px; cursor: pointer; padding: 0; }
+.mapkeys button.wide { width: auto; padding: 0 6px; font-size: 9px; }
+.mapkeys button:hover, .mapkeys button:focus-visible { background: var(--accent); color: #000; outline: none; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px 8px; margin: 0 0 12px; }
+.chip { display: inline-flex; align-items: center; gap: 8px; font: inherit; color: var(--dim); background: none; border: 2px solid currentColor; border-radius: 6px; padding: 3px 10px; cursor: pointer; opacity: .55; }
+.chip[aria-pressed="true"] { color: var(--fg); opacity: 1; }
+.chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.dot { display: inline-block; width: 10px; height: 10px; flex: none; }
+.dot.fishing, .kind.fishing { color: #6fb7ff; } .dot.landmark, .kind.landmark { color: #ffd257; } .dot.hike, .kind.hike { color: #7fd68a; }
+.dot { background: currentColor; }
+.maplist { margin-top: 16px; }
+.place { grid-template-columns: 18px 10px minmax(0, 1fr); }
+.place .name { font-family: var(--display); font-size: 12px; line-height: 1.8; overflow-wrap: anywhere; }
+.caughthere { display: flex; flex-wrap: wrap; gap: 0 14px; margin-top: 10px; }
+#minimap { grid-area: map; align-self: start; display: block; width: 100%; padding: 6px; cursor: pointer; color: var(--dim); font: inherit; text-align: left; position: relative; transition: transform .5s var(--spring); }
+#minimap:hover, #minimap:focus-visible { transform: scale(1.03); outline: none; color: var(--fg); }
+#minimap canvas { aspect-ratio: 4 / 3; border-radius: 4px; }
+#minimap span { position: absolute; left: 14px; top: 10px; font-family: var(--display); font-size: 10px; text-shadow: 0 0 3px #000, 0 0 3px #000; }
 .post blockquote { display: flex; flex-direction: column; gap: 14px; border-left: 3px solid var(--accent); padding-left: 18px; color: var(--fg); font-style: italic; font-size: 23px; line-height: 1.5; }
 .shots { display: grid; gap: 10px; }
 .shots.multi { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -183,7 +224,7 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
 @keyframes slide { from { translate: -20px 0; opacity: 0; } to { translate: 0 0; opacity: 1; } }
 @keyframes glint { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.12); } }
 .stage.go > .win { animation: rise 1.2s var(--spring) backwards; }
-.stage.go > #titlebar { animation-delay: .1s; } .stage.go > #main { animation-delay: .35s; } .stage.go > #menu { animation-delay: .6s; } .stage.go > #status { animation-delay: .85s; }
+.stage.go > #titlebar { animation-delay: .1s; } .stage.go > #main { animation-delay: .35s; } .stage.go > #menu { animation-delay: .6s; } .stage.go > #status { animation-delay: .85s; } .stage.go > #minimap { animation-delay: 1.05s; }
 #main > *, #main .files > *, #main .group { animation: slide 1.1s var(--spring) backwards; animation-delay: calc(.25s + var(--i, 0) * 220ms); }
 #titlebar .site { animation: glint 3.2s ease-in-out infinite; }
 
@@ -208,7 +249,10 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
 @media (max-width: 720px) {
   body { padding-bottom: 170px; }
   .beasts { grid-template-columns: minmax(0, 1fr); }
-  .stage { grid-template-columns: minmax(0, 1fr); grid-template-areas: "help" "main" "status"; grid-template-rows: auto; }
+  .stage { grid-template-columns: minmax(0, 1fr); grid-template-areas: "help" "main" "status" "map"; grid-template-rows: auto; }
+  .albums { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; }
+  .mapbox { height: clamp(240px, 46vh, 380px); }
   #menu {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 3; border-radius: 9px 9px 0 0;
     display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 4px;
@@ -227,7 +271,7 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
 }
 @media (prefers-reduced-motion: reduce) {
   .opt:focus-visible::before, .file.chosen, .beastcard.pop, #readerwin.pop, .stage.go > .win, #main > *, #main .files > *, #main .group, #titlebar .site, #intro .win, #intro .start::before { animation: none; }
-  #intro, .opt, #sprite, .fishbtn { transition: none; }
+  #intro, .opt, #sprite, .fishbtn, #minimap { transition: none; }
 }
 </style>
 
@@ -241,7 +285,8 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
   <nav class="win" id="menu" aria-label="Commands">
     <button class="opt" type="button" id="m-files">Log</button>
     <button class="opt" type="button" id="m-bestiary">Bestiary</button>
-    <button class="opt locked" type="button" id="m-photos" disabled>Photos</button>
+    <button class="opt" type="button" id="m-photos">Photos</button>
+    <button class="opt" type="button" id="m-map">Map</button>
     <button class="opt locked" type="button" id="m-prints" disabled>Shop</button>
     <button class="opt" type="button" id="m-about">About</button>
     <button class="opt" type="button" id="m-how">Help</button>
@@ -253,11 +298,17 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
     <dt>Saved</dt><dd id="latest">-</dd>
     <dt>Time</dt><dd id="clock">--:--:--</dd>
   </dl>
+
+  <button class="win" id="minimap" type="button" aria-label="Open the map"><canvas aria-hidden="true"></canvas><span>Map</span></button>
 </div>
 
 <div id="reader" hidden><article class="win" id="readerwin" tabindex="-1" role="dialog" aria-modal="true" aria-label="Log entry"></article></div>
 
-<div id="zoom" hidden><img alt=""><p></p></div>
+<div id="zoom" hidden>
+  <img alt="">
+  <p></p>
+  <div class="zoomnav" hidden><button type="button" id="zprev" aria-label="Previous photo">Prev</button><span id="zcount"></span><button type="button" id="znext" aria-label="Next photo">Next</button></div>
+</div>
 
 <div id="intro"><div class="titlewrap">
   <canvas id="sprite" width="24" height="32" aria-hidden="true"></canvas>
@@ -278,6 +329,8 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
    ========================================================================== */
 let ABOUT = "";          /* the About text, loaded from posts.json */
 let BESTIARY_INTRO = "";   /* the short blurb at the top of the Bestiary, loaded from posts.json */
+let ALBUMS = [];         /* photo albums, newest first, loaded from posts.json */
+let PLACES = [];         /* map pins, loaded from posts.json */
 let BESTIARY = [];       /* the creatures, loaded from posts.json */
 let sorted = [];         /* the entries, newest first, loaded from posts.json */
 let loadNote = "Loading...";   /* shown in the log while there is nothing to list */
@@ -290,7 +343,11 @@ Select an entry to open it. Select Back, or tap outside the window, to close it.
 - Up / Down: move cursor
 - Left / Right: switch window
 - Enter: confirm
-- Esc: cancel`;
+- Esc: cancel
+
+## Map
+
+Drag to move. Pinch, or use + and -, to zoom. Select a pin or a name to see the place.`;
 
 /* ==========================================================================
    2. HELPERS
@@ -306,7 +363,7 @@ const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
 const day = (d) => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(d || ""); return m && MONTHS[+m[2] - 1] && +m[3] >= 1 && +m[3] <= 31 ? MONTHS[+m[2] - 1] + " " + +m[3] + ", " + m[1] : ""; };
 
 const stage = $("#stage"), main = $("#main"), menu = $("#menu"), reader = $("#reader"), rwin = $("#readerwin"), zoomBox = $("#zoom"), introBox = $("#intro");
-let view = "files";      /* which screen the main window shows: files, bestiary, about or help */
+let view = "files";      /* which screen the main window shows: files, bestiary, photos, album, map, about or help */
 let current = null;      /* the entry open in the pop-out window, if any */
 
 function setHash(h) { try { history.replaceState(null, "", h ? "#" + h : location.pathname + location.search); } catch (e) {} }
@@ -426,7 +483,7 @@ function pips(filled, cls) {   /* a row of five small squares, some lit, like a 
   for (let i = 1; i <= 5; i++) row.append(el("i", i <= filled ? "on" : null));
   return row;
 }
-function showBestiary(focusFirst) {
+function showBestiary(focusFirst, pick) {
   openScreen("bestiary", "m-bestiary");
   main.append(el("p", "label", "Bestiary"));
   if (BESTIARY_INTRO) { const intro = el("div", "post lore intro"); renderBody(BESTIARY_INTRO, intro); main.append(intro); }
@@ -468,8 +525,9 @@ function showBestiary(focusFirst) {
     list.append(btn);
   });
   wrap.append(list, card); main.append(wrap, backRow());
-  show(BESTIARY[0], list.querySelector(".opt"));
-  if (focusFirst) list.querySelector(".opt").focus();
+  const at = BESTIARY[pick] ? pick : 0, start = list.querySelectorAll(".opt")[at];
+  show(BESTIARY[at], start);
+  if (focusFirst) start.focus();
 }
 
 /* ----- entry text -----
@@ -480,12 +538,23 @@ const IMG = /!\[([^\]]*)\]\(([^)\s]+)(?:\s+"[^"]*")?\)/;
 const INLINE = /\\([\\`*_\[\]()!#>.+-])|!\[([^\]]*)\]\(([^)\s]+)(?:\s+"[^"]*")?\)|\[([^\]]+)\]\(([^)\s]+)(?:\s+"[^"]*")?\)|\*\*(.+?)\*\*|__(.+?)__|\*([^*\s][^*]*)\*|_([^_\s][^_]*)_|`([^`]+)`|<(https?:\/\/[^\s<>]+)>|(https?:\/\/[^\s<>]*[^\s<>.,;:!?'")\]])/;
 const WORDCHAR = /[A-Za-z0-9]/;
 const safeUrl = (u) => (/^(https?:|mailto:|\/|\.\/|#)/i.test(u) || !/^[a-z][a-z0-9+.-]*:/i.test(u)) ? u : "#";
+/* A job makes two smaller copies of everything in photos/: thumbs/ for grids and large/ for viewing.
+   The page asks for the copy first and falls back to the original if the copy is not there yet. */
+function copyOf(src, dir) { const m = /^\/?photos\/(.+\.(?:jpe?g|png|webp))$/i.exec(src); return m ? "/" + dir + "/" + m[1] + ".jpg" : ""; }
+function loadPicture(img, src, dir, onMissing) {
+  src = safeUrl(src); const small = copyOf(src, dir); let triedOriginal = !small;
+  img.onerror = () => {
+    if (!triedOriginal) { triedOriginal = true; img.src = src; }
+    else { img.onerror = null; if (onMissing) onMissing(); }
+  };
+  img.src = small || src;
+}
 function photo(src, caption) {
   const fig = el("figure"), b = el("button", "shot"), img = el("img");
   b.type = "button"; b.setAttribute("aria-label", "Enlarge photo" + (caption ? ": " + caption : ""));
-  img.src = safeUrl(src); img.alt = caption || ""; img.loading = "lazy";
-  img.addEventListener("error", () => { fig.textContent = ""; fig.append(el("p", "sub", "[photo missing]")); });
-  b.append(img); b.addEventListener("click", () => zoom(img.src, caption || "", b));
+  img.alt = caption || ""; img.loading = "lazy";
+  loadPicture(img, src, "large", () => { fig.textContent = ""; fig.append(el("p", "sub", "[photo missing]")); });   /* says so instead of showing a broken picture */
+  b.append(img); b.addEventListener("click", () => zoom(src, caption || "", b));
   fig.append(b); if (caption) fig.append(el("figcaption", null, caption));
   return fig;
 }
@@ -574,21 +643,281 @@ function closePost() {
 }
 reader.addEventListener("click", (e) => { if (e.target === reader) closePost(); });
 
-/* ----- an enlarged photo ----- */
-let zoomFrom = null;
-function zoom(src, caption, from) {
-  zoomBox.querySelector("img").src = src; zoomBox.querySelector("img").alt = caption; zoomBox.querySelector("p").textContent = caption;
-  zoomFrom = from || null; zoomBox.hidden = false; syncLayers();
+/* ----- an enlarged photo, or a set of them to step through ----- */
+const zoomImg = zoomBox.querySelector("img"), zoomNote = zoomBox.querySelector("p"), zoomNav = zoomBox.querySelector(".zoomnav");
+let zoomFrom = null, zoomSet = null, zoomAt = 0;
+function zoomShow() {
+  const it = zoomSet[zoomAt];
+  zoomImg.alt = it.caption || ""; zoomNote.textContent = it.caption || "";
+  loadPicture(zoomImg, it.src, "large", () => { if (!zoomBox.hidden) zoomNote.textContent = "This photo could not be loaded."; });
+  zoomNav.hidden = zoomSet.length < 2; $("#zcount").textContent = (zoomAt + 1) + " / " + zoomSet.length;
 }
-function unzoom() { zoomBox.hidden = true; syncLayers(); if (zoomFrom) zoomFrom.focus(); zoomFrom = null; }
-zoomBox.addEventListener("click", unzoom);
-zoomBox.querySelector("img").addEventListener("error", () => { if (!zoomBox.hidden) zoomBox.querySelector("p").textContent = "This photo could not be loaded."; });
+function zoom(src, caption, from, set, at) {
+  const many = Array.isArray(set) && set.length > 0;
+  zoomSet = many ? set : [{ src, caption }]; zoomAt = many ? Math.max(0, Math.min(set.length - 1, at || 0)) : 0;
+  zoomFrom = from || null; zoomBox.hidden = false; syncLayers(); zoomShow();
+}
+function zoomStep(d) { if (zoomBox.hidden || !zoomSet || zoomSet.length < 2) return; zoomAt = (zoomAt + d + zoomSet.length) % zoomSet.length; zoomShow(); }
+function unzoom() {
+  if (zoomBox.hidden) return;
+  zoomBox.hidden = true; zoomImg.onerror = null; zoomImg.removeAttribute("src"); syncLayers();
+  if (zoomFrom && zoomFrom.isConnected) zoomFrom.focus();
+  zoomFrom = null; zoomSet = null;
+}
+zoomBox.addEventListener("click", (e) => { if (!e.target.closest(".zoomnav")) unzoom(); });
+$("#zprev").addEventListener("click", () => zoomStep(-1));
+$("#znext").addEventListener("click", () => zoomStep(1));
+let swipeX = null;   /* swipe left or right to step through a set */
+zoomBox.addEventListener("touchstart", (e) => { swipeX = e.touches.length === 1 ? e.touches[0].clientX : null; }, { passive: true });
+zoomBox.addEventListener("touchend", (e) => {
+  if (swipeX == null) return;
+  const dx = e.changedTouches[0].clientX - swipeX; swipeX = null;
+  if (Math.abs(dx) > 45 && zoomSet && zoomSet.length > 1) { e.preventDefault(); zoomStep(dx < 0 ? 1 : -1); }   /* preventDefault: a swipe is not also a tap-to-close */
+});
+
+/* ----- photo albums: a grid of albums, each opening into a grid of photos ----- */
+const count = (n, word) => n + " " + word + (n === 1 ? "" : "s");
+function showPhotos(focusFile) {
+  openScreen("photos", "m-photos");
+  main.append(el("p", "label", "Photos"));
+  if (!ALBUMS.length) { main.append(el("p", "sub", loadNote === "Loading..." ? loadNote : "No albums yet."), backRow()); return; }
+  const wrap = el("div", "albums");
+  ALBUMS.forEach((a, i) => {
+    const b = opt(null, () => showAlbum(a), "album"), cover = el("span", "cover");
+    if (a.photos[0]) { const img = el("img"); img.alt = ""; img.loading = "lazy"; loadPicture(img, a.photos[0], "thumbs", () => img.remove()); cover.append(img); }
+    b.append(cover, el("span", "name", a.title), el("span", "date", [day(a.date), count(a.photos.length, "photo")].filter(Boolean).join("  /  ")));
+    b.dataset.album = a.file; b.style.setProperty("--i", Math.min(i, 6));
+    wrap.append(b);
+  });
+  main.append(wrap, backRow());
+  if (focusFile) { const all = [...wrap.querySelectorAll(".opt")]; (all.find((b) => b.dataset.album === focusFile) || all[0]).focus(); }
+}
+function showAlbum(a) {
+  openScreen("album", "m-photos");
+  const head = el("div", "albumhead"), meta = el("p", "meta");
+  [day(a.date), a.place, count(a.photos.length, "photo")].filter(Boolean).forEach((t) => meta.append(el("span", null, t)));
+  head.append(el("p", "label", "Photos"), el("h2", null, a.title), meta);
+  main.append(head);
+  if (a.body) { const words = el("div", "post"); renderBody(a.body, words); main.append(words); }
+  const set = a.photos.map((src) => ({ src, caption: "" })), grid = el("div", "grid");
+  a.photos.forEach((src, i) => {
+    const b = el("button", "shot thumb"), img = el("img");
+    b.type = "button"; b.setAttribute("aria-label", "Photo " + (i + 1) + " of " + a.photos.length); img.alt = ""; img.loading = "lazy";
+    loadPicture(img, src, "thumbs", () => { b.textContent = "missing"; b.classList.add("missing"); b.disabled = true; });
+    b.append(img); b.addEventListener("click", () => zoom(src, "", b, set, i));
+    grid.append(b);
+  });
+  if (!a.photos.length) main.append(el("p", "sub", "No photos in this album yet."));
+  const nav = el("div", "row group"); nav.append(opt("Back", () => showPhotos(a.file)));
+  main.append(grid, nav);
+  nav.querySelector(".opt").focus({ preventScroll: true });
+}
+
+/* ----- the map -----
+   The coastline comes from map-land.json (loaded the first time it is needed). It is painted small and
+   blown up so it looks like a game's world map. Pins come from the places/ folder. */
+const KINDS = {   /* label, colour, and a 7x7 picture for the pin */
+  fishing: ["Fishing", "#6fb7ff", [".......", "#..###.", "#######", "#######", "#######", "#..###.", "......."]],
+  landmark: ["Landmarks", "#ffd257", [".#####.", ".#####.", ".#####.", ".#.....", ".#.....", ".#.....", "###...."]],
+  hike: ["Hikes", "#7fd68a", ["...#...", "..###..", "..###..", ".#####.", ".#####.", "#######", "#######"]]
+};
+const merc = (lat, lng) => [(lng + 180) / 360, (1 - Math.log(Math.tan(Math.PI / 4 + Math.max(-85, Math.min(85, lat)) * Math.PI / 360)) / Math.PI) / 2];
+let landPath = null, landWait = null;
+function loadLand() {
+  if (!landWait) landWait = fetch("map-land.json").then((r) => { if (!r.ok) throw new Error("status " + r.status); return r.json(); }).then((d) => {
+    const path = new Path2D(), q = d.q || 100;
+    for (const ring of d.rings) {   /* each ring: a start point, then steps from one point to the next */
+      let x = ring[0], y = ring[1], m = merc(y / q, x / q); path.moveTo(m[0], m[1]);
+      for (let i = 2; i + 1 < ring.length; i += 2) { x += ring[i]; y += ring[i + 1]; m = merc(y / q, x / q); path.lineTo(m[0], m[1]); }
+      path.closePath();
+    }
+    landPath = path;
+  }).catch(() => { landWait = null; });   /* no coastline: the map still works, as pins on open sea */
+  return landWait;
+}
+const SEA = [5, 7, 10], SEA_DOT = [20, 28, 42], LAND_A = [42, 47, 55], LAND_B = [54, 60, 69], COAST = [214, 214, 224], COAST_DIM = [140, 140, 152];
+function makeMap(canvas, cell, small) {
+  const c = canvas.getContext("2d", { willReadFrequently: true });
+  const v = { x: .5, y: .4, scale: 1, pins: [], chosen: null, hit: [], blink: false };   /* x, y: centre of the view (0 to 1 across the world); scale: map dots per world width */
+  let w = 8, h = 8;
+  function size() {
+    w = Math.max(8, Math.round(canvas.clientWidth / cell)); h = Math.max(8, Math.round(canvas.clientHeight / cell));
+    if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+  }
+  function clamp() {
+    v.scale = Math.max(w, Math.min(w * 6000, v.scale || w)); v.x = ((v.x % 1) + 1) % 1;
+    const half = h / 2 / v.scale, lo = .1 + half, hi = .82 - half;   /* keep the view between the far north and the far south */
+    v.y = lo > hi ? .46 : Math.max(lo, Math.min(hi, v.y));
+  }
+  const spot = (p) => { const m = merc(p.lat, p.lng); let dx = m[0] - v.x; dx -= Math.round(dx); return [Math.round(w / 2 + dx * v.scale), Math.round(h / 2 + (m[1] - v.y) * v.scale)]; };
+  function stamp(rows, x, y, colour) {   /* a pin: its shape in black, one dot fatter, then the shape in colour on top */
+    for (let pass = 0; pass < 2; pass++) {
+      c.fillStyle = pass ? colour : "#000";
+      rows.forEach((row, j) => { for (let i = 0; i < row.length; i++) if (row[i] === "#") { if (pass) c.fillRect(x - 3 + i, y - 3 + j, 1, 1); else c.fillRect(x - 4 + i, y - 4 + j, 3, 3); } });
+    }
+  }
+  function draw() {
+    size(); clamp();
+    c.setTransform(1, 0, 0, 1, 0, 0); c.fillStyle = "#000"; c.fillRect(0, 0, w, h);
+    if (landPath) {
+      c.fillStyle = "#fff"; const reach = w / 2 / v.scale;
+      for (const k of [-1, 0, 1]) {   /* the world repeats to the left and right */
+        if (v.x + reach < k || v.x - reach > k + 1) continue;
+        c.setTransform(v.scale, 0, 0, v.scale, w / 2 - (v.x - k) * v.scale, h / 2 - v.y * v.scale); c.fill(landPath, "evenodd");
+      }
+      c.setTransform(1, 0, 0, 1, 0, 0);
+    }
+    const im = c.getImageData(0, 0, w, h), d = im.data, land = new Uint8Array(w * h), edgeCol = small ? COAST_DIM : COAST;
+    for (let i = 0; i < w * h; i++) land[i] = d[i * 4] > 110 ? 1 : 0;
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const i = y * w + x; let col;
+      if (land[i]) col = ((x > 0 && !land[i - 1]) || (x < w - 1 && !land[i + 1]) || (y > 0 && !land[i - w]) || (y < h - 1 && !land[i + w])) ? edgeCol : ((x + y) % 2 ? LAND_A : LAND_B);
+      else col = (x % 4 === 0 && y % 4 === 2) ? SEA_DOT : SEA;
+      d[i * 4] = col[0]; d[i * 4 + 1] = col[1]; d[i * 4 + 2] = col[2]; d[i * 4 + 3] = 255;
+    }
+    c.putImageData(im, 0, 0);
+    v.hit = [];
+    const pins = v.pins.filter((p) => p.lat != null), last = pins.indexOf(v.chosen);
+    if (last >= 0) pins.push(pins.splice(last, 1)[0]);   /* the chosen pin is painted last, on top */
+    for (const p of pins) {
+      const [x, y] = spot(p); if (x < -6 || y < -6 || x > w + 6 || y > h + 6) continue;
+      const kind = KINDS[p.kind] || KINDS.landmark;
+      if (small) { c.fillStyle = "#000"; c.fillRect(x - 2, y - 2, 5, 5); c.fillStyle = kind[1]; c.fillRect(x - 1, y - 1, 3, 3); }
+      else {
+        stamp(kind[2], x, y, kind[1]);
+        if (p === v.chosen && !v.blink) { c.fillStyle = "#fff"; for (const [ax, ay, aw, ah] of [[-7, -7, 4, 1], [-7, -7, 1, 4], [4, -7, 4, 1], [7, -7, 1, 4], [-7, 7, 4, 1], [-7, 4, 1, 4], [4, 7, 4, 1], [7, 4, 1, 4]]) c.fillRect(x + ax, y + ay, aw, ah); }
+      }
+      v.hit.push([x, y, p]);
+    }
+  }
+  function fit(pins, minSpan) {   /* frame every pin, or the whole world when there are none */
+    size();
+    const ms = pins.filter((p) => p.lat != null).map((p) => merc(p.lat, p.lng));
+    if (!ms.length) { v.x = .5; v.y = .4; v.scale = w; return; }
+    const xs = ms.map((m) => m[0]), ys = ms.map((m) => m[1]);
+    const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+    v.x = (x0 + x1) / 2; v.y = (y0 + y1) / 2;
+    v.scale = Math.min(w / (Math.max(x1 - x0, minSpan) * 1.5), h / (Math.max(y1 - y0, minSpan * h / w) * 1.5));
+  }
+  function zoomAt(clientX, clientY, factor) {   /* zoom in or out, keeping the spot under the pointer still */
+    const r = canvas.getBoundingClientRect(), cx = (clientX - r.left) / r.width * w - w / 2, cy = (clientY - r.top) / r.height * h - h / 2;
+    const mx = v.x + cx / v.scale, my = v.y + cy / v.scale;
+    v.scale = Math.max(w, Math.min(w * 6000, v.scale * factor)); v.x = mx - cx / v.scale; v.y = my - cy / v.scale; draw();
+  }
+  function zoomBy(factor) { const r = canvas.getBoundingClientRect(); zoomAt(r.left + r.width / 2, r.top + r.height / 2, factor); }
+  function goTo(p) { if (p.lat == null) return; const m = merc(p.lat, p.lng); v.x = m[0]; v.y = m[1]; v.scale = Math.max(v.scale, w / .012); }
+  return { v, draw, fit, zoomAt, zoomBy, goTo, cells: () => [w, h] };
+}
+const mapOff = new Set();   /* kinds of pin switched off with the buttons above the map */
+function fishAt(p) {   /* fish in the Bestiary whose "where" names this place */
+  const name = p.name.trim().toLowerCase(); if (!name) return [];
+  return BESTIARY.map((b, i) => [b, i]).filter(([b]) => { const at = b.location.trim().toLowerCase(), first = at.split(",")[0].trim(); return at && (at.includes(name) || (first && name.includes(first))); });
+}
+function showMap(focusFirst) {
+  openScreen("map", "m-map");
+  const chips = el("div", "chips"), box = el("div", "mapbox"), canvas = el("canvas"), keys = el("div", "mapkeys");
+  const wrap = el("div", "beasts maplist"), list = el("div", "beastlist"), card = el("div", "beastcard");
+  canvas.setAttribute("role", "img"); canvas.setAttribute("aria-label", "Map with a pin for each place in the list below");
+  const map = makeMap(canvas, 3, false);
+  const key = (text, label, fn, cls) => { const b = el("button", cls, text); b.type = "button"; b.setAttribute("aria-label", label); b.addEventListener("click", fn); keys.append(b); };
+  key("+", "Zoom in", () => map.zoomBy(1.8)); key("-", "Zoom out", () => map.zoomBy(1 / 1.8)); key("All", "Show every pin", () => { map.fit(map.v.pins, .01); map.draw(); }, "wide");
+  box.append(canvas, keys);
+  function showCard(p) {
+    card.textContent = "";
+    if (!p) { card.append(el("p", "sub", PLACES.length ? "Choose a pin, or a place from the list." : "No places marked yet.")); return; }
+    const kind = KINDS[p.kind] || KINDS.landmark, facts = el("dl", "facts"), fact = (k, node) => { const dd = el("dd"); dd.append(node); facts.append(el("dt", null, k), dd); return dd; };
+    fact("Kind", kind[0].replace(/s$/, "")).className = "kind " + p.kind;
+    if (p.date) fact("Date", day(p.date));
+    if (p.lat == null) fact("Pin", "No coordinates yet");
+    card.append(el("h2", null, p.name), facts);
+    const fish = fishAt(p);
+    if (fish.length) { const row = el("div", "row caughthere"); row.append(el("span", "sub", "Caught here:")); row.querySelector(".sub").style.margin = "0"; fish.forEach(([b, i]) => row.append(opt(b.name, () => showBestiary(true, i)))); card.append(row); }
+    if (p.note) { const note = el("div", "post lore"); renderBody(p.note, note); card.append(note); }
+    if (p.photo) { const row = el("div", "row"); const b = opt("View photo", () => zoom(p.photo, p.name, b)); row.append(b); card.append(row); }
+    card.classList.remove("pop"); void card.offsetWidth; card.classList.add("pop");
+  }
+  function choose(p, travel) {
+    map.v.chosen = p || null;
+    list.querySelectorAll(".opt").forEach((o) => o.setAttribute("aria-pressed", String(!!p && o.dataset.place === p.file)));
+    if (p && travel) map.goTo(p);
+    showCard(p); map.draw();
+  }
+  let quiet = false;   /* true while the cursor is being placed on the list without choosing anything */
+  function refresh() {
+    const shown = PLACES.filter((p) => !mapOff.has(p.kind));
+    map.v.pins = shown; list.textContent = "";
+    shown.forEach((p, i) => {
+      const pick = () => { if (!quiet && b.getAttribute("aria-pressed") !== "true") choose(p, true); };
+      const b = opt(null, pick, "place"); b.dataset.place = p.file; b.addEventListener("focus", pick);
+      b.append(el("span", "dot " + p.kind), el("span", "name", p.name)); b.style.setProperty("--i", Math.min(i, 6));
+      list.append(b);
+    });
+    if (!shown.includes(map.v.chosen)) choose(null); else choose(map.v.chosen);
+  }
+  Object.keys(KINDS).forEach((k) => {
+    const n = PLACES.filter((p) => p.kind === k).length, b = el("button", "chip"); b.type = "button";
+    b.append(el("span", "dot " + k), el("span", null, KINDS[k][0] + " " + n)); b.setAttribute("aria-pressed", String(!mapOff.has(k)));
+    b.addEventListener("click", () => { if (mapOff.has(k)) mapOff.delete(k); else mapOff.add(k); b.setAttribute("aria-pressed", String(!mapOff.has(k))); refresh(); });
+    chips.append(b);
+  });
+  /* drag to move, pinch or Ctrl + scroll to zoom, double-click to zoom in, tap a pin to choose it */
+  const fingers = new Map(); let moved = 0, spread = 0;
+  const gap = () => { const [a, b] = [...fingers.values()]; return Math.hypot(a[0] - b[0], a[1] - b[1]); };
+  canvas.addEventListener("pointerdown", (e) => {
+    try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
+    fingers.set(e.pointerId, [e.clientX, e.clientY]); if (fingers.size === 1) moved = 0; if (fingers.size === 2) spread = gap();
+    canvas.classList.add("dragging");
+  });
+  canvas.addEventListener("pointermove", (e) => {
+    const was = fingers.get(e.pointerId); if (!was) return;
+    fingers.set(e.pointerId, [e.clientX, e.clientY]);
+    const r = canvas.getBoundingClientRect(), [w] = map.cells(), per = w / (r.width || 1);
+    if (fingers.size === 1) {
+      moved += Math.abs(e.clientX - was[0]) + Math.abs(e.clientY - was[1]);
+      map.v.x -= (e.clientX - was[0]) * per / map.v.scale; map.v.y -= (e.clientY - was[1]) * per / map.v.scale; map.draw();
+    } else if (fingers.size === 2) {
+      const now = gap(), [a, b] = [...fingers.values()]; moved += 20;
+      if (spread > 0 && now > 0) map.zoomAt((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, now / spread);
+      spread = now;
+    }
+  });
+  const lift = (e) => {
+    if (!fingers.delete(e.pointerId)) return;
+    if (fingers.size) return;
+    canvas.classList.remove("dragging");
+    if (e.type !== "pointerup" || moved > 8) return;
+    const r = canvas.getBoundingClientRect(), [w, h] = map.cells(), x = (e.clientX - r.left) / r.width * w, y = (e.clientY - r.top) / r.height * h;
+    let best = null, near = 7;   /* a tap chooses the nearest pin, if one is close */
+    for (const [px, py, p] of map.v.hit) { const far = Math.hypot(px - x, py - y); if (far < near) { near = far; best = p; } }
+    if (best) choose(best, false);
+  };
+  canvas.addEventListener("pointerup", lift); canvas.addEventListener("pointercancel", lift);
+  canvas.addEventListener("wheel", (e) => { if (!e.ctrlKey && !e.metaKey) return; e.preventDefault(); map.zoomAt(e.clientX, e.clientY, Math.exp(-e.deltaY * .01)); }, { passive: false });
+  canvas.addEventListener("dblclick", (e) => { e.preventDefault(); map.zoomAt(e.clientX, e.clientY, 2); });
+  wrap.append(list, card);
+  main.append(el("p", "label", "Map"), chips, box, wrap, backRow());
+  refresh(); map.fit(map.v.pins, .01); map.draw();
+  loadLand().then(() => { if (canvas.isConnected) map.draw(); });
+  if (!reduceMotion) {   /* the frame around the chosen pin blinks */
+    const timer = setInterval(() => { if (!canvas.isConnected) return clearInterval(timer); if (document.hidden || !map.v.chosen) return; map.v.blink = !map.v.blink; map.draw(); }, 480);
+  }
+  mapRedraw = () => { if (canvas.isConnected) map.draw(); };
+  if (focusFirst) { quiet = true; (list.querySelector(".opt") || main.querySelector(".chip")).focus({ preventScroll: true }); quiet = false; }
+}
+let mapRedraw = null;
+/* the small map under the status window: every pin at a glance; choosing it opens the map */
+const mini = makeMap($("#minimap canvas"), 2, true);
+function drawMini() { mini.v.pins = PLACES; mini.fit(PLACES, .03); mini.draw(); }
+$("#minimap").addEventListener("click", () => showMap(true));
+window.addEventListener("resize", () => { drawMini(); if (mapRedraw) mapRedraw(); });
 
 /* ==========================================================================
    4. MENU AND KEYBOARD
    ========================================================================== */
 $("#m-files").addEventListener("click", () => showFiles(true));
 $("#m-bestiary").addEventListener("click", () => showBestiary(true));
+$("#m-photos").addEventListener("click", () => showPhotos(true));
+$("#m-map").addEventListener("click", () => showMap(true));
 $("#m-about").addEventListener("click", () => showPage("about", "m-about", "About", ABOUT));
 $("#m-how").addEventListener("click", () => showPage("help", "m-how", "Help", HELP));
 
@@ -598,9 +927,13 @@ document.addEventListener("keydown", (e) => {
     if (e.key === "Enter" || e.key === " ") { e.preventDefault(); endIntro(); }
     return;
   }
-  if (!zoomBox.hidden) { if (e.key === "Escape" || e.key === "Enter" || e.key === " ") { e.preventDefault(); unzoom(); } return; }
+  if (!zoomBox.hidden) {   /* an enlarged photo: Left and Right step through a set, anything else that confirms or cancels closes it */
+    if (e.key === "ArrowLeft" || e.key === "ArrowRight") { e.preventDefault(); zoomStep(e.key === "ArrowRight" ? 1 : -1); }
+    else if (e.key === "Escape" || ((e.key === "Enter" || e.key === " ") && !(e.target.closest && e.target.closest(".zoomnav")))) { e.preventDefault(); unzoom(); }
+    return;
+  }
   const reading = !reader.hidden;
-  if (e.key === "Escape") { if (reading) closePost(); else if (view !== "files") showFiles(true); return; }
+  if (e.key === "Escape") { if (reading) closePost(); else if (view === "album") showPhotos(true); else if (view !== "files") showFiles(true); return; }
   const dir = { ArrowDown: 1, ArrowUp: -1 }[e.key];
   const side = e.key === "ArrowLeft" || e.key === "ArrowRight";
   if (!dir && !side) return;
@@ -811,17 +1144,28 @@ function linkedPost() {   /* the entry named after # in the address, if there is
       location: text(b.location), photo: text(b.photo), lore: text(b.lore),
       rarity: Object.prototype.hasOwnProperty.call(RARITY, text(b.rarity)) ? text(b.rarity) : "", lure: text(b.lure),
       catch_rate: Math.min(100, amount(b.catch_rate) || 0) || null, fight: Math.min(5, Math.round(amount(b.fight) || 0)) || null }));
+    ALBUMS = (Array.isArray(data.albums) ? data.albums : []).filter((a) => a && typeof a === "object" && text(a.file)).map((a) => ({
+      file: text(a.file), title: text(a.title) || text(a.file), date: text(a.date), place: text(a.place), body: text(a.body),
+      photos: (Array.isArray(a.photos) ? a.photos : []).map(text).filter(Boolean) }));
+    PLACES = (Array.isArray(data.places) ? data.places : []).filter((p) => p && typeof p === "object").map((p, i) => {
+      const lat = typeof p.lat === "number" ? p.lat : NaN, lng = typeof p.lng === "number" ? p.lng : NaN, good = Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
+      return { file: text(p.file) || "place-" + i, name: text(p.name).trim() || "Unnamed place", kind: Object.prototype.hasOwnProperty.call(KINDS, text(p.kind)) ? text(p.kind) : "landmark",
+        lat: good ? lat : null, lng: good ? lng : null, date: text(p.date), photo: text(p.photo), note: text(p.note) };
+    });
     sorted = (Array.isArray(data.posts) ? data.posts : []).filter((p) => p && typeof p === "object" && text(p.file)).map((p) => ({
       file: text(p.file), title: text(p.title) || text(p.file), date: text(p.date), body: text(p.body) }))
       .sort((a, b) => b.date.localeCompare(a.date) || b.file.localeCompare(a.file));
     loadNote = "No entries yet.";
-  } catch (e) { ABOUT = ""; BESTIARY_INTRO = ""; BESTIARY = []; sorted = []; loadNote = "Could not load the log. Refresh to try again."; }
+  } catch (e) { ABOUT = ""; BESTIARY_INTRO = ""; BESTIARY = []; ALBUMS = []; PLACES = []; sorted = []; loadNote = "Could not load the log. Refresh to try again."; }
   $("#count").textContent = sorted.length;
   $("#latest").textContent = sorted[0] ? day(sorted[0].date).split(",")[0] || "-" : "-";
   pendingPost = linkedPost();
   const started = introBox.classList.contains("done");
   if (view === "files" && reader.hidden) showFiles(started);   /* redraw whichever screen is up, now that there is something to show */
   if (view === "bestiary") showBestiary(started);
+  if (view === "photos" || view === "album") showPhotos(started);
+  if (view === "map") showMap(started);
+  drawMini(); loadLand().then(drawMini);
   if (view === "about") showPage("about", "m-about", "About", ABOUT);
   if (pendingPost && started) { showPost(pendingPost); pendingPost = null; }
 })();

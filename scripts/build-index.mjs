@@ -10,7 +10,7 @@ function unquote(v) {
 }
 // Splits a file into its header (title, date) and its text.
 function parse(text) {
-  text = text.replace(/^\uFEFF/, "").replace(/^\s*\n/, "");
+  text = text.replace(/^﻿/, "").replace(/^\s*\n/, "");
   // The header sits between two lines that are exactly "---"; dashes inside a title do not end it.
   const m = /^---[ \t]*\r?\n(?:([\s\S]*?)\r?\n)?---[ \t]*(?:\r?\n|$)([\s\S]*)$/.exec(text);
   const meta = {};
@@ -19,15 +19,27 @@ function parse(text) {
   for (let i = 0; i < lines.length; i++) {
     const k = /^([A-Za-z_][\w-]*):\s*(.*)$/.exec(lines[i]);
     if (!k) continue;
-    let value = k[2];
-    const block = /^[>|][+-]?$/.test(value.trim());       // a long value wrapped over several indented lines
-    const parts = block ? [] : [value.trim()];
+    let value = k[2].trim();
+    const inline = /^\[(.*)\]$/.exec(value);
+    if (inline) { meta[k[1]] = inline[1].trim() ? inline[1].split(",").map(unquote).filter(Boolean) : []; continue; }   // photos: [a, b]
+    if (value === "" && i + 1 < lines.length && /^\s*-(\s|$)/.test(lines[i + 1])) {                                   // a list, one "- item" per line
+      const list = [];
+      while (i + 1 < lines.length && (/^\s*-(\s|$)/.test(lines[i + 1]) || (/^\s+\S/.test(lines[i + 1]) && list.length))) {
+        const line = lines[++i], item = /^\s*-\s*(.*)$/.exec(line);
+        if (item) list.push(unquote(item[1])); else list[list.length - 1] += " " + line.trim();
+      }
+      meta[k[1]] = list.filter(Boolean); continue;
+    }
+    const block = /^[>|][+-]?$/.test(value);                // a long value wrapped over several indented lines
+    const parts = block ? [] : [value];
     while (i + 1 < lines.length && /^\s+\S/.test(lines[i + 1])) parts.push(lines[++i].trim());
-    value = block ? parts.join(value.trim().startsWith("|") ? "\n" : " ") : unquote(parts.join(" "));
-    meta[k[1]] = value;
+    meta[k[1]] = block ? parts.join(value.startsWith("|") ? "\n" : " ") : unquote(parts.join(" "));
   }
   return { meta, body: m[2].trim() };
 }
+const str = (v) => (Array.isArray(v) ? v.join(" ") : String(v == null ? "" : v));
+const list = (v) => (Array.isArray(v) ? v : str(v) ? [str(v)] : []).map((x) => String(x).trim()).filter(Boolean);
+const isoDay = (v) => { const d = /^\d{4}-\d{2}-\d{2}/.exec(str(v)); return d ? d[0] : ""; };
 
 const posts = [];
 if (existsSync("posts")) {
@@ -53,11 +65,38 @@ if (existsSync("bestiary")) {
       photo: String(meta.photo || ""), lore: body });
   }
 }
+// Photo albums: one file per album in albums/, newest first.
+const albums = [];
+if (existsSync("albums")) {
+  for (const name of readdirSync("albums")) {
+    if (!name.endsWith(".md")) continue;
+    const { meta, body } = parse(readFileSync("albums/" + name, "utf8"));
+    const file = name.replace(/\.md$/, "");
+    albums.push({ file, title: str(meta.title) || file, date: isoDay(meta.date) || isoDay(name), place: str(meta.place), photos: list(meta.photos), body });
+  }
+}
+albums.sort((a, b) => b.date.localeCompare(a.date) || b.file.localeCompare(a.file));
+// Map pins: one file per place in places/. Coordinates are pasted as "latitude, longitude".
+const places = [];
+if (existsSync("places")) {
+  for (const name of readdirSync("places").sort()) {
+    if (!name.endsWith(".md")) continue;
+    const { meta, body } = parse(readFileSync("places/" + name, "utf8"));
+    const file = name.replace(/\.md$/, "");
+    const c = /(-?\d+(?:\.\d+)?)\s*°?\s*([NS])?[\s,;]+(-?\d+(?:\.\d+)?)\s*°?\s*([EW])?/i.exec(str(meta.coordinates));
+    let lat = null, lng = null;
+    if (c) {
+      lat = parseFloat(c[1]) * (/s/i.test(c[2] || "") ? -1 : 1); lng = parseFloat(c[3]) * (/w/i.test(c[4] || "") ? -1 : 1);
+      if (!(Math.abs(lat) <= 90 && Math.abs(lng) <= 180)) { lat = null; lng = null; }
+    }
+    places.push({ file, name: str(meta.name) || file, kind: str(meta.kind).toLowerCase() || "landmark", lat, lng, date: isoDay(meta.date), photo: str(meta.photo), note: body });
+  }
+}
 const about = existsSync("pages/about.md") ? parse(readFileSync("pages/about.md", "utf8")).body : "";
 // "source" records where this copy of the list was built, which helps when checking the site.
 const source = process.env.GITHUB_ACTIONS ? "github" : (process.env.WORKERS_CI || process.env.WORKERS_CI_BUILD_UUID) ? "cloudflare" : "other";
 const bestiaryIntro = existsSync("pages/bestiary.md") ? parse(readFileSync("pages/bestiary.md", "utf8")).body : "";
-writeFileSync("posts.json", JSON.stringify({ source, about, bestiary_intro: bestiaryIntro, posts, bestiary }, null, 2) + "\n");
+writeFileSync("posts.json", JSON.stringify({ source, about, bestiary_intro: bestiaryIntro, posts, bestiary, albums, places }, null, 2) + "\n");
 // A small stamp, written only at publish time, to confirm this script ran there.
 if (!process.env.GITHUB_ACTIONS) writeFileSync("build.json", JSON.stringify({ source, entries: posts.length, built: new Date().toISOString() }) + "\n");
 console.log("posts.json: " + posts.length + " entries");
