@@ -47,7 +47,7 @@ if (existsSync("posts")) {
     if (!name.endsWith(".md")) continue;
     const { meta, body } = parse(readFileSync("posts/" + name, "utf8"));
     const date = /^\d{4}-\d{2}-\d{2}/.exec(String(meta.date || "")) || /^\d{4}-\d{2}-\d{2}/.exec(name);
-    posts.push({ file: name.replace(/\.md$/, ""), title: String(meta.title || name.replace(/\.md$/, "")), date: date ? date[0] : "", body });
+    posts.push({ file: name.replace(/\.md$/, ""), title: String(meta.title || name.replace(/\.md$/, "")), date: date ? date[0] : "", place: str(meta.place), body });
   }
 }
 posts.sort((a, b) => b.date.localeCompare(a.date) || b.file.localeCompare(a.file));
@@ -62,7 +62,7 @@ if (existsSync("bestiary")) {
     bestiary.push({ file: name.replace(/\.md$/, ""), name: String(meta.name || name.replace(/\.md$/, "")), sprite: String(meta.sprite || "fish"),
       date: day ? day[0] : "", weight: num(meta.weight), length: num(meta.length), location: String(meta.location || ""),
       rarity: String(meta.rarity || "").toLowerCase(), catch_rate: num(meta.catch_rate), fight: num(meta.fight), lure: String(meta.lure || ""),
-      photo: String(meta.photo || ""), lore: body });
+      photo: String(meta.photo || ""), status: /^(wanted|uncaught|no)$/i.test(str(meta.status).trim()) ? "wanted" : "caught", lore: body });
   }
 }
 // Photo albums: one file per album in albums/, newest first.
@@ -89,7 +89,8 @@ if (existsSync("places")) {
       lat = parseFloat(c[1]) * (/s/i.test(c[2] || "") ? -1 : 1); lng = parseFloat(c[3]) * (/w/i.test(c[4] || "") ? -1 : 1);
       if (!(Math.abs(lat) <= 90 && Math.abs(lng) <= 180)) { lat = null; lng = null; }
     }
-    places.push({ file, name: str(meta.name) || file, kind: str(meta.kind).toLowerCase() || "landmark", lat, lng, date: isoDay(meta.date), photo: str(meta.photo), note: body });
+    places.push({ file, name: str(meta.name) || file, kind: str(meta.kind).toLowerCase() || "landmark", lat, lng, date: isoDay(meta.date), photo: str(meta.photo),
+      trip: str(meta.trip).trim(), stop: Number.isFinite(parseFloat(meta.stop)) ? parseFloat(meta.stop) : null, note: body });
   }
 }
 const about = existsSync("pages/about.md") ? parse(readFileSync("pages/about.md", "utf8")).body : "";

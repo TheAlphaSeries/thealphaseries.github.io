@@ -23,6 +23,9 @@ content:
         required: true
         options:
           format: yyyy-MM-dd
+      - name: place
+        label: Where (optional - type a map pin's name exactly, e.g. Pine Lake, and the two get linked)
+        type: string
       - name: body
         label: Entry
         type: rich-text
@@ -109,6 +112,15 @@ content:
       - name: photo
         label: Photo of the fish
         type: image
+      - name: status
+        label: Caught yet?
+        type: select
+        options:
+          values:
+            - name: caught
+              label: Caught
+            - name: wanted
+              label: Not yet - show it as a mystery fish
       - name: body
         label: Lore
         type: rich-text
@@ -131,7 +143,7 @@ content:
         options:
           format: yyyy-MM-dd
       - name: place
-        label: Where (optional)
+        label: Where (optional - type a map pin's name exactly, e.g. Pine Lake, and the two get linked)
         type: string
       - name: photos
         label: Photos (pick as many as you like; the first one is the cover)
@@ -177,6 +189,12 @@ content:
         type: date
         options:
           format: yyyy-MM-dd
+      - name: trip
+        label: Trip name (optional - pins that share the exact same trip name are joined by a route, e.g. China and Hong Kong)
+        type: string
+      - name: stop
+        label: Stop number on that trip (1, 2, 3 ...)
+        type: string
       - name: photo
         label: Photo (optional)
         type: image

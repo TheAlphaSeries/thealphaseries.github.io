@@ -4,10 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Half Life</title>
-<meta name="description" content="Half Life. Photographs and notes by Chris.">
+<meta name="description" content="Half Life. Photographs, a log, a bestiary of fish and a map of where it all happened. By Chris.">
 <meta name="theme-color" content="#000000">
 <meta property="og:title" content="Half Life">
-<meta property="og:description" content="Photographs and notes by Chris.">
+<meta property="og:description" content="Photographs, a log, a bestiary of fish and a map of where it all happened. By Chris.">
+<meta property="og:site_name" content="Half Life">
+<meta property="og:image" content="https://halflife.studio/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Half Life: a black 16-bit menu screen with a small pixel figure waving.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Half Life">
+<meta name="twitter:description" content="Photographs, a log, a bestiary of fish and a map of where it all happened. By Chris.">
+<meta name="twitter:image" content="https://halflife.studio/og.png">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://halflife.studio/">
 <link rel="canonical" href="https://halflife.studio/">
@@ -113,6 +122,7 @@ h3 { font-size: 12px; line-height: 1.7; color: var(--accent); margin-top: 8px; }
 .beast .name { font-family: var(--display); font-size: 12px; line-height: 1.8; overflow-wrap: anywhere; }
 .beast .qty { color: var(--dim); font-variant-numeric: tabular-nums; }
 .beast[aria-pressed="true"]::before { visibility: visible; }
+.beast.ghost .name, .beast.ghost .num { color: var(--off); }
 .beastcard { border: 3px solid var(--border); border-radius: 9px; box-shadow: inset 0 0 0 2px var(--border-shade); padding: 14px 16px 16px; min-width: 0; }
 .beastcard.pop { animation: pop .5s var(--spring); }
 .fishpic { display: block; width: 100%; max-width: 320px; height: auto; margin: 0 auto 10px; image-rendering: pixelated; }
@@ -420,7 +430,8 @@ const FISH_POSE = {   /* turn: how steeply it leaps, in degrees; arch: how far t
   bass: { turn: 40, arch: 6, flick: -4, sink: 1 }, catfish: { turn: 20, arch: -4, flick: 4, sink: 4 }, fish: { turn: 32, arch: 4, flick: 3, sink: 0 }
 };
 const LEAP = [100, 92], WATERLINE = 74, fishBase = {};
-const WATER = { foam: [255, 255, 255], light: [176, 222, 240], mid: [104, 160, 196], deep: [52, 92, 132] };
+const WATER_BLUE = { foam: [255, 255, 255], light: [176, 222, 240], mid: [104, 160, 196], deep: [52, 92, 132] };
+const WATER_GREY = { foam: [128, 130, 140], light: [96, 98, 108], mid: [66, 68, 78], deep: [40, 42, 50] }, GHOST = [16, 17, 21], GHOST_EDGE = [124, 128, 140];
 function fishImage(kind) {   /* the flat picture's pixels, worked out once and kept */
   if (fishBase[kind]) return fishBase[kind];
   const f = FISH[kind], base = document.createElement("canvas"), c = base.getContext("2d");
@@ -428,7 +439,7 @@ function fishImage(kind) {   /* the flat picture's pixels, worked out once and k
   f.rows.forEach((row, y) => { for (let x = 0; x < row.length; x++) { const col = f.pal[row[x]]; if (col) { c.fillStyle = col; c.fillRect(x, y, 1, 1); } } });
   return (fishBase[kind] = c.getImageData(0, 0, base.width, base.height).data);
 }
-function drawFish(canvas, kind) {
+function drawFish(canvas, kind, ghost) {   /* ghost: a dark outline only, for a fish not caught yet */
   if (!Object.prototype.hasOwnProperty.call(FISH, kind) || !Object.prototype.hasOwnProperty.call(FISH_POSE, kind)) kind = "fish";
   const src = fishImage(kind), pose = FISH_POSE[kind], [fw, fh] = FISH_SIZE, [W, H] = LEAP;
   canvas.width = W; canvas.height = H;
@@ -446,13 +457,23 @@ function drawFish(canvas, kind) {
     const sx = Math.round(fx), sy = Math.round(fyFlat - bend);
     if (sx < 0 || sy < 0 || sx >= fw || sy >= fh) continue;
     const i = (sy * fw + sx) * 4; if (!src[i + 3]) continue;
+    if (ghost) { if (Y < WATERLINE + 6) put(X, Y, GHOST); continue; }
     if (Y < WATERLINE) put(X, Y, [src[i], src[i + 1], src[i + 2]]);
     else {   /* under the surface: tinted, and broken up the deeper it goes */
       const depth = Y - WATERLINE; if (Y === WATERLINE) { wetMin = Math.min(wetMin, X); wetMax = Math.max(wetMax, X); }
       if (depth > 9 || (depth > 4 && (X + Y) % 2)) continue;
-      put(X, Y, [Math.round(src[i] * .35 + WATER.deep[0] * .65), Math.round(src[i + 1] * .35 + WATER.deep[1] * .65), Math.round(src[i + 2] * .35 + WATER.deep[2] * .65)]);
+      put(X, Y, [Math.round(src[i] * .35 + WATER_BLUE.deep[0] * .65), Math.round(src[i + 1] * .35 + WATER_BLUE.deep[1] * .65), Math.round(src[i + 2] * .35 + WATER_BLUE.deep[2] * .65)]);
     }
   }
+  if (ghost) {   /* pick out the edge of the shape so it reads against the black, and grey the water */
+    const edge = [];
+    for (let Y = 0; Y < H; Y++) for (let X = 0; X < W; X++) {
+      if (!px[(Y * W + X) * 4 + 3]) continue;
+      if (X === 0 || Y === 0 || X === W - 1 || Y === H - 1 || !px[(Y * W + X - 1) * 4 + 3] || !px[(Y * W + X + 1) * 4 + 3] || !px[((Y - 1) * W + X) * 4 + 3] || !px[((Y + 1) * W + X) * 4 + 3]) edge.push([X, Y]);
+    }
+    edge.forEach(([X, Y]) => put(X, Y, GHOST_EDGE));
+  }
+  const WATER = ghost ? WATER_GREY : WATER_BLUE;
   if (wetMax < 0) { wetMin = 22; wetMax = 34; }
   const mid = Math.round((wetMin + wetMax) / 2), half = Math.max(8, (wetMax - wetMin) / 2 + 5);
   for (let x = 2; x < W - 2; x++) {   /* the surface, and rings spreading out from where the fish broke it */
@@ -476,7 +497,7 @@ function drawFish(canvas, kind) {
   }
   c.putImageData(out, 0, 0);
 }
-function swim(canvas, kind) { drawFish(canvas, kind); }   /* a still picture: no movement */
+function swim(canvas, kind, ghost) { drawFish(canvas, kind, ghost); }   /* a still picture: no movement */
 const RARITY = { common: ["Common", 1], uncommon: ["Uncommon", 2], rare: ["Rare", 3], epic: ["Epic", 4], legendary: ["Legendary", 5] };   /* name and how many pips of five */
 function pips(filled, cls) {   /* a row of five small squares, some lit, like a stat in a game menu */
   const row = el("span", "pips" + (cls ? " " + cls : "")); row.setAttribute("aria-hidden", "true");
@@ -490,29 +511,38 @@ function showBestiary(focusFirst, pick) {
   if (!BESTIARY.length) { main.append(el("p", "sub", loadNote === "Loading..." ? loadNote : "Nothing recorded yet."), backRow()); return; }
   /* A species is whatever was picked in the editor's Species list; an entry left on the
      generic choice is told apart by its name instead. */
-  const species = new Set(BESTIARY.map((b) =>
+  const caught = BESTIARY.filter((b) => b.status !== "wanted"), wanted = BESTIARY.length - caught.length;
+  const species = new Set(caught.map((b) =>
     b.sprite && b.sprite !== "fish" ? b.sprite : "name:" + b.name.trim().toLowerCase())).size;
-  main.append(el("p", "tally", BESTIARY.length + " caught  /  " + species + " species"));
+  main.append(el("p", "tally", caught.length + " caught  /  " + species + " species" + (wanted ? "  /  " + wanted + " at large" : "")));
   const wrap = el("div", "beasts"), list = el("div", "beastlist"), card = el("div", "beastcard");
   const show = (b, btn) => {
     list.querySelectorAll(".opt").forEach((o) => o.setAttribute("aria-pressed", String(o === btn)));
     card.textContent = "";
-    const pic = el("canvas", "fishpic"); pic.setAttribute("aria-hidden", "true"); swim(pic, b.sprite);
-    if (b.photo) {   /* with a photo on file, the drawing is a button that opens it */
+    const ghost = b.status === "wanted";   /* not caught yet: an outline, no name, only what is rumoured */
+    const pic = el("canvas", "fishpic"); pic.setAttribute("aria-hidden", "true"); swim(pic, b.sprite, ghost);
+    if (b.photo && !ghost) {   /* with a photo on file, the drawing is a button that opens it */
       const open = el("button", "fishbtn"); open.type = "button"; open.setAttribute("aria-label", "See the photo of this " + b.name);
       open.append(pic, el("span", "hint", "View photo")); open.addEventListener("click", () => zoom(safeUrl(b.photo), b.name, open));
       card.append(open);
     } else card.append(pic);
     const facts = el("dl", "facts"), fact = (k, v, extra) => { const dd = el("dd", null, v); if (extra) dd.prepend(extra); facts.append(el("dt", null, k), dd); return dd; };
     if (b.rarity) fact("Rarity", RARITY[b.rarity][0], pips(RARITY[b.rarity][1])).className = "rarity " + b.rarity;
-    if (b.catch_rate) fact("Catch rate", b.catch_rate + "%");
-    if (b.fight) fact("Fight", b.fight + " / 5", pips(b.fight));
-    fact("Weight", b.weight ? b.weight + " lb" : "-");
-    fact("Length", b.length ? b.length + " in" : "-");
-    if (b.lure) fact("Caught on", b.lure);
-    if (b.location) fact("Where", b.location);
-    if (b.date) fact("Caught", day(b.date));
-    card.append(el("h2", null, b.name), facts);
+    if (ghost) {
+      fact("Status", "Not yet caught");
+      if (b.location) fact("Last seen", b.location);
+    } else {
+      if (b.catch_rate) fact("Catch rate", b.catch_rate + "%");
+      if (b.fight) fact("Fight", b.fight + " / 5", pips(b.fight));
+      fact("Weight", b.weight ? b.weight + " lb" : "-");
+      fact("Length", b.length ? b.length + " in" : "-");
+      if (b.lure) fact("Caught on", b.lure);
+      if (b.location) fact("Where", b.location);
+      if (b.date) fact("Caught", day(b.date));
+    }
+    card.append(el("h2", null, ghost ? "???" : b.name), facts);
+    const pin = pinFor(b.location);
+    if (pin) { const row = el("div", "row"); row.append(opt("Show on map", () => showMap(true, pin.file))); card.append(row); }
     if (b.lore) { const lore = el("div", "post lore"); renderBody(b.lore, lore); card.append(lore); }
     card.classList.remove("pop"); void card.offsetWidth; card.classList.add("pop");
   };
@@ -520,7 +550,8 @@ function showBestiary(focusFirst, pick) {
     const pick = () => { if (btn.getAttribute("aria-pressed") !== "true") show(b, btn); };
     const btn = opt(null, pick, "beast");
     btn.addEventListener("focus", pick);   /* moving the cursor shows that fish */
-    btn.append(el("span", "num", String(i + 1).padStart(3, "0")), el("span", "name", b.name));
+    const ghost = b.status === "wanted"; if (ghost) btn.classList.add("ghost");
+    btn.append(el("span", "num", ghost ? "---" : String(i + 1).padStart(3, "0")), el("span", "name", ghost ? "???" : b.name));
     btn.style.setProperty("--i", i);
     list.append(btn);
   });
@@ -624,12 +655,14 @@ function showPost(p) {
   current = p; setHash(p.file);
   rwin.textContent = "";
   const head = el("div", "filehead"), meta = el("p", "meta");
-  meta.append(el("span", null, day(p.date)));
+  meta.append(el("span", null, day(p.date))); if (p.place) meta.append(el("span", null, p.place));
   head.append(meta, el("h2", null, p.title));
   const body = el("div", "post"); renderBody(p.body, body);
   const nav = el("div", "row group"), next = sorted[sorted.indexOf(p) + 1];
   nav.append(opt("Back", closePost));
   if (next) nav.append(opt("Next", () => showPost(next)));
+  const pin = pinFor(p.place);
+  if (pin) nav.append(opt("Show on map", () => { closePost(); showMap(true, pin.file); }));
   rwin.append(head, body, nav);
   reader.hidden = false; document.body.style.overflow = "hidden"; syncLayers();
   rwin.classList.remove("pop"); void rwin.offsetWidth; rwin.classList.add("pop");
@@ -709,6 +742,8 @@ function showAlbum(a) {
   });
   if (!a.photos.length) main.append(el("p", "sub", "No photos in this album yet."));
   const nav = el("div", "row group"); nav.append(opt("Back", () => showPhotos(a.file)));
+  const pin = pinFor(a.place);
+  if (pin) nav.append(opt("Show on map", () => showMap(true, pin.file)));
   main.append(grid, nav);
   nav.querySelector(".opt").focus({ preventScroll: true });
 }
@@ -782,6 +817,20 @@ function makeMap(canvas, cell, small) {
     c.putImageData(im, 0, 0);
     v.hit = [];
     const pins = v.pins.filter((p) => p.lat != null), last = pins.indexOf(v.chosen);
+    c.fillStyle = small ? "#7d62b8" : "#a585e6";   /* a dotted line joins the stops of each trip, in order */
+    for (const name of new Set(pins.map((p) => p.trip).filter(Boolean))) {
+      const stops = tripStops(name, pins).map(spot);
+      for (let n = 1; n < stops.length; n++) {
+        let [x0, y0] = stops[n - 1]; const [x1, y1] = stops[n];
+        if (Math.abs(x1 - x0) > w * 2 || Math.abs(y1 - y0) > h * 4) continue;
+        const dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0), sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1; let err = dx + dy, step = 0;
+        for (let guard = 0; guard < 20000; guard++) {
+          if ((small ? step % 2 === 0 : step % 4 < 2) && x0 >= 0 && y0 >= 0 && x0 < w && y0 < h) c.fillRect(x0, y0, 1, 1);
+          if (x0 === x1 && y0 === y1) break;
+          const e2 = 2 * err; if (e2 >= dy) { err += dy; x0 += sx; } if (e2 <= dx) { err += dx; y0 += sy; } step++;
+        }
+      }
+    }
     if (last >= 0) pins.push(pins.splice(last, 1)[0]);   /* the chosen pin is painted last, on top */
     for (const p of pins) {
       const [x, y] = spot(p); if (x < -6 || y < -6 || x > w + 6 || y > h + 6) continue;
@@ -813,11 +862,23 @@ function makeMap(canvas, cell, small) {
   return { v, draw, fit, zoomAt, zoomBy, goTo, cells: () => [w, h] };
 }
 const mapOff = new Set();   /* kinds of pin switched off with the buttons above the map */
-function fishAt(p) {   /* fish in the Bestiary whose "where" names this place */
-  const name = p.name.trim().toLowerCase(); if (!name) return [];
-  return BESTIARY.map((b, i) => [b, i]).filter(([b]) => { const at = b.location.trim().toLowerCase(), first = at.split(",")[0].trim(); return at && (at.includes(name) || (first && name.includes(first))); });
+/* Entries, albums and fish name a place in words ("Pine Lake, California"). This finds the pin they mean. */
+function pinFor(where) {
+  const t = String(where || "").trim().toLowerCase(); if (!t) return null;
+  const first = t.split(",")[0].trim(), names = PLACES.map((p) => p.name.trim().toLowerCase());
+  let i = names.indexOf(t);
+  if (i < 0) i = names.findIndex((n) => n && (t.includes(n) || (first && n.includes(first))));
+  return i < 0 ? null : PLACES[i];
 }
-function showMap(focusFirst) {
+const fishAt = (p) => BESTIARY.map((b, i) => [b, i]).filter(([b]) => b.status !== "wanted" && pinFor(b.location) === p);
+/* The stops of one trip, in order: by stop number, then date, then name. */
+function tripStops(name, pins) {
+  return pins.filter((p) => p.trip && p.trip === name).sort((a, b) =>
+    (a.stop == null ? 1e9 : a.stop) - (b.stop == null ? 1e9 : b.stop) || a.date.localeCompare(b.date) || a.name.localeCompare(b.name));
+}
+function showMap(focusFirst, chooseFile) {
+  const wantedPin = chooseFile ? PLACES.find((p) => p.file === chooseFile) : null;
+  if (wantedPin) mapOff.delete(wantedPin.kind);   /* asked to show a pin whose kind is switched off: switch it back on */
   openScreen("map", "m-map");
   const chips = el("div", "chips"), box = el("div", "mapbox"), canvas = el("canvas"), keys = el("div", "mapkeys");
   const wrap = el("div", "beasts maplist"), list = el("div", "beastlist"), card = el("div", "beastcard");
@@ -833,9 +894,24 @@ function showMap(focusFirst) {
     fact("Kind", kind[0].replace(/s$/, "")).className = "kind " + p.kind;
     if (p.date) fact("Date", day(p.date));
     if (p.lat == null) fact("Pin", "No coordinates yet");
+    const stops = p.trip ? tripStops(p.trip, PLACES) : [], at = stops.indexOf(p);
+    if (stops.length > 1) fact("Trip", p.trip + "  (stop " + (at + 1) + " of " + stops.length + ")");
     card.append(el("h2", null, p.name), facts);
+    if (stops.length > 1) {   /* step along the route */
+      const row = el("div", "row");
+      if (stops[at - 1]) row.append(opt("Prev stop", () => { mapOff.delete(stops[at - 1].kind); choose(stops[at - 1], true); }));
+      if (stops[at + 1]) row.append(opt("Next stop", () => { mapOff.delete(stops[at + 1].kind); choose(stops[at + 1], true); }));
+      card.append(row);
+    }
+    const linked = (label, items) => {   /* things elsewhere on the site that name this place */
+      if (!items.length) return;
+      const row = el("div", "row caughthere"), tag = el("span", "sub", label); tag.style.margin = "0"; row.append(tag);
+      items.forEach(([name, go]) => row.append(opt(name, go))); card.append(row);
+    };
+    linked("Photos:", ALBUMS.filter((a) => pinFor(a.place) === p).map((a) => [a.title, () => showAlbum(a)]));
+    linked("Log:", sorted.filter((e) => pinFor(e.place) === p).map((e) => [e.title, () => showPost(e)]));
     const fish = fishAt(p);
-    if (fish.length) { const row = el("div", "row caughthere"); row.append(el("span", "sub", "Caught here:")); row.querySelector(".sub").style.margin = "0"; fish.forEach(([b, i]) => row.append(opt(b.name, () => showBestiary(true, i)))); card.append(row); }
+    linked("Caught here:", fish.map(([b, i]) => [b.name, () => showBestiary(true, i)]));
     if (p.note) { const note = el("div", "post lore"); renderBody(p.note, note); card.append(note); }
     if (p.photo) { const row = el("div", "row"); const b = opt("View photo", () => zoom(p.photo, p.name, b)); row.append(b); card.append(row); }
     card.classList.remove("pop"); void card.offsetWidth; card.classList.add("pop");
@@ -900,13 +976,17 @@ function showMap(focusFirst) {
   canvas.addEventListener("dblclick", (e) => { e.preventDefault(); map.zoomAt(e.clientX, e.clientY, 2); });
   wrap.append(list, card);
   main.append(el("p", "label", "Map"), chips, box, wrap, backRow());
-  refresh(); map.fit(map.v.pins, .01); map.draw();
+  refresh(); map.fit(map.v.pins, .01);
+  if (wantedPin) choose(wantedPin, true); else map.draw();
   loadLand().then(() => { if (canvas.isConnected) map.draw(); });
   if (!reduceMotion) {   /* the frame around the chosen pin blinks */
     const timer = setInterval(() => { if (!canvas.isConnected) return clearInterval(timer); if (document.hidden || !map.v.chosen) return; map.v.blink = !map.v.blink; map.draw(); }, 480);
   }
   mapRedraw = () => { if (canvas.isConnected) map.draw(); };
-  if (focusFirst) { quiet = true; (list.querySelector(".opt") || main.querySelector(".chip")).focus({ preventScroll: true }); quiet = false; }
+  if (focusFirst) {
+    const row = wantedPin && [...list.querySelectorAll(".opt")].find((o) => o.dataset.place === wantedPin.file);
+    quiet = true; (row || list.querySelector(".opt") || main.querySelector(".chip")).focus({ preventScroll: true }); quiet = false;
+  }
 }
 let mapRedraw = null;
 /* the small map under the status window: every pin at a glance; choosing it opens the map */
@@ -1145,19 +1225,24 @@ function linkedPost() {   /* the entry named after # in the address, if there is
     ABOUT = text(data.about); BESTIARY_INTRO = text(data.bestiary_intro);
     BESTIARY = (Array.isArray(data.bestiary) ? data.bestiary : []).filter((b) => b && typeof b === "object").map((b) => ({
       name: text(b.name).trim() || "Unknown", sprite: text(b.sprite) || "fish", date: text(b.date), weight: amount(b.weight), length: amount(b.length),
-      location: text(b.location), photo: text(b.photo), lore: text(b.lore),
+      location: text(b.location), photo: text(b.photo), lore: text(b.lore), status: text(b.status) === "wanted" ? "wanted" : "caught",
       rarity: Object.prototype.hasOwnProperty.call(RARITY, text(b.rarity)) ? text(b.rarity) : "", lure: text(b.lure),
       catch_rate: Math.min(100, amount(b.catch_rate) || 0) || null, fight: Math.min(5, Math.round(amount(b.fight) || 0)) || null }));
+    BESTIARY = BESTIARY.filter((b) => b.status !== "wanted").concat(BESTIARY.filter((b) => b.status === "wanted"));   /* caught first, then the ones still at large */
     ALBUMS = (Array.isArray(data.albums) ? data.albums : []).filter((a) => a && typeof a === "object" && text(a.file)).map((a) => ({
       file: text(a.file), title: text(a.title) || text(a.file), date: text(a.date), place: text(a.place), body: text(a.body),
       photos: (Array.isArray(a.photos) ? a.photos : []).map(text).filter(Boolean) }));
     PLACES = (Array.isArray(data.places) ? data.places : []).filter((p) => p && typeof p === "object").map((p, i) => {
       const lat = typeof p.lat === "number" ? p.lat : NaN, lng = typeof p.lng === "number" ? p.lng : NaN, good = Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
       return { file: text(p.file) || "place-" + i, name: text(p.name).trim() || "Unnamed place", kind: Object.prototype.hasOwnProperty.call(KINDS, text(p.kind)) ? text(p.kind) : "landmark",
-        lat: good ? lat : null, lng: good ? lng : null, date: text(p.date), photo: text(p.photo), note: text(p.note) };
+        lat: good ? lat : null, lng: good ? lng : null, date: text(p.date), photo: text(p.photo), note: text(p.note),
+        trip: text(p.trip).trim(), stop: typeof p.stop === "number" && Number.isFinite(p.stop) ? p.stop : null };
     });
+    const kindOrder = Object.keys(KINDS);   /* list order: by kind, then trips together in stop order, then by name */
+    PLACES.sort((a, b) => kindOrder.indexOf(a.kind) - kindOrder.indexOf(b.kind) || a.trip.localeCompare(b.trip) ||
+      (a.stop == null ? 1e9 : a.stop) - (b.stop == null ? 1e9 : b.stop) || a.name.localeCompare(b.name));
     sorted = (Array.isArray(data.posts) ? data.posts : []).filter((p) => p && typeof p === "object" && text(p.file)).map((p) => ({
-      file: text(p.file), title: text(p.title) || text(p.file), date: text(p.date), body: text(p.body) }))
+      file: text(p.file), title: text(p.title) || text(p.file), date: text(p.date), place: text(p.place), body: text(p.body) }))
       .sort((a, b) => b.date.localeCompare(a.date) || b.file.localeCompare(a.file));
     loadNote = "No entries yet.";
   } catch (e) { ABOUT = ""; BESTIARY_INTRO = ""; BESTIARY = []; ALBUMS = []; PLACES = []; sorted = []; loadNote = "Could not load the log. Refresh to try again."; }
