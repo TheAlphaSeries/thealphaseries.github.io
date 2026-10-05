@@ -239,6 +239,14 @@ h3 { font-size: 12px; line-height: 1.7; color: var(--accent); margin-top: 8px; }
 .who .level { margin: 12px 0 6px; font-family: var(--display); font-size: 12px; line-height: 1.7; color: #ffd257; }
 .xpbar { height: 12px; border: 2px solid var(--border); background: rgba(0, 0, 0, .45); }
 .xpbar i { display: block; height: 100%; background: #ffd257; }
+/* the stat blocks that open the Bestiary, Herbarium and Map */
+.meter { display: inline-flex; align-items: center; gap: 2px 10px; flex-wrap: wrap; max-width: 100%; }
+.meter .xpbar { display: inline-block; width: min(160px, 22vw); height: 10px; flex: none; }
+.qstats dd { min-width: 0; }
+.tiers { display: inline-flex; flex-wrap: wrap; gap: 2px 14px; }
+.regions { display: grid; gap: 4px; } .region { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 2px 10px; }
+.region .rname { flex: 0 0 min(100%, 21ch); } .region.mastered .xpbar i { background: #7fd68a; } .region.mastered { color: #7fd68a; }
+.facts .earned { color: #7fd68a; } .facts .bounty { color: #8fd6ff; }
 .who .tonext { margin: 6px 0 0; color: var(--dim); font-size: 15px; }
 .who .home { margin: 12px 0 0; padding-top: 10px; border-top: 2px solid rgba(255, 255, 255, .3); display: grid; gap: 2px; }
 .who .home span:first-child { color: var(--dim); font-size: 15px; }
@@ -506,7 +514,11 @@ Select an entry to open it. Select Back, or tap outside the window, to close it.
 
 ## Map
 
-Drag to move. Pinch, or use + and -, to zoom. Point at a pin or a name to see the place and its landmarks. Near home, each small box is a landmark: point at one to name it.
+Drag to move. Pinch, or use + and -, to zoom. Point at a pin or a name to see the place and its landmarks. Each landmark is drawn as a small picture: in colour once visited, a dark locked shape until then. Where they crowd together some shrink to dots; zoom in to see them. Point at one to name it.
+
+## Experience
+
+Nearly everything here pays experience: an entry written, a species caught (rarer pays more), a plant kept alive, a landmark seen, a place reached, a quest fulfilled. It adds up to the level on the Status screen. Each collection also keeps its own standing.
 
 ## Quests
 
@@ -706,6 +718,44 @@ function pips(filled, cls) {   /* a row of five small squares, some lit, like a 
   for (let i = 1; i <= 5; i++) row.append(el("i", i <= filled ? "on" : null));
   return row;
 }
+/* ---- the game layer shared by the Bestiary, the Herbarium and the Map ----
+   Each screen opens with a short stat block: a standing (a rank earned by doing the thing), how complete the
+   collection is, and the experience it has paid. Experience from all of them adds up to the level on Status. */
+const standing = (ranks, n) => { const now = ranks.filter((r) => n >= r[0]).pop(), next = ranks.find((r) => r[0] > n); return now[1] + (next ? "  (" + (next[0] - n) + " more to " + next[1] + ")" : ""); };
+function meter(part, whole, text) {   /* a bar filled part-way, with its numbers beside it */
+  const wrap = el("span", "meter"), bar = el("span", "xpbar"), fill = el("i"), pct = whole ? Math.round(part / whole * 100) : 0;
+  fill.style.width = (whole ? Math.max(part ? 3 : 0, Math.min(100, part / whole * 100)) : 0) + "%"; bar.append(fill); bar.setAttribute("aria-hidden", "true");
+  wrap.append(bar, el("span", null, text || (part + " of " + whole + "  (" + pct + "%)"))); return wrap;
+}
+function statBlock(rows) {   /* rows: [label, text or element] */
+  const dl = el("dl", "facts qstats"); rows.forEach(([k, v]) => { if (v == null || v === "") return; const dd = el("dd"); dd.append(v); dl.append(el("dt", null, k), dd); }); return dl;
+}
+const FISH_EXP = { common: 10, uncommon: 20, rare: 40, epic: 80, legendary: 160 }, fishExp = (b) => FISH_EXP[b.rarity] || 10;   /* what a first catch of a species pays */
+const ANGLER_RANKS = [[0, "Dry Hook"], [1, "Wetter of Lines"], [5, "Angler of the Shallows"], [10, "Reader of Water"], [20, "Terror of the Middle Depths"], [35, "Emptier of Lakes"], [48, "He of Whom the Fish Speak"]];
+function fishTally() {
+  const first = new Map(), every = new Map();   /* one of each species, by name */
+  for (const b of BESTIARY) { const k = b.name.trim().toLowerCase(); if (!every.has(k)) every.set(k, b); if (b.status !== "wanted" && !first.has(k)) first.set(k, b); }
+  const got = [...first.values()], all = [...every.values()], order = Object.keys(RARITY);
+  const tiers = order.map((r) => [r, got.filter((b) => b.rarity === r).length, all.filter((b) => b.rarity === r).length]).filter((t) => t[2]);
+  const caught = BESTIARY.filter((b) => b.status !== "wanted");
+  return { species: got.length, all: all.length, earned: got.reduce((n, b) => n + fishExp(b), 0), offered: all.filter((b) => !first.has(b.name.trim().toLowerCase())).reduce((n, b) => n + fishExp(b), 0), tiers,
+    rarest: got.slice().sort((a, b) => order.indexOf(b.rarity) - order.indexOf(a.rarity))[0] || null, heaviest: caught.filter((b) => b.weight).sort((a, b) => b.weight - a.weight)[0] || null };
+}
+const PLANT_EXP = { common: 5, uncommon: 10, rare: 20, epic: 40, legendary: 80 }, plantExp = (p) => (PLANT_EXP[p.rarity] || 5) * p.count;   /* what a plant pays for as long as it lives */
+const GARDEN_RANKS = [[0, "Blight Upon the Windowsill"], [1, "Keeper of a Single Leaf"], [3, "Waterer of Some Regularity"], [6, "Tender of the Green"], [10, "Warden of the Indoor Wood"], [20, "One for Whom Things Grow"]];
+function plantTally(set) {
+  const living = set.filter((p) => p.status === "living"), dead = set.filter((p) => p.status !== "living"), n = (list) => list.reduce((t, p) => t + p.count, 0), order = Object.keys(RARITY);
+  return { living: n(living), perished: n(dead), earned: living.reduce((t, p) => t + plantExp(p), 0), forfeit: dead.reduce((t, p) => t + plantExp(p), 0),
+    rarest: living.slice().sort((a, b) => order.indexOf(b.rarity) - order.indexOf(a.rarity))[0] || null };
+}
+const MAP_EXP = { landmark: 5, place: 10, journey: 25, mastered: 100 };   /* a landmark seen, a place reached, a journey made, and every landmark of a region seen */
+const EXPLORER_RANKS = [[0, "Homebody"], [5, "Stroller of Near Streets"], [20, "Wayfarer"], [50, "Seasoned Wanderer"], [80, "Cartographer's Nuisance"], [120, "Walker of the Whole Map"], [200, "One Who Has Seen It"]];
+function mapTally() {
+  const marks = PLACES.reduce((n, p) => n + p.landmarks.length, 0), seen = PLACES.reduce((n, p) => n + p.landmarks.filter((l) => l.visited).length, 0);
+  const regions = PLACES.filter((p) => p.landmarks.length >= 5).map((p) => ({ name: p.name, seen: p.landmarks.filter((l) => l.visited).length, all: p.landmarks.length }));
+  const trips = new Set(PLACES.map((p) => p.trip).filter(Boolean)).size, mastered = regions.filter((r) => r.seen === r.all).length;
+  return { marks, seen, regions, trips, mastered, places: PLACES.length, earned: seen * MAP_EXP.landmark + PLACES.length * MAP_EXP.place + trips * MAP_EXP.journey + mastered * MAP_EXP.mastered };
+}
 /* the Bestiary screen. pick: which fish to open on (used when arriving from the map) */
 function showBestiary(focusFirst, pick) {
   openScreen("bestiary", "m-bestiary");
@@ -716,7 +766,11 @@ function showBestiary(focusFirst, pick) {
      generic choice is told apart by its name instead. */
   const caught = BESTIARY.filter((b) => b.status !== "wanted"), wanted = BESTIARY.length - caught.length;
   const kinds = (set) => new Set(set.map((b) => b.name.trim().toLowerCase())).size;   /* a species is told apart by its name */
-  main.append(el("p", "tally", caught.length + " caught  /  " + kinds(caught) + (wanted ? " of " + kinds(BESTIARY) : "") + " species"));
+  const ft = fishTally(), tiers = el("span", "tiers");
+  ft.tiers.forEach(([r, got, all]) => { const t = el("span", "rarity " + r, RARITY[r][0] + " " + got + "/" + all); tiers.append(t); });
+  main.append(statBlock([["Standing", standing(ANGLER_RANKS, ft.species)], ["Species", meter(ft.species, ft.all)], ["By rarity", tiers],
+    ["Experience", ft.earned + " earned  /  " + ft.offered + " still swimming"],
+    ["Rarest catch", ft.rarest && ft.rarest.rarity ? ft.rarest.name + " (" + RARITY[ft.rarest.rarity][0] + ")" : ""], ["Heaviest", ft.heaviest ? ft.heaviest.name + ", " + ft.heaviest.weight + " lb" : ""]]));
   const wrap = el("div", "beasts"), list = el("div", "beastlist"), card = el("div", "beastcard");
   const show = (b, btn) => {
     list.querySelectorAll(".opt").forEach((o) => o.setAttribute("aria-pressed", String(o === btn)));
@@ -732,6 +786,7 @@ function showBestiary(focusFirst, pick) {
     if (b.rarity) fact("Rarity", RARITY[b.rarity][0], pips(RARITY[b.rarity][1])).className = "rarity " + b.rarity;
     if (ghost) {
       fact("Status", "Not yet caught");
+      fact("Bounty", fishExp(b) + " EXP").className = "bounty";
       if (b.location) fact("Last seen", b.location);
     } else {
       if (b.catch_rate) fact("Catch rate", b.catch_rate + "%");
@@ -741,6 +796,7 @@ function showBestiary(focusFirst, pick) {
       if (b.lure) fact("Caught on", b.lure);
       if (b.location) fact("Where", b.location);
       if (b.date) fact("Caught", day(b.date));
+      fact("Experience", "+" + fishExp(b) + " earned").className = "earned";
     }
     card.append(el("h2", null, ghost && !known ? "???" : b.name), facts);
     const pin = pinFor(b.location);
@@ -799,7 +855,9 @@ function showPlants(kind, focusFirst) {
   if (!Object.prototype.hasOwnProperty.call(COLLECTIONS, kind)) kind = "house";
   openScreen("plants", "m-plants"); plantsKind = kind;
   const set = PLANTS.filter((p) => p.kind === kind), tabs = el("div", "chips");
-  main.append(el("p", "label", "Herbarium"), el("p", "tally", censusText(census(PLANTS))));
+  const gt = plantTally(PLANTS);
+  main.append(el("p", "label", "Herbarium"), statBlock([["Standing", standing(GARDEN_RANKS, gt.living)], ["Survival", meter(gt.living, gt.living + gt.perished)],
+    ["Experience", gt.earned + " earned  /  " + gt.forfeit + " forfeited"], ["Rarest living", gt.rarest && gt.rarest.rarity ? gt.rarest.name + " (" + RARITY[gt.rarest.rarity][0] + ")" : ""]]));
   Object.keys(COLLECTIONS).forEach((k) => {
     const b = el("button", "chip", COLLECTIONS[k]); b.type = "button"; b.setAttribute("aria-pressed", String(k === kind));
     b.addEventListener("click", () => showPlants(k, true)); tabs.append(b);
@@ -830,6 +888,7 @@ function showPlants(kind, focusFirst) {
     if (p.light) fact("Light", p.light);
     if (p.water) fact("Water", p.water);
     if (p.acquired) fact("Acquired", day(p.acquired));
+    fact("Experience", dead ? plantExp(p) + " forfeited" : "+" + plantExp(p) + " while it lives").className = dead ? "perished" : "earned";
     card.append(el("h2", null, p.name)); if (p.botanical) card.append(el("p", "botanical", p.botanical));
     card.append(facts);
     if (p.lore) { const lore = el("div", "post lore"); renderBody(p.lore, lore); card.append(lore); }
@@ -1271,22 +1330,20 @@ function makeMap(canvas, cell, small) {
       v.hit.push([x, y, p]);
     }
     v.marks = [];
-    if (!small) for (const p of v.pins) {   /* a small box for each landmark that has its own spot: green and ticked if visited, hollow if not */
+    if (!small) for (const p of v.pins) {   /* each landmark that has its own spot is drawn as its picture: in colour if visited, a locked silhouette if not.
+                                               Where pictures would pile up, the ones that do not fit become small dots until you zoom in. */
       const spots = (p.landmarks || []).filter((l) => l.lat != null); if (!spots.length) continue;
       if (p.spread == null) { const ms = spots.map((l) => merc(l.lat, l.lng)); p.spread = Math.max(Math.max(...ms.map((m) => m[0])) - Math.min(...ms.map((m) => m[0])), Math.max(...ms.map((m) => m[1])) - Math.min(...ms.map((m) => m[1]))); }
       if (v.scale * p.spread < 34 && v.scale < w * 200) continue;   /* zoomed out so far they would all sit on one dot */
-      const order = spots.slice().sort((a, b) => (b === v.glow) - (a === v.glow) || b.visited - a.visited), placed = [];
+      const order = spots.slice().sort((a, b) => (b === v.glow) - (a === v.glow) || b.visited - a.visited), placed = [], dots = [];
       for (const l of order) {
-        const [x, y] = spot(l); if (x < -4 || y < -4 || x > w + 4 || y > h + 4) continue;
-        if (l !== v.glow && placed.some((q) => Math.abs(q[0] - x) < 6 && Math.abs(q[1] - y) < 6)) continue;   /* too close to one already drawn: it appears when you zoom in */
-        placed.push([x, y, l, p]);
+        const [x, y] = spot(l); if (x < -9 || y < -9 || x > w + 9 || y > h + 9) continue;
+        if (l === v.glow || !placed.some((q) => Math.abs(q[0] - x) < 15 && Math.abs(q[1] - y) < 15)) placed.push([x, y, l, p]);
+        else if (!dots.some((q) => Math.abs(q[0] - x) < 4 && Math.abs(q[1] - y) < 4)) dots.push([x, y, l, p]);
       }
-      for (const [x, y, l] of placed.reverse()) {
-        c.fillStyle = l === v.glow ? "#fff" : "#000"; c.fillRect(x - 3, y - 3, 7, 7);
-        if (l.visited) { c.fillStyle = "#7fd68a"; c.fillRect(x - 2, y - 2, 5, 5); c.fillStyle = "#0b3d16"; c.fillRect(x - 1, y, 1, 1); c.fillRect(x, y + 1, 1, 1); c.fillRect(x + 1, y, 1, 1); c.fillRect(x + 2, y - 1, 1, 1); }
-        else { c.fillStyle = "#a9adb8"; c.fillRect(x - 2, y - 2, 5, 5); c.fillStyle = "#15171c"; c.fillRect(x - 1, y - 1, 3, 3); }
-      }
-      v.marks.push(...placed);
+      for (const [x, y, l] of dots) { c.fillStyle = "#000"; c.fillRect(x - 2, y - 2, 5, 5); c.fillStyle = l.visited ? "#7fd68a" : "#8c92a8"; c.fillRect(x - 1, y - 1, 3, 3); }
+      for (const [x, y, l] of placed.reverse()) c.drawImage(landmarkStamp(l.icon, l.visited, l === v.glow), x - 9, y - 9);
+      v.marks.push(...dots, ...placed);
     }
     if (v.after) v.after();
   }
@@ -1315,12 +1372,20 @@ function makeMap(canvas, cell, small) {
 }
 /* Landmark pictures: 16 x 16, one letter per pixel, each letter a colour in "pal". */
 const LANDMARK = {"pal": {"k": "#0b0b0e", "w": "#f4f4f0", "g": "#8a8f9a", "d": "#4a4f5a", "r": "#c8443a", "R": "#7d2a24", "o": "#e08a3c", "y": "#ffd257", "n": "#5fae62", "N": "#2f6b3c", "b": "#6fb7ff", "B": "#2f5f9a", "t": "#c9a66b", "T": "#7a5230", "p": "#c79bff", "s": "#b9b4a6", "S": "#6e6a60"}, "icons": {"pagoda": [".......yy.......", ".......rr.......", ".....RrrrrR.....", "...RRrrrrrrRR...", "..R...tttt...R..", "......tkkt......", "....RrrrrrrR....", "..RRrrrrrrrrRR..", ".R....tttt....R.", "......tkkt......", "...RrrrrrrrrR...", ".RRrrrrrrrrrrRR.", "R....tttttt....R", ".....tkTTkt.....", ".....tkTTkt.....", "...SSSSSSSSSS..."], "tower": [".......w........", ".......w........", ".......g........", "......gwg.......", "......pwp.......", ".....ppwpp......", "......pwp.......", "......gwg.......", ".......g........", "......ggg.......", "......gwg.......", ".....pgwgp......", ".....ggwgg......", "....gg.w.gg.....", "...gg..w..gg....", "..SSSSSSSSSSS..."], "obelisk": [".......w........", "......www.......", "......wsw.......", "......wss.......", "......wss.......", "......wss.......", "......wss.......", "......wss.......", "......wss.......", "......wss.......", "......wss.......", "......wss.......", "......wss.......", ".....wwsss......", "..nnnSSSSSSnnn..", ".NNNNNNNNNNNNNN."], "skyline": ["................", ".......g........", ".......g..d.....", "..d...ggg.dd....", "..dd..gyg.dyd...", "..dyd.ggg.ddd.g.", ".ddyd.gyg.dyd.g.", ".dddddggg.ddddgg", ".dydddgygdddydgy", ".dddddgggdddddgg", ".dydydgygdydydgy", ".dddddgggdddddgg", ".dydydgygdydydgy", "SSSSSSSSSSSSSSSS", "BbBBbBBBbBBbBBbB", "BBBbBBbBBBBBbBBB"], "bridge": ["................", "................", "...r........r...", "...r........r...", "..rrr......rrr..", "..rRr......rRr..", ".rrRrr....rrRrr.", "r.rRr.rrrr.rRr.r", "..rRr......rRr..", "rrrrrrrrrrrrrrrr", "RRRRRRRRRRRRRRRR", "..rRr......rRr..", "..rRr......rRr..", "BbBRBBbBBBbBRBBb", "BBBbBBBBbBBBBbBB", "bBBBBbBBBBbBBBBB"], "peak": ["................", ".......w........", "......www.......", "......wws.......", ".....wwsss......", ".....wsssS......", "....sssssSS.....", "....ssssSSS..w..", "...ssssSSSSSwws.", "...sssSSSSSSssSS", "..nssSSSSSSssSSS", "..nnsSSSSSnsSSSS", ".nnnnNSSSnnnNSSS", ".nnnNNNNnnnNNNNS", "nnnNNNNNnnNNNNNN", "NNNNNNNNNNNNNNNN"], "pillars": ["................", "...n.......n....", "..nnn.....nNn...", "..sNs..n..sNs...", "..sss.nNn.sSs...", "..sSs.sNs.sSs.n.", "..sSs.sss.sSs.Nn", "..sSs.sSs.sSsnsS", "..sSs.sSs.sSs.sS", ".wsSs.sSs.sSs.sS", "wwsSswsSswsSs.sS", "..sSswwSs.sSswsS", "w.sSs.sSswwSswwS", "ww.Ss.sSs.wSs.wS", ".wwwwwwSwwwwwww.", "..wwwwwwwwwwww.."], "cave": ["................", "....SSSSSSS.....", "..SSsssssssSS...", ".SsssssssssssS..", ".SsssSSSSSsssSS.", "SsssSkkkkkSsssS.", "SssSkkkkkkkSssS.", "SssSkkkkkkkkSsSS", "SsSkkkkkkkkkSssS", "SsSkkkkkkkkkkSsS", "SsSkkkkwkkkkkSsS", "SsSkkkkwwkkkkSsS", "sSkkkkwwwkkkkkSs", "nSkkkwwwwwkkkkSn", "nnNkkwwwwwwkkNnn", "NNNNNNNNNNNNNNNN"], "museum": ["................", "................", ".......ww.......", ".....wwsswww....", "...wwssssssww...", ".wwsssssssssssw.", "wwwwwwwwwwwwwwww", ".SSSSSSSSSSSSSS.", "..w.w.w..w.w.w..", "..w.w.w..w.w.w..", "..w.w.wkkw.w.w..", "..w.w.wkkw.w.w..", "..w.w.wkkw.w.w..", ".ssssssssssssss.", "SSSSSSSSSSSSSSSS", ".SSSSSSSSSSSSSS."], "dome": [".......y........", ".......w........", "......www.......", ".....wwsww......", "....wwsssww.....", "....wsssssw.....", "....wwwwwww.....", ".....w.w.w......", "....wwwwwww.....", "..wwwsssssswww..", ".wwwwwwwwwwwwww.", "..w.w.w.w.w.w.w.", "..w.w.wkkkw.w.w.", "..w.w.wkkkw.w.w.", ".ssssssssssssss.", "SSSSSSSSSSSSSSSS"], "house": ["................", "................", "......RR........", "....RRrrRR...d..", "..RRrrrrrrRR.d..", ".RrrrrrrrrrrRd..", "RrrrrrrrrrrrrrR.", ".tttttttttttttt.", ".tbbtttttttbbtt.", ".tbbtttttttbbtt.", ".ttttttTTttttttt", ".yoyoyoTToyoyoy.", ".ttttttTTtttttt.", ".ttttttTyttttt..", ".ttttttTTtttttt.", "SSSSSSSSSSSSSSSS"], "lantern": [".......T........", ".......T........", ".....yyyyy......", "....RrrrrrR.....", "...RrrrorrrR....", "..RrrroyorrrR...", "..RrroyyyorrR...", "..RrroyyyorrR...", "..RrrroyorrrR...", "...RrrrorrrR....", "....RrrrrrR.....", ".....yyyyy......", "......y.y.......", "......y.y.......", "......y.y.......", "................"], "buddha": [".......dd.......", "......gggg......", "......gkkg......", "......gggg......", ".....gggggg.....", "...gggggggggg...", "..ggggggggggdg..", "..gggdggggdggg..", "..ggg.dggd.ggg..", "...ggggyygggg...", "..gggggggggggg..", ".gggdddggdddggg.", ".ggggggggggggdg.", "..SSSSSSSSSSSS..", ".SSsSSsSSsSSsSS.", "SSSSSSSSSSSSSSSS"], "boat": ["................", ".......d........", ".......d..r.....", "......gdg.......", ".....ggdgg......", "....wwwwwwww....", "....wbbwbbww....", "..wwwwwwwwwwww..", "..wbbwbbwbbwbw..", ".nnnnnnnnnnnnnn.", ".NnnnnnnnnnnnnN.", "..NNnnnnnnnnNN..", "bBBNNNNNNNNNNBBb", "BBbBBBbBBBBbBBBB", "BBBBbBBBBbBBBBbB", "bBBBBBBbBBBBBBBB"], "cablecar": ["................", "dd..............", "..ddd...........", ".....dddd.......", ".......k.dddd...", ".......k.....ddd", "......kkk.......", "....rrrrrrr.....", "...rrrrrrrrr....", "...rbbrbbrbr....", "...rbbrbbrbr....", "...rrrrrrrrr....", "...RRRRRRRRR....", "....RRRRRRR.....", "................", "nNnnNNnnnNnnNNnn"], "tram": ["................", "......k.........", ".....k.k........", "....k...k.......", "..NNNNNNNNNNNN..", ".NnnnnnnnnnnnnN.", ".nbbnbbnbbnbbnn.", ".nbbnbbnbbnbbnn.", ".nnnnnnnnnnnnnn.", ".yNNNNNNNNNNNNy.", ".NNNNNNNNNNNNNN.", ".RRRRRRRRRRRRRR.", "..dkd......dkd..", "..kdk......kdk..", "dddddddddddddddd", "S.S.S.S.S.S.S.S."], "tree": ["................", "......nnnn......", "....nnnnnnnn....", "...nnnNnnnnnn...", "..nnnnnnnnNnnn..", "..nnNnnnnnnnnN..", ".nnnnnnnNnnnnNN.", ".nnnnnnnnnnnNNN.", ".NnnnNnnnnnNNNN.", "..NNnnnnnNNNNN..", "...NNNNNNNNNN...", "......TTT.......", "......TtT.......", "......TtT.......", ".....TTtTT......", "nnNnnnNNnnnNnnNn"], "panda": ["................", "..kkk......kkk..", ".kkkkk....kkkkk.", ".kkkwwwwwwwwkkk.", "..kwwwwwwwwwwk..", "..wwwwwwwwwwww..", ".wwkkkwwwwkkkww.", ".wkkwkkwwkkwkkw.", ".wkkkkkwwkkkkkw.", ".wwkkkwwwwkkkww.", ".wwwwwwkkwwwwww.", "..wwwwwkkwwwww..", "..wwwkwwwwkwww..", "...wwwkkkkwww...", "....wwwwwwww....", "................"], "lake": ["................", "......N.........", ".....NNN....N...", "....NNnNN..NNN..", "...NNnnnNNNNnNN.", "..NNnnnnnNNnnnNN", ".NNnnnnnnnNnnnnN", "NNNNNNNNNNNNNNNN", "bbbbbbbbbbbbbbbb", "bBbbbwwbbbbBbbbb", "bbbbBbbbbwwbbbBb", "BbbbbbbBbbbbbbbb", "bbwwbbbbbbbBbbbb", "BBbbbbBbbbbbbwwb", "bbbBbbbbbBbbbbbB", "BBBBBBBBBBBBBBBB"], "cathedral": [".......y........", ".......y........", "..y....w....y...", "..w...www...w...", ".www..wsw..www..", ".wsw..wsw..wsw..", ".wsw.wwsww.wsw..", ".wswwwsssswwsw..", ".wswssssssswsw..", ".wswsskkksswsw..", ".wswskbbbkswsw..", ".wswskbbbkswsw..", ".wswssTTTsswsw..", ".wswssTTTsswsw..", "SSSSSSSSSSSSSSSS", ".SSSSSSSSSSSSSS."], "carousel": [".......y........", ".......r........", ".....rrwrr......", "...rrwwrwwrr....", ".rrwwrrwrrwwrr..", "rwwrrwwrwwrrwwr.", "yyyyyyyyyyyyyyy.", ".d...d...d...d..", ".d.w.d...d.w.d..", ".dwwwd...dwwwd..", ".d.w.d.w.d.w.d..", ".d...dwwwd...d..", ".d...d.w.d...d..", ".rrrrrrrrrrrrr..", "RRRRRRRRRRRRRRR.", ".SSSSSSSSSSSSS.."], "cup": ["................", ".....w...w......", "....w...w.......", ".....w...w......", "....w...w.......", "................", "..wwwwwwwwww....", "..wTTTTTTTTwww..", "..wTTTTTTTTw.ww.", "..wwwwwwwwww..w.", "..wwwwwwwwww.ww.", "...wwwwwwwwww...", "...wwwwwwww.....", "....wwwwww......", ".ssssssssssss...", "..SSSSSSSSSS...."], "note": ["................", "......yyyyyyyy..", "......yyyyyyyy..", "......y......y..", "......y......y..", "......y......y..", "......y......y..", "......y......y..", "......y......y..", "...yyyy...yyyy..", "..yyyyy..yyyyy..", "..yyyyy..yyyyy..", "...yyy....yyy...", "................", "................", "................"], "gem": ["................", "................", "....nnnnnnnn....", "...nwwnnnnnNn...", "..nwwnnnnnnNNn..", ".nnnnnnnnnnnNNn.", ".NNNNNNNNNNNNNN.", ".nnnNnnnnnNNNNN.", "..nnnNnnnNNNNN..", "...nnnNnNNNNN...", "....nnnNNNNN....", ".....nnNNNN.....", "......nNNN......", ".......NN.......", "................", "................"]}};
-function landmarkPic(icon, lit) {   /* lit: in colour (been there); otherwise a dim outline */
-  const c = el("canvas"), x = c.getContext("2d"); c.width = c.height = 16; c.setAttribute("aria-hidden", "true");
+function landmarkPic(icon, lit, halo) {   /* lit: in colour (been there); otherwise locked, a dark shape with a pale edge. halo: a one-pixel surround, for use on the map */
+  const pad = halo ? 1 : 0, c = el("canvas"), x = c.getContext("2d"); c.width = c.height = 16 + pad * 2; c.setAttribute("aria-hidden", "true");
   const rows = Object.prototype.hasOwnProperty.call(LANDMARK.icons, icon) ? LANDMARK.icons[icon] : LANDMARK.icons.museum;
-  rows.forEach((row, y) => { for (let i = 0; i < row.length; i++) { if (row[i] === ".") continue; x.fillStyle = lit ? (LANDMARK.pal[row[i]] || "#fff") : "#3a3d47"; x.fillRect(i, y, 1, 1); } });
+  const on = (i, y) => y >= 0 && y < rows.length && i >= 0 && i < rows[y].length && rows[y][i] !== ".";
+  if (halo) { x.fillStyle = halo; rows.forEach((row, y) => { for (let i = 0; i < row.length; i++) if (on(i, y)) x.fillRect(i, y, 3, 3); }); }
+  rows.forEach((row, y) => { for (let i = 0; i < row.length; i++) {
+    if (!on(i, y)) continue;
+    x.fillStyle = lit ? (LANDMARK.pal[row[i]] || "#fff") : (on(i - 1, y) && on(i + 1, y) && on(i, y - 1) && on(i, y + 1)) ? "#14161f" : "#8c92a8";
+    x.fillRect(i + pad, y + pad, 1, 1);
+  } });
   return c;
 }
+const stamps = {};   /* the same pictures ready for the map, made once each */
+const landmarkStamp = (icon, lit, glow) => { const k = icon + "|" + lit + "|" + glow; return stamps[k] || (stamps[k] = landmarkPic(icon, lit, glow ? "#ffffff" : "#000000")); };
 function landmarksOf(p) {   /* a place's own landmarks; a pin with none of its own shows the ones other places have marked close by (a city inside a region) */
   if (p.landmarks.length || p.lat == null) return p.landmarks;
   if (!p.near) p.near = PLACES.filter((o) => o !== p).flatMap((o) => o.landmarks.filter((l) => l.lat != null && Math.abs(l.lat - p.lat) < .55 && Math.abs(l.lng - p.lng) < .5));
@@ -1362,7 +1427,7 @@ function showMap(focusFirst, chooseFile) {
     if (!hit || hit[0] < 0 || hit[1] < 0 || hit[0] > w || hit[1] > h) { tip.hidden = true; return; }
     if (tipFor !== hit[2]) {
       tipFor = hit[2]; tip.textContent = ""; tip.classList.toggle("big", !!m);
-      if (m) tip.append(landmarkPic(mark.icon, mark.visited), el("span", null, mark.name), el("span", "state", mark.visited ? "Been there" : "Not yet"));
+      if (m) tip.append(landmarkPic(mark.icon, mark.visited), el("span", null, mark.name), el("span", "state", mark.visited ? "Been there" : "Not yet  -  " + MAP_EXP.landmark + " EXP"));
       else tip.append(p.name + (landmarksOf(p).length ? "  " + been(p) + "/" + landmarksOf(p).length : ""));
     }
     tip.style.left = (hit[0] / w * 100) + "%"; tip.style.top = (hit[1] / h * 100) + "%";
@@ -1453,7 +1518,7 @@ function showMap(focusFirst, chooseFile) {
     for (const k of list) { const far = Math.hypot(k[0] - x, k[1] - y); if (far < near) { near = far; best = k[2]; } }
     return best;
   };
-  const pinUnder = (e) => under(e, map.v.hit, 7), markUnder = (e) => under(e, map.v.marks, 4.5);
+  const pinUnder = (e) => under(e, map.v.hit, 7), markUnder = (e) => under(e, map.v.marks, 9);
   const light = (l) => {   /* show which tile in the card belongs to the landmark being pointed at */
     card.querySelectorAll(".lm.lit").forEach((t) => t.classList.remove("lit"));
     const p = map.v.chosen, i = l && p ? landmarksOf(p).indexOf(l) : -1, tile = i >= 0 && card.querySelectorAll(".lm")[i];
@@ -1495,7 +1560,11 @@ function showMap(focusFirst, chooseFile) {
   canvas.addEventListener("dblclick", (e) => { e.preventDefault(); map.zoomAt(e.clientX, e.clientY, 2); });
   wrap.append(list, card);
   const marks = PLACES.reduce((n, p) => n + p.landmarks.length, 0), seen = PLACES.reduce((n, p) => n + p.landmarks.filter((l) => l.visited).length, 0);
-  main.append(el("p", "label", "Map"), el("p", "tally", count(PLACES.length, "place") + (marks ? "  /  " + seen + " of " + marks + " landmarks" : "")), chips, box, wrap, backRow());
+  const mt = mapTally(), regs = el("span", "regions");
+  mt.regions.forEach((r) => { const line = el("span", "region" + (r.seen === r.all ? " mastered" : "")); line.append(el("span", "rname", r.name), meter(r.seen, r.all, r.seen + "/" + r.all + (r.seen === r.all ? "  Mastered" : ""))); regs.append(line); });
+  /* the map comes first; its stat block sits between the map and the list of places */
+  main.append(el("p", "label", "Map"), chips, box, statBlock([["Standing", standing(EXPLORER_RANKS, mt.seen)], ["Landmarks", mt.marks ? meter(mt.seen, mt.marks) : ""], ["Regions", mt.regions.length ? regs : ""],
+    ["Experience", mt.earned + " earned  (" + count(mt.places, "place") + ", " + count(mt.trips, "journey") + ")"]]), wrap, backRow());
   refresh(); map.fit(map.v.pins, .01);
   const homePin = PLACES.find((p) => p.kind === "home" && p.lat != null && !mapOff.has("home"));   /* with nothing else asked for, the map opens on home */
   if (wantedPin) choose(wantedPin, true); else if (homePin) choose(homePin, true); else map.draw();
@@ -1529,7 +1598,7 @@ function tally() {
   const photos = ALBUMS.reduce((n, a) => n + a.photos.length, 0), green = census(PLANTS), questsDone = QUESTS.filter((q) => q.status === "completed").length;
   const goals = QUESTS.reduce((n, q) => n + q.objectives.filter((o) => o.done).length, 0), trips = new Set(PLACES.map((p) => p.trip).filter(Boolean)).size;
   /* what each thing is worth: writing and finishing quests most, a single landmark least */
-  const xp = sorted.length * 8 + names(caught) * 10 + seen * 2 + PLACES.length * 3 + ALBUMS.length * 6 + photos + green.living * 3 + questTally().earned + goals * 5;   /* a fulfilled quest pays what it promised; each objective ticked pays 5 */
+  const xp = sorted.length * 8 + fishTally().earned + mapTally().earned + ALBUMS.length * 6 + photos + plantTally(PLANTS).earned + questTally().earned + goals * 5;   /* a fulfilled quest pays what it promised; each objective ticked pays 5 */
   const level = Math.floor(Math.sqrt(xp / 10)) + 1, floor = 10 * (level - 1) * (level - 1), next = 10 * level * level;   /* each level takes more than the last */
   return { xp, level, into: xp - floor, span: next - floor, toNext: next - xp, entries: sorted.length, caught: caught.length, species: names(caught), allSpecies: names(BESTIARY),
     seen, marks, places: PLACES.length, trips, albums: ALBUMS.length, photos, green, questsDone, questsOpen: QUESTS.length - questsDone };
@@ -1550,6 +1619,7 @@ function showStatus(focusFirst) {
   stat("Entries written", String(t.entries));
   stat("Fish caught", t.caught + "  (" + t.species + " of " + t.allSpecies + " species)");
   stat("Landmarks seen", t.seen + " of " + t.marks);
+  stat("Standings", standing(ANGLER_RANKS, fishTally().species).split("  (")[0] + ";  " + standing(EXPLORER_RANKS, t.seen).split("  (")[0] + ";  " + standing(GARDEN_RANKS, t.green.living).split("  (")[0]);
   stat("Places reached", String(t.places));
   stat("Journeys made", String(t.trips));
   stat("Photographs", t.photos + (t.albums ? "  in " + count(t.albums, "album") : ""));
