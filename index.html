@@ -382,6 +382,8 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
 .fellow::before { display: none; } .fellow:hover, .fellow:focus-visible { transform: translateY(-2px); border-color: var(--border); }
 .fellowpic { display: block; width: 96px; height: 120px; image-rendering: pixelated; margin-bottom: 6px; } .fellowpic.big { width: 144px; height: 180px; margin: 6px auto 4px; }
 .lotbox { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; margin: 4px 0 14px; } .lotbox .fellowpic { margin: 0; } .lotbox .lotname { margin: 2px 0 8px; font-family: var(--display); font-size: 11px; line-height: 1.7; color: #ffd257; } .lotbox .partynote { margin: 0; }
+.lotpast { margin: 0 0 16px; padding: 10px 12px; border-left: 3px solid rgba(255, 255, 255, .4); font-family: var(--read); font-style: italic; font-size: 17px; line-height: 1.55; max-width: 66ch; color: var(--dim); }
+.pastlore { margin: 18px 0 0; } .carries { display: inline-flex; align-items: center; gap: 10px; } .itempic { width: 27px; height: 27px; image-rendering: pixelated; flex: none; }
 .fellow .fkind { font-size: 15.5px; line-height: 1.3; }
 .fellow .name { font-family: var(--display); font-size: 10px; line-height: 1.7; } .fellow .ftitle { color: #ffd257; font-size: 14.5px; line-height: 1.3; } .fellow .fcount { color: var(--dim); font-size: 14.5px; }
 .plink { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; text-shadow: inherit; overflow-wrap: anywhere; }
@@ -580,7 +582,7 @@ Nearly everything here pays experience: an entry written, a species caught (rare
 
 ## Quests
 
-The Quests tab is the full log: what is in hand, and what has been fulfilled. Each quest has a difficulty and pays experience when it is finished; harder ones and Great Works pay more. Open a quest to see who travels with it. Some quests have named posts to fill: choose Apply beside an open one. Otherwise choose Petition to join. Either way you give a name of your choosing and an e-mail address. No account is needed, only what you write is kept, and the address is seen by the keeper alone. Each newcomer is drawn a figure by lot, and may draw again as often as they please before sending; once sent it is theirs, and signing again with the same address keeps it. The keeper accepts or declines in his own time. Those accepted are entered under The Company at the foot of the Quest Log, each with a figure and a page of their own.
+The Quests tab is the full log: what is in hand, and what has been fulfilled. Each quest has a difficulty and pays experience when it is finished; harder ones and Great Works pay more. Open a quest to see who travels with it. Some quests have named posts to fill: choose Apply beside an open one. Otherwise choose Petition to join. Either way you give a name of your choosing and an e-mail address. No account is needed, only what you write is kept, and the address is seen by the keeper alone. Each newcomer chooses a calling and a curiosity to set out with, and is then drawn a figure by lot, with a past to match. They may draw again as often as they please before sending; once sent it is theirs, and signing again with the same address keeps it. The keeper accepts or declines in his own time. Those accepted are entered under The Company at the foot of the Quest Log, each with a figure and a page of their own.
 
 ## Chronicle
 
@@ -1252,7 +1254,7 @@ function loadParty() {
   return fetch("/api/party", { cache: "no-cache" }).then((r) => (r.ok ? r.json() : null)).then((d) => {
     if (!d || !d.party || typeof d.party !== "object") return;
     PARTY = {}; partyOpen = true;
-    for (const k of Object.keys(d.party)) if (Array.isArray(d.party[k])) PARTY[k] = d.party[k].map((m) => ({ name: text(m && m.name).trim().slice(0, 40), role: text(m && m.role).trim().slice(0, 60), at: day(text(m && m.at)) ? text(m.at).slice(0, 10) : "", seed: m && Number.isInteger(m.seed) && m.seed > 0 ? m.seed : 0 })).filter((m) => m.name).slice(0, 60);
+    for (const k of Object.keys(d.party)) if (Array.isArray(d.party[k])) PARTY[k] = d.party[k].map((m) => ({ name: text(m && m.name).trim().slice(0, 40), role: text(m && m.role).trim().slice(0, 60), at: day(text(m && m.at)) ? text(m.at).slice(0, 10) : "", seed: m && Number.isInteger(m.seed) && m.seed > 0 ? m.seed : 0, calling: text(m && m.calling).slice(0, 24), item: text(m && m.item).slice(0, 12) })).filter((m) => m.name).slice(0, 60);
     if (reader.hidden && !main.contains(document.activeElement)) { if (view === "quests") showQuestLog(false); if (view === "chron") showChronicle(false); if (view === "files") showFiles(false); if (view === "status") showStatus(false); }   /* redraw what is up, now that the companies are known */
   }).catch(() => {});
 }
@@ -1270,7 +1272,7 @@ function roster(q) {
 function companions() {
   const by = new Map();
   for (const q of QUESTS) for (const m of (owns(PARTY, q.file) ? PARTY[q.file] : [])) {
-    const k = m.seed ? "#" + m.seed : m.name.toLowerCase(); if (!by.has(k)) by.set(k, { name: m.name, seed: m.seed, names: new Set(), posts: [] });   /* the same figure is the same companion, whatever name they signed */
+    const k = m.seed ? "#" + m.seed : m.name.toLowerCase(); if (!by.has(k)) by.set(k, { name: m.name, seed: m.seed, calling: m.calling, item: m.item, names: new Set(), posts: [] });   /* the same figure is the same companion, whatever name they signed */
     by.get(k).names.add(m.name.toLowerCase()); by.get(k).posts.push({ quest: q, role: m.role, at: m.at });
   }
   return [...by.values()].map((c) => {
@@ -1286,9 +1288,11 @@ function nameHash(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { 
    calling a companion drew; drawCompanion(): their picture. A companion from before figures were drawn by lot has
    no number of their own, so their name stands in for one. */
 const lot = (name, seed) => (seed > 0 ? seed : nameHash(String(name).toLowerCase()) || 1);
-function what(name, seed) { return typeof conjure === "function" ? conjure(lot(name, seed)) : null; }
-function drawCompanion(canvas, name, seed) {
-  const f = what(name, seed); if (!f) return;   /* the figure maker did not load: leave the frame empty */
+function what(name, seed, calling) { return typeof conjure === "function" ? conjure(lot(name, seed), calling) : null; }
+/* the short past written for a companion (see "The teller of backgrounds" in figures.js) */
+function pastOf(name, seed, calling, item) { return typeof conjure === "function" ? conjure.tale(lot(name, seed), { name, calling, item }) : ""; }
+function drawCompanion(canvas, name, seed, calling) {
+  const f = what(name, seed, calling); if (!f) return;   /* the figure maker did not load: leave the frame empty */
   canvas.width = FW; canvas.height = FH; const c = canvas.getContext("2d");
   f.grid.forEach((r, y) => r.forEach((col, x) => { if (col) { c.fillStyle = col; c.fillRect(x, y, 1, 1); } }));
 }
@@ -1299,7 +1303,7 @@ function showCompany() {
   if (!all.length) { main.append(el("p", "sub", "None yet has thrown in with the keeper. The posts above stand open.")); return; }
   const wrap = el("div", "fellows");
   all.forEach((c, i) => {
-    const b = opt(null, () => showCompanion(c, b), "fellow"), pic = el("canvas", "fellowpic"); pic.setAttribute("aria-hidden", "true"); drawCompanion(pic, c.name, c.seed); const w = what(c.name, c.seed);
+    const b = opt(null, () => showCompanion(c, b), "fellow"), pic = el("canvas", "fellowpic"); pic.setAttribute("aria-hidden", "true"); drawCompanion(pic, c.name, c.seed, c.calling); const w = what(c.name, c.seed, c.calling);
     b.append(pic, el("span", "name", c.name), el("span", "fkind", w ? w.title : ""), el("span", "ftitle", c.title), el("span", "fcount", count(c.posts.length, "venture")));
     b.style.setProperty("--i", Math.min(i, 6)); wrap.append(b);
   });
@@ -1309,10 +1313,11 @@ function showCompany() {
 function showCompanion(c, from) {
   current = null; questFrom = from && from.isConnected ? from : null; setHash("");
   rwin.textContent = "";
-  const head = el("div", "filehead"), meta = el("p", "meta"), pic = el("canvas", "fellowpic big"); pic.setAttribute("aria-hidden", "true"); drawCompanion(pic, c.name, c.seed);
+  const head = el("div", "filehead"), meta = el("p", "meta"), pic = el("canvas", "fellowpic big"); pic.setAttribute("aria-hidden", "true"); drawCompanion(pic, c.name, c.seed, c.calling);
   meta.append(el("span", null, "Companion")); head.append(meta, el("h2", null, c.name));
   const sheet = el("dl", "facts qstats"), row = (k, v) => { const dd = el("dd"); dd.append(v); sheet.append(el("dt", null, k), dd); };
-  const w = what(c.name, c.seed); if (w) { row("Kind", w.kind); row("Calling", w.calling); }
+  const w = what(c.name, c.seed, c.calling); if (w) { row("Kind", w.kind); row("Calling", w.calling); }
+  if (w && conjure.itemName(c.item)) { const it = el("span", "carries"), ic = el("canvas", "itempic"); ic.setAttribute("aria-hidden", "true"); conjure.paintItem(ic, c.item); it.append(ic, conjure.itemName(c.item)); row("Carries", it); }
   row("Title", c.title); row("Ventures joined", String(c.posts.length)); row("Seen through", String(c.done));
   const bond = el("span", "hard"); bond.append(pips(c.bond), c.bond + " / 5"); row("Bond", bond);
   if (c.since) row("Of the company since", day(c.since));
@@ -1324,7 +1329,8 @@ function showCompanion(c, from) {
   });
   const tally = el("p", "goalhead"); tally.append(el("span", null, "Posts held"), el("span", "lmcount", String(c.posts.length)));
   const nav = el("div", "row group"); nav.append(opt("Back", closePost));
-  rwin.append(head, pic, sheet, tally, posts, nav);
+  const past = el("div", "post lore pastlore"), tale = pastOf(c.name, c.seed, c.calling, c.item); if (tale) past.append(el("p", null, tale));
+  rwin.append(head, pic, sheet); if (tale) rwin.append(past); rwin.append(tally, posts, nav);
   reader.hidden = false; document.body.style.overflow = "hidden"; syncLayers();
   rwin.classList.remove("pop"); void rwin.offsetWidth; rwin.classList.add("pop");
   rwin.scrollTop = 0; rwin.focus();
@@ -1353,24 +1359,34 @@ function company(q) {
     send.type = "submit"; note2.setAttribute("role", "status"); note2.textContent = "Only what you write here is kept, and your address is never shown. Sign with the same address and your figure stays the same.";
     /* the lot: a figure drawn at random, which a newcomer may draw again as often as they like before sending */
     const lotBox = el("div", "lotbox"), lotPic = el("canvas", "fellowpic big"), lotWords = el("div"), lotName = el("p", "lotname"), again = opt("Draw again"); let lotSeed = 0;
-    const draw = () => { lotSeed = (crypto.getRandomValues(new Uint32Array(1))[0] % 2147483646) + 1; drawCompanion(lotPic, "", lotSeed); const w = what("", lotSeed); lotName.textContent = w ? w.title : ""; };
+    const trade = el("select"), lc = el("label", null, "Your calling"), thing = el("select"), li = el("label", null, "The curiosity you set out with"), lotPast = el("p", "lotpast");
+    const paint = () => { drawCompanion(lotPic, "", lotSeed, trade.value); const w = what("", lotSeed, trade.value); lotName.textContent = w ? w.title : ""; lotPast.textContent = pastOf(name.value.trim(), lotSeed, trade.value, thing.value); };
+    const draw = () => { lotSeed = (crypto.getRandomValues(new Uint32Array(1))[0] % 2147483646) + 1; paint(); };   /* a new lot: another creature, other colours, another past; the calling and the curiosity stay as chosen */
     lotPic.setAttribute("aria-hidden", "true"); lotName.setAttribute("aria-live", "polite"); again.type = "button"; again.addEventListener("click", draw);
     lotWords.append(el("p", "sub partynote", "Your lot"), lotName, again); lotBox.append(lotPic, lotWords);
-    if (typeof conjure === "function") { draw(); f.append(lotBox); }
+    if (typeof conjure === "function") {
+      conjure.callings.forEach((c) => { const o = el("option", null, c); o.value = c.toLowerCase(); trade.append(o); }); trade.selectedIndex = Math.floor(Math.random() * conjure.callings.length);
+      conjure.items.forEach(([id, label]) => { const o = el("option", null, label); o.value = id; thing.append(o); }); thing.selectedIndex = Math.floor(Math.random() * conjure.items.length);
+      trade.id = "ptrade"; lc.htmlFor = "ptrade"; thing.id = "pthing"; li.htmlFor = "pthing"; trade.addEventListener("change", paint); thing.addEventListener("change", paint); name.addEventListener("input", paint);
+      draw(); f.append(lc, trade, li, thing, lotBox, lotPast);
+    }
     if (free.length) f.append(l0, pick);
     f.append(l1, name, l3, mail, l2, note, trap, send, note2); box.append(f); name.focus();
     f.addEventListener("submit", (e) => {
       e.preventDefault(); if (!name.value.trim() || !mail.value.trim() || send.disabled) return;
       send.disabled = true; note2.textContent = "Sending...";
-      fetch("/api/apply", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ quest: q.file, name: name.value, email: mail.value, seed: lotSeed, note: note.value, role: free.length ? pick.value : "", website: trap.value }) })
+      fetch("/api/apply", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ quest: q.file, name: name.value, email: mail.value, seed: lotSeed, calling: trade.value, item: thing.value, note: note.value, role: free.length ? pick.value : "", website: trap.value }) })
         .then((r) => r.json().catch(() => ({})).then((d) => ({ ok: r.ok, d })))
         .then(({ ok, d }) => {
           if (!ok) { send.disabled = false; note2.textContent = text(d.error) || "The petition could not be carried. Try again."; return; }
           store.set("petitioned", JSON.stringify(petitioned().concat(q.file).slice(-40)));
           box.textContent = "";
-          if (Number.isInteger(d.seed) && d.seed > 0) store.set("figure", String(d.seed));   /* a new figure was drawn: remember it on this device, to show it again */
-          const mine = parseInt(store.get("figure"), 10);
-          if (mine > 0) { const pic = el("canvas", "fellowpic big"); pic.setAttribute("aria-hidden", "true"); drawCompanion(pic, name.value, mine); const w = what(name.value, mine); box.append(pic, el("p", "sub partynote figurenote", d.returning ? "The keeper knows you of old. The figure you first drew stands; the new lot is returned to the bag." : "The lot is drawn" + (w ? ": you are a " + w.title : "") + ". The figure is yours for as long as you sign with the same address.")); }
+          if (Number.isInteger(d.seed) && d.seed > 0) store.set("figure", JSON.stringify([d.seed, trade.value, thing.value]));   /* a new figure was drawn: remember it on this device, to show it again */
+          let kept = []; try { kept = JSON.parse(store.get("figure") || "[]"); } catch (err) {} if (!Array.isArray(kept)) kept = [kept];
+          const mine = Number.isInteger(kept[0]) && kept[0] > 0 ? kept[0] : 0, myTrade = text(kept[1]), myThing = text(kept[2]);
+          if (mine > 0) { const pic = el("canvas", "fellowpic big"); pic.setAttribute("aria-hidden", "true"); drawCompanion(pic, name.value, mine, myTrade); const w = what(name.value, mine, myTrade), carried = w ? conjure.itemName(myThing) : "";
+            box.append(pic, el("p", "sub partynote figurenote", d.returning ? "The keeper knows you of old. The figure you first drew stands; the new lot is returned to the bag." : "The lot is drawn" + (w ? ": you are a " + w.title + (carried ? ", carrying " + carried.replace(/^An? /, (m) => m.toLowerCase()) : "") : "") + ". The figure is yours for as long as you sign with the same address."));
+            const tale = pastOf(name.value.trim(), mine, myTrade, myThing); if (tale) box.append(el("p", "lotpast", tale)); }
           else if (d.returning) box.append(el("p", "sub partynote", "The keeper knows you of old. The figure you first drew stands, and the new lot is returned to the bag."));
           box.append(el("p", "sub partynote", "Your petition has been carried to the keeper. He will consider it at his leisure, which is considerable."));
           rwin.querySelectorAll(".posts .opt").forEach((b) => b.remove());

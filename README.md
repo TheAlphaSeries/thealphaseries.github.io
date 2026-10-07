@@ -30,7 +30,7 @@ Saving there creates or changes a file in one of the folders below. The site upd
 | `pages/status.md` | The name, class and blurb on the Status screen. Its numbers are counted by the site. |
 | `photos/` | Photos as uploaded. `thumbs/` and `large/` are smaller copies made automatically; do not edit those. |
 | `posts.json` | The list the site loads. Rebuilt automatically; do not edit by hand. |
-| `figures.js` | The figure maker: draws a companion (a kind of creature, a calling, colours, details) from one number. Add a line to its lists to add a creature or a calling. |
+| `figures.js` | The figure maker: draws a companion (a kind of creature, a calling, colours, details) from one number, lists the starting curiosities, and writes each companion's short background. Add a line to its lists to add a creature, a calling, a curiosity or a turn of phrase. |
 | `figures.html` | A gallery for trying the figure maker: halflife.studio/figures.html |
 | `sprites.json` | Every Bestiary and Herbarium picture. Written by the scripts in `tools/sprites`; do not edit by hand. |
 | `tools/sprites/` | The scripts that draw those pictures. Not published. See the README inside. |
@@ -47,8 +47,9 @@ quests have no dates, and their names and objectives do not name real places. Th
 middle of the neighbourhood, not an address.
 
 The page stores nothing about visitors, with one exception they choose themselves: a friend can petition to join a
-quest by typing a name of their choosing, an e-mail address and a short note. Only those three things, the quest, the
-time and a random number (from which their pixel figure is drawn) are kept. The e-mail address is seen only at
+quest by typing a name of their choosing, an e-mail address and a short note, and choosing a calling and a starting
+curiosity. Only those things, the quest, the time and a random number (from which their pixel figure and their
+written background are made) are kept. The e-mail address is seen only at
 `/keeper.html` and is never shown on the site or sent to visitors; the same address always gets the same figure.
 No cookie is kept, and nobody has an account. Petitions wait unseen until accepted or denied at `/keeper.html`
 (passphrase only); a denied petition is deleted. The program behind this is `scripts/worker.js`, and the data is in

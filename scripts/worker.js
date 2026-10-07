@@ -75,8 +75,8 @@ async function api(request, env, path) {
   if (!db) return json({ error: "The ledger is not connected." }, 503);
 
   if (path === "/api/party" && method === "GET") {
-    const { results } = await db.prepare("SELECT quest, name, role, created, seed FROM applications WHERE status = 'accepted' ORDER BY created").all();
-    const party = {}; for (const r of results) (party[r.quest] = party[r.quest] || []).push({ name: r.name, role: r.role || "", at: r.created ? new Date(r.created).toISOString().slice(0, 10) : "", seed: r.seed || 0 });   /* seed: the number their figure is drawn from; the e-mail address is never sent out */   /* at: the day the petition was made, for the chronicle */
+    const { results } = await db.prepare("SELECT quest, name, role, created, seed, calling, item FROM applications WHERE status = 'accepted' ORDER BY created").all();
+    const party = {}; for (const r of results) (party[r.quest] = party[r.quest] || []).push({ name: r.name, role: r.role || "", at: r.created ? new Date(r.created).toISOString().slice(0, 10) : "", seed: r.seed || 0, calling: r.calling || "", item: r.item || "" });   /* seed: the number their figure is drawn from; the e-mail address is never sent out */   /* at: the day the petition was made, for the chronicle */
     return json({ party }, 200, { "cache-control": "public, max-age=30" });
   }
 
@@ -85,6 +85,7 @@ async function api(request, env, path) {
     if (clean(b.website, 10)) return json({ ok: true });   // a field people never see; only a machine fills it in
     const quest = clean(b.quest, 80), name = clean(b.name, 40), note = clean(b.note, 200), asked = clean(b.role, 60);
     const email = clean(b.email, 120).toLowerCase();
+    const calling = /^[a-z ]{1,24}$/.test(clean(b.calling, 24).toLowerCase()) ? clean(b.calling, 24).toLowerCase() : "", item = /^[a-z]{1,12}$/.test(clean(b.item, 12)) ? clean(b.item, 12) : "";   /* the calling and the curiosity they chose; the page knows what the words mean */
     if (!name || !/^[a-z0-9][a-z0-9-]*$/.test(quest)) return json({ error: "A petition needs a name." }, 400);
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ error: "A petition needs an address at which you may be reached." }, 400);
     const open = await openQuests(request, env);
@@ -99,11 +100,11 @@ async function api(request, env, path) {
        always gets the same figure, whatever name it signs under (so a figure cannot be changed by someone who
        merely knows the address). The number is only handed back when it is new,
        so nobody can type in someone else's address to find out which companion they are. */
-    const known = await db.prepare("SELECT seed FROM applications WHERE email = ? AND seed != 0 LIMIT 1").bind(email).first();
+    const known = await db.prepare("SELECT seed, calling, item FROM applications WHERE email = ? AND seed != 0 LIMIT 1").bind(email).first();
     const chosen = Number.isInteger(b.seed) && b.seed > 0 && b.seed < 2147483647 ? b.seed : 0;   /* a newcomer may draw again before sending, and sends the number they settled on */
     const seed = known ? known.seed : chosen || crypto.getRandomValues(new Uint32Array(1))[0] % 2147483646 + 1;
     const twin = await db.prepare("SELECT id FROM applications WHERE quest = ? AND email = ?").bind(quest, email).first();   /* one petition per address per quest */
-    if (!twin) await db.prepare("INSERT INTO applications (quest, name, note, role, status, created, email, seed) VALUES (?, ?, ?, ?, 'pending', ?, ?, ?)").bind(quest, name, note, role || "", now, email, seed).run();
+    if (!twin) await db.prepare("INSERT INTO applications (quest, name, note, role, status, created, email, seed, calling, item) VALUES (?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?)").bind(quest, name, note, role || "", now, email, seed, known ? known.calling : calling, known ? known.item : item).run();   /* someone known keeps the calling and curiosity they first chose, along with their figure */
     return json(known ? { ok: true, returning: true } : { ok: true, seed });
   }
 
@@ -126,7 +127,7 @@ async function api(request, env, path) {
     if (await locked(db, request)) return json({ error: "Too many wrong tries. Wait a quarter of an hour." }, 429);
     if (!(await isKeeper(request, db))) return json({ error: "Wrong passphrase." }, 401);
     if (path === "/api/keeper/list" && method === "GET") {
-      const { results } = await db.prepare("SELECT id, quest, name, note, role, status, created, email FROM applications ORDER BY status DESC, created DESC LIMIT 500").all();
+      const { results } = await db.prepare("SELECT id, quest, name, note, role, status, created, email, calling, item FROM applications ORDER BY status DESC, created DESC LIMIT 500").all();
       return json({ petitions: results });
     }
     if (path === "/api/keeper/decide" && method === "POST") {
