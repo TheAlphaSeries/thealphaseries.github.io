@@ -75,8 +75,8 @@ async function api(request, env, path) {
   if (!db) return json({ error: "The ledger is not connected." }, 503);
 
   if (path === "/api/party" && method === "GET") {
-    const { results } = await db.prepare("SELECT quest, name, role FROM applications WHERE status = 'accepted' ORDER BY created").all();
-    const party = {}; for (const r of results) (party[r.quest] = party[r.quest] || []).push({ name: r.name, role: r.role || "" });
+    const { results } = await db.prepare("SELECT quest, name, role, created FROM applications WHERE status = 'accepted' ORDER BY created").all();
+    const party = {}; for (const r of results) (party[r.quest] = party[r.quest] || []).push({ name: r.name, role: r.role || "", at: r.created ? new Date(r.created).toISOString().slice(0, 10) : "" });   /* at: the day the petition was made, for the chronicle */
     return json({ party }, 200, { "cache-control": "public, max-age=30" });
   }
 

@@ -11,6 +11,8 @@ engine.sheet(pxs, 'try.png' if args else 'sheet.png', sc=3, cols=8)
 if not args:
     d = engine.export(pxs, None)
     out = {'size': [engine.G, engine.G], 'water': engine.WATER,
+           # the fish drawn going in head first: the page animates these differently (they cannot leap up tail first)
+           'divers': [k for k in SP if isinstance(SP[k].get('pose'), dict) and SP[k]['pose'].get('water') == 'head' and k in pxs],
            'fish': {k: v for k, v in d.items() if not k.startswith('plant:')},
            # which picture stands in for a kind of creature that has no picture of its own
            'fishAlias': {'trout': 'rainbow-trout', 'fish': 'american-shad', 'flatfish': 'halibut', 'shark': 'leopard-shark', 'sturgeon': 'white-sturgeon', 'tuna': 'bluefin-tuna',

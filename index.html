@@ -368,6 +368,37 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
 #intro .start { width: auto; margin: 24px auto 0; grid-template-columns: 18px auto; padding: 10px 16px 10px 10px; font-family: var(--display); font-size: 13px; line-height: 1.7; }
 #intro .start::before { visibility: visible; animation: nudge 1.1s ease-in-out infinite; }
 
+/* the chronicle: one row per happening */
+.chronlist { display: flex; flex-direction: column; gap: 2px; }
+.chron { grid-template-columns: 18px 7ch 9ch minmax(0, 1fr) auto; gap: 0 10px; }
+.chron .cdate { color: var(--dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.chron .ctag { font-family: var(--display); font-size: 9px; line-height: 2; letter-spacing: .04em; color: #ffd257; white-space: nowrap; }
+.chron.k-fish .ctag { color: #8fd6ff; } .chron.k-quest .ctag, .chron.k-plant .ctag { color: #7fd68a; } .chron.k-entry .ctag { color: var(--fg); } .chron.k-album .ctag { color: #e0a8ff; } .chron.k-company .ctag { color: #ffb38a; }
+.chron .cwords { overflow-wrap: anywhere; min-width: 0; } .chron .cexp { color: #7fd68a; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cmonth { margin: 16px 0 4px 24px; font-family: var(--display); font-size: 10px; line-height: 1.7; color: var(--dim); } .cmonth:first-child { margin-top: 0; }
+/* the companions */
+.fellows { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(150px, 100%), 1fr)); gap: 8px; }
+.fellow { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 2px; padding: 12px 8px 10px; text-align: center; border: 2px solid var(--border-shade); border-radius: 7px; overflow-wrap: anywhere; }
+.fellow::before { display: none; } .fellow:hover, .fellow:focus-visible { transform: translateY(-2px); border-color: var(--border); }
+.fellowpic { display: block; width: 72px; height: 88px; image-rendering: pixelated; margin-bottom: 6px; } .fellowpic.big { width: 108px; height: 132px; margin: 6px auto 4px; }
+.fellow .name { font-family: var(--display); font-size: 10px; line-height: 1.7; } .fellow .ftitle { color: #ffd257; font-size: 14.5px; line-height: 1.3; } .fellow .fcount { color: var(--dim); font-size: 14.5px; }
+.plink { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; text-shadow: inherit; overflow-wrap: anywhere; }
+.plink:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+/* the medals on the Status screen */
+.honourwrap { margin-top: 22px; }
+.honours { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr)); gap: 8px; }
+.honour { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 0 12px; align-items: center; padding: 8px 10px; border: 2px solid var(--border-shade); border-radius: 7px; }
+.honour.locked { border-color: rgba(255, 255, 255, .18); } .honour.locked .hname { color: var(--off); } .honour.locked .hhow { opacity: .75; }
+.medal { display: block; width: 64px; height: 76px; image-rendering: pixelated; } .moment .medal { width: 48px; height: 57px; }
+.honour .hname { display: block; font-family: var(--display); font-size: 10px; line-height: 1.7; color: #ffd257; overflow-wrap: anywhere; } .honour .hhow { display: block; color: var(--dim); font-size: 14.5px; line-height: 1.35; margin-top: 2px; }
+/* the banner that drops in when something has been earned since the last visit */
+#moments { position: fixed; top: calc(14px + env(safe-area-inset-top, 0px)); left: 0; right: 0; z-index: 4; display: flex; justify-content: center; padding: 0 12px; pointer-events: none; }
+.moment { pointer-events: auto; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0 14px; align-items: center; width: min(100%, 420px); padding: 12px 16px; text-align: left; font: inherit; color: inherit; text-shadow: inherit; cursor: pointer; animation: momentin .7s var(--spring) backwards; }
+.moment .mwords { display: grid; gap: 2px; min-width: 0; } .moment .mkind { font-family: var(--display); font-size: 9px; line-height: 1.8; letter-spacing: .08em; color: #ffd257; }
+.moment .mtitle { font-family: var(--display); font-size: 12px; line-height: 1.7; overflow-wrap: anywhere; } .moment .msub { color: var(--dim); font-size: 15px; line-height: 1.3; overflow-wrap: anywhere; }
+.moment .mstar { width: 22px; height: 22px; background: #ffd257; clip-path: polygon(50% 0, 62% 36%, 100% 38%, 70% 60%, 80% 100%, 50% 76%, 20% 100%, 30% 60%, 0 38%, 38% 36%); filter: drop-shadow(1px 1px 0 rgba(0, 0, 0, .7)); animation: momentspin 1.6s ease-in-out infinite; }
+@keyframes momentin { from { transform: translateY(-140%); opacity: 0; } } @keyframes momentspin { 50% { transform: scale(1.25) rotate(18deg); } }
+
 /* phone view: the command window becomes a bar fixed to the bottom of the screen */
 @media (max-width: 720px) {
   body { padding-bottom: 212px; }   /* room for the menu fixed to the bottom of a phone screen (four rows) */
@@ -392,6 +423,7 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
   .opt:hover, .opt:focus-visible { transform: translateX(3px); }
   .file { grid-template-columns: 18px minmax(0, 1fr); }
   .file .date { grid-column: 2; grid-row: 2; font-size: 14.5px; }
+  .chron { grid-template-columns: 18px auto minmax(0, 1fr) auto; gap: 0 8px; } .chron .cwords { grid-column: 2 / -1; grid-row: 2; } .chron .cexp { grid-column: 4; grid-row: 1; }
   h2 { font-size: 14px; }
   #reader { padding: calc(8px + env(safe-area-inset-top, 0px)) 8px calc(8px + env(safe-area-inset-bottom, 0px)); }
   #readerwin { padding: 22px 18px; }
@@ -399,6 +431,7 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
 @media (prefers-reduced-motion: reduce) {
   .opt:focus-visible::before, .file.chosen, .beastcard.pop, #readerwin.pop, .stage.go > .win, #main > *, #main .files > *, #main .group, #titlebar .site, #intro .win, #intro .start::before { animation: none; }
   #intro, .opt, #sprite, .fishbtn, #minimap { transition: none; }
+  .moment, .moment .mstar { animation: none; }
 }
 </style>
 
@@ -412,6 +445,7 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
   <nav class="win" id="menu" aria-label="Commands">
     <button class="opt" type="button" id="m-files">Log</button>
     <button class="opt" type="button" id="m-quests">Quests</button>
+    <button class="opt" type="button" id="m-chron">Chronicle</button>
     <button class="opt" type="button" id="m-bestiary">Bestiary</button>
     <button class="opt" type="button" id="m-plants">Herbarium</button>
     <button class="opt" type="button" id="m-photos">Photos</button>
@@ -441,6 +475,7 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
   <div class="zoomnav" hidden><button type="button" id="zprev" aria-label="Previous photo">Prev</button><span id="zcount"></span><button type="button" id="znext" aria-label="Next photo">Next</button></div>
 </div>
 
+<div id="moments" aria-live="polite"></div>
 <div id="intro"><div class="titlewrap">
   <canvas id="sprite" width="33" height="44" aria-hidden="true"></canvas>
   <div class="win">
@@ -479,25 +514,30 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
 
    Privacy: the site is public. Quests carry no dates on purpose, and the
    page saves nothing about visitors except whether they turned the music
-   off, which stays on their own device.
+   off and a short note of what it last showed them (so it can say what is
+   new next time). Both stay on their own device.
 
    CONTENTS
       1. Content            what gets loaded from posts.json
       2. Helpers            small tools used everywhere
       3. Home screen        the log, the quest log, and simple pages (About, Help)
+   3b. Chronicle         one dated list of everything recorded
       4. Bestiary           the fish pictures and the fish screen
    4b. Herbarium         the plant pictures and the plant screen
+   4c. Moving pictures   the leaping fish and the swaying plants
       5. Entry text         turning what the editor saves into paragraphs, photos, links
-      6. Pop-out window     an opened entry or quest
+      6. Pop-out window     an opened entry, quest or companion
       7. Photo viewer       one enlarged photo, or a set to step through
       8. Photo albums       the Photos screens
       9. Map                the coastline, pins, landmarks, and the Map screen
    9b. Status            the character sheet, counted from everything else
+   9c. Honours           the medals
      10. Menu and keyboard
      11. Title screen
-     12. Title screen sprite
+     12. The figure         the pixel figure of Chris and how he moves
      13. Drifting sparkles  the background
      14. Music
+  14b. Moments           the banners for what is new since the last visit
      15. Loading and start  fetches posts.json, tidies it, draws the first screen
    ========================================================================== */
 
@@ -537,7 +577,19 @@ Nearly everything here pays experience: an entry written, a species caught (rare
 
 ## Quests
 
-The Quests tab is the full log: what is in hand, and what has been fulfilled. Each quest has a difficulty and pays experience when it is finished; harder ones and Great Works pay more. Open a quest to see who travels with it. Some quests have named posts to fill: choose Apply beside an open one. Otherwise choose Petition to join. Either way you only give a name. No account is needed, and only what you write is kept. The keeper accepts or declines in his own time.`;
+The Quests tab is the full log: what is in hand, and what has been fulfilled. Each quest has a difficulty and pays experience when it is finished; harder ones and Great Works pay more. Open a quest to see who travels with it. Some quests have named posts to fill: choose Apply beside an open one. Otherwise choose Petition to join. Either way you only give a name. No account is needed, and only what you write is kept. The keeper accepts or declines in his own time. Those accepted are entered under The Company at the foot of the Quest Log, each with a figure and a page of their own.
+
+## Chronicle
+
+The Chronicle is everything recorded here, in the order it happened, newest first. Choose a row to go to the thing itself.
+
+## Honours
+
+Medals for particular feats are shown on the Status screen: in colour once won, a dark locked shape until then. They pay no experience.
+
+## What is new
+
+When something has been earned since you last looked in, a banner says so. To know what is new, this page keeps a short note in your own browser of what it last showed you. The note never leaves your device.`;
 
 /* ==========================================================================
    2. HELPERS
@@ -558,7 +610,7 @@ const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
 const day = (d) => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(d || ""); return m && MONTHS[+m[2] - 1] && +m[3] >= 1 && +m[3] <= 31 ? MONTHS[+m[2] - 1] + " " + +m[3] + ", " + m[1] : ""; };
 
 const stage = $("#stage"), main = $("#main"), menu = $("#menu"), reader = $("#reader"), rwin = $("#readerwin"), zoomBox = $("#zoom"), introBox = $("#intro");
-let view = "files";      /* which screen the main window shows: files, bestiary, plants, photos, album, map, status, about or help */
+let view = "files";      /* which screen the main window shows: files, quests, chron, bestiary, plants, photos, album, map, status, about or help */
 let current = null;      /* the entry open in the pop-out window, if any */
 
 /* put an entry's name after # in the address (so the link can be shared), or clear it */
@@ -578,7 +630,7 @@ function syncLayers() { stage.inert = !introBox.classList.contains("done") || !r
    ========================================================================== */
 /* Every screen starts the same way: note which screen is up, empty the main window, move the menu's marker. */
 function openScreen(name, menuId) {
-  view = name; main.textContent = "";
+  view = name; main.textContent = ""; stopAnim();
   menu.querySelectorAll(".opt").forEach((b) => { if (b.id !== "m-music") b.setAttribute("aria-current", String(b.id === menuId)); });
 }
 /* the "Back" option at the foot of a screen: returns to the home screen */
@@ -601,7 +653,7 @@ function showFiles(focusFirst) {
   });
   main.append(list);
   if (!sorted.length) main.append(el("p", "sub", loadNote));
-  showQuests();
+  showQuests(); showLately();
   if (focusFirst) { const f = list.querySelector(".opt"); if (f) f.focus(); }
 }
 /* ----- the quest log: a small strip under the entries. Each quest shows its name, a vague "when" and
@@ -680,6 +732,7 @@ function showQuestLog(focusFirst) {
     const past = el("div", "questlog"); done.sort((a, b) => b.completed.localeCompare(a.completed)).forEach((q, i) => past.append(questRow(q, i)));   /* most recently finished first */
     main.append(el("p", "label questhead", "Fulfilled"), past);
   }
+  showCompany();
   main.append(backRow());
   if (focusFirst) { const f = main.querySelector(".quest") || main.querySelector(".opt"); if (f) f.focus(); }
 }
@@ -689,6 +742,70 @@ function showPage(name, menuId, label, text) {
   const body = el("div", "post"); renderBody(text, body);
   if (!body.firstChild) body.append(el("p", "sub", loadNote === "Loading..." ? loadNote : "Nothing here yet."));
   main.append(el("p", "label", label), body, backRow());
+}
+
+/* ==========================================================================
+   3b. CHRONICLE
+   One dated list of everything recorded on the site, newest first: entries
+   written, fish caught, places reached, quests fulfilled, plants taken in,
+   albums filed, companions joined. Nothing is typed in here by hand: it is
+   gathered from the dates already given elsewhere. A thing with no date is
+   left out. The home screen shows the latest few under "Lately".
+   ========================================================================== */
+const CHRON = { entry: "Log", fish: "Catch", place: "Road", quest: "Quest", plant: "Green", album: "Likeness", company: "Company" };   /* the tag shown beside each kind of happening */
+function chronicle() {
+  const out = [], add = (date, kind, words, go, exp) => { if (day(date)) out.push({ date: date.slice(0, 10), kind, words, go, exp: exp || 0 }); };
+  sorted.forEach((p) => add(p.date, "entry", "Wrote " + p.title, (from) => showPost(p, from), PAY.entry));
+  const seen = new Set();   /* only the first catch of a species pays */
+  BESTIARY.forEach((b, i) => {
+    if (b.status === "wanted") return; const k = b.name.trim().toLowerCase(), first = !seen.has(k); seen.add(k);
+    add(b.date, "fish", "Caught a " + b.name + (b.location ? " at " + b.location : ""), () => showBestiary(true, i), first ? fishExp(b) : 0);
+  });
+  PLACES.forEach((p) => { if (p.kind !== "region") add(p.date, "place", (p.kind === "home" ? "Settled in " : "Reached ") + p.name + (p.trip ? ", on the road through " + p.trip : ""), () => showMap(true, p.file), MAP_EXP.place); });
+  QUESTS.forEach((q) => { if (q.status === "completed") add(q.completed, "quest", "Fulfilled " + q.title, (from) => showQuest(q, from), questExp(q)); });
+  PLANTS.forEach((p) => add(p.acquired, "plant", "Took in " + p.name + (p.count > 1 ? " (" + p.count + ")" : ""), () => showPlants(p.kind, true)));
+  ALBUMS.forEach((a) => add(a.date, "album", "Filed the likenesses of " + a.title, () => showAlbum(a), PAY.album));
+  companions().forEach((c) => c.posts.forEach((x) => add(x.at, "company", c.name + " threw in with " + x.quest.title + (x.role ? " as " + x.role : ""), (from) => showCompanion(c, from))));
+  return out.sort((a, b) => b.date.localeCompare(a.date));
+}
+function chronRow(ev, i) {
+  const b = opt(null, () => ev.go(b), "chron k-" + ev.kind);
+  b.append(el("span", "cdate", day(ev.date).split(",")[0]), el("span", "ctag", CHRON[ev.kind]), el("span", "cwords", ev.words), el("span", "cexp", ev.exp ? "+" + ev.exp : ""));
+  b.style.setProperty("--i", Math.min(i, 8));
+  return b;
+}
+let chronKind = "";   /* which kind of happening the Chronicle is narrowed to; "" shows all */
+function showChronicle(focusFirst) {
+  openScreen("chron", "m-chron");
+  main.append(el("p", "label", "Chronicle"));
+  const intro = el("div", "post intro");
+  intro.append(el("p", null, "What follows is the record entire, set down in the order it befell, the latest first. Matters that carry no date are omitted, the chronicler declining to guess."));
+  main.append(intro);
+  const all = chronicle();
+  if (!all.length) { main.append(el("p", "sub", loadNote === "Loading..." ? loadNote : "Nothing here carries a date as yet."), backRow()); return; }
+  const kinds = Object.keys(CHRON).filter((k) => all.some((e) => e.kind === k)); if (!kinds.includes(chronKind)) chronKind = "";
+  const tabs = el("div", "chips");
+  [""].concat(kinds).forEach((k) => {
+    const n = k ? all.filter((e) => e.kind === k).length : all.length, b = el("button", "chip", (k ? CHRON[k] : "All") + "  " + n); b.type = "button"; b.setAttribute("aria-pressed", String(k === chronKind));
+    b.addEventListener("click", () => { chronKind = k; showChronicle(false); const now = [...main.querySelectorAll(".chip")].find((c) => c.getAttribute("aria-pressed") === "true"); if (now) now.focus({ preventScroll: true }); });
+    tabs.append(b);
+  });
+  main.append(tabs);
+  const list = el("div", "chronlist"); let month = "";
+  all.filter((e) => !chronKind || e.kind === chronKind).forEach((e, i) => {
+    const m = MONTHS[+e.date.slice(5, 7) - 1] + " " + e.date.slice(0, 4);
+    if (m !== month) { month = m; list.append(el("p", "cmonth", m)); }
+    list.append(chronRow(e, i));
+  });
+  main.append(list, backRow());
+  if (focusFirst) { const f = list.querySelector(".opt"); if (f) f.focus({ preventScroll: true }); }
+}
+/* the latest few happenings, under the quests on the home screen (entries are left out: they are listed just above) */
+function showLately() {
+  const recent = chronicle().filter((e) => e.kind !== "entry").slice(0, 3); if (!recent.length) return;
+  const list = el("div", "chronlist"); recent.forEach((e, i) => list.append(chronRow(e, i)));
+  const more = el("div", "row"); more.append(opt("The whole chronicle", () => showChronicle(true)));
+  main.append(el("p", "label questhead", "Lately"), list, more);
 }
 
 /* ==========================================================================
@@ -829,6 +946,7 @@ function showBestiary(focusFirst, pick) {
     if (pin) { const row = el("div", "row"); row.append(opt("Show on map", () => showMap(true, pin.file))); card.append(row); }
     if (b.lore) { const lore = el("div", "post lore"); renderBody(b.lore, lore); card.append(lore); }
     card.classList.remove("pop"); void card.offsetWidth; card.classList.add("pop");
+    if (ghost) stopAnim(); else leap(pic, b.sprite, b.file);   /* a caught fish leaps; one still at large stays a still shape */
   };
   BESTIARY.forEach((b, i) => {
     const pick = () => { if (btn.getAttribute("aria-pressed") !== "true") show(b, btn); };
@@ -919,6 +1037,7 @@ function showPlants(kind, focusFirst) {
     card.append(facts);
     if (p.lore) { const lore = el("div", "post lore"); renderBody(p.lore, lore); card.append(lore); }
     card.classList.remove("pop"); void card.offsetWidth; card.classList.add("pop");
+    if (dead) stopAnim(); else sway(pic);   /* the living stir; the perished do not */
   };
   set.forEach((p, i) => {
     const pick = () => { if (btn.getAttribute("aria-pressed") !== "true") show(p, btn); };
@@ -930,6 +1049,93 @@ function showPlants(kind, focusFirst) {
   wrap.append(list, card); main.append(wrap, backRow());
   show(set[0], list.querySelector(".opt"));
   if (focusFirst) list.querySelector(".opt").focus({ preventScroll: true });
+}
+
+/* ==========================================================================
+   4c. MOVING PICTURES
+   The pictures are stored still. The movement is made here, on the page.
+   A caught fish leaps: its picture is split into the creature and the water,
+   the creature rises out of the water to the pose it was drawn in, hangs
+   there, and falls back, while the splash swells and dies away with it. A
+   fish drawn going in head first only wriggles where it is. A living plant
+   sways a little, as in a draught. Only the picture on show moves, and
+   nothing moves for a visitor who has asked their device for less motion.
+   ========================================================================== */
+let animTimer = null, DIVERS = [];
+function stopAnim() { clearInterval(animTimer); animTimer = null; }
+function animate(canvas, ms, step) {   /* run step(n) on a steady beat for as long as the picture is on the page */
+  stopAnim(); let n = 0; step(0);
+  animTimer = setInterval(() => { if (!canvas.isConnected) return stopAnim(); if (!document.hidden) step(++n); }, ms);
+}
+function leap(canvas, kind, file) {
+  stopAnim(); if (reduceMotion) return;
+  const key = owns(FISH, file) ? file : owns(FISH, kind) ? kind : owns(FISH_ALIAS, kind) ? FISH_ALIAS[kind] : FISH_ALIAS.fish, f = owns(FISH, key) ? FISH[key] : null;
+  if (!f || !Array.isArray(f.rows) || !f.pal || typeof f.pal !== "object" || FISH_WATER.length < 2) return;
+  const [W, H] = FISH_SIZE, line = Math.round(H * 88 / 96), crown = line - 3;   /* line: the row where the water's surface lies */
+  const layer = () => { const c = el("canvas"); c.width = W; c.height = H; return c; }, body = layer(), wetA = layer(), wetB = layer();
+  const bc = body.getContext("2d"), wa = wetA.getContext("2d"), wb = wetB.getContext("2d");
+  const at = (x, y) => (typeof f.rows[y] === "string" && owns(f.pal, f.rows[y][x]) && typeof f.pal[f.rows[y][x]] === "string" ? f.pal[f.rows[y][x]] : ""), wet = (col) => FISH_WATER.indexOf(col) >= 0;
+  let top = H, bottom = 0, left = W, right = 0, wsum = 0, wn = 0;
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const col = at(x, y); if (!col) continue;
+      if (wet(col)) {
+        wa.fillStyle = col; wa.fillRect(x, y, 1, 1);
+        const k = FISH_WATER.indexOf(col), glint = (x * 7 + y * 13) % 5 < 2;   /* the second water picture: the same splash with its foam glinting elsewhere */
+        wb.fillStyle = glint && k < 2 ? FISH_WATER[1 - k] : col; wb.fillRect(x, y, 1, 1);
+        if (y >= crown - 2) { wsum += x; wn++; }
+      } else { bc.fillStyle = col; bc.fillRect(x, y, 1, 1); if (y < top) top = y; if (y > bottom) bottom = y; if (x < left) left = x; if (x > right) right = x; }
+    }
+    /* where spray was drawn across the creature, paint the creature back in underneath, so no gap shows when it moves */
+    for (let x = 1; x < W - 1; x++) {
+      if (!wet(at(x, y)) || !at(x - 1, y) || wet(at(x - 1, y))) continue;
+      let e = x; while (e < W && wet(at(e, y))) e++;
+      if (e < W && at(e, y) && e - x <= 12) for (let i = x; i < e; i++) { bc.fillStyle = i - x < (e - x) / 2 ? at(x - 1, y) : at(e, y); bc.fillRect(i, y, 1, 1); }
+      x = e;
+    }
+  }
+  if (top > bottom) return;
+  for (let x = 0; x < W; x++) {   /* and where the creature goes down into the water, carry it on below the surface */
+    let y = line - 1; while (y >= 0 && (!at(x, y) || wet(at(x, y)))) y--;
+    if (y >= 0 && y < line - 1 && wet(at(x, y + 1))) { bc.fillStyle = at(x, y); bc.fillRect(x, y + 1, 1, line - y - 1); }
+  }
+  const touch = bottom >= line - 5, diver = DIVERS.indexOf(key) >= 0, rise = line - top + 1;
+  const from = touch || !wn ? 0 : Math.max(-34, Math.min(34, wsum / wn - (left + right) / 2));   /* a fish drawn clear of the water starts from where its splash is */
+  const R = 9, A = 11, F = 8, U = 15, c = canvas.getContext("2d"); c.imageSmoothingEnabled = false;
+  const splash = (pic, shift, s) => {
+    if (s > 0.04) c.drawImage(pic, 0, 0, W, crown, Math.round(shift), Math.round(crown * (1 - s)), W, Math.round(crown * s));
+    c.drawImage(pic, 0, crown, W, H - crown, Math.round(shift), crown, W, H - crown);
+  };
+  animate(canvas, 85, (tick) => {
+    const pic = Math.floor(tick / 3) % 2 ? wetB : wetA; let dx = 0, dy = 0, s1 = 1, s2 = 0, show = true;
+    if (diver) dy = [0, 0, 1, 2, 3, 3, 2, 1][Math.floor(tick / 2) % 8];
+    else {
+      const n = tick % (R + A + F + U);
+      if (n < R) { const p = (n + 1) / R, e = 1 - p; dy = rise * e * e; dx = from * e; s1 = Math.min(1, .3 + .95 * p); }
+      else if (n < R + A) { const q = (n - R) / A; s1 = touch ? 1 : 1 - .55 * q; }
+      else if (n < R + A + F) { const q = (n - R - A + 1) / F; dy = rise * q * q; dx = -from * .35 * q; s1 = touch ? 1 + .18 * q : .45 * (1 - q); s2 = touch ? 0 : Math.max(0, (q - .45) * 2); }
+      else { const q = (n - R - A - F + 1) / U; show = false; s1 = touch ? Math.max(0, 1.18 * (1 - q * 1.7)) : 0; s2 = touch ? 0 : Math.max(0, 1.1 * (1 - q * 1.7)); }
+    }
+    c.clearRect(0, 0, W, H);
+    if (show) { c.save(); c.beginPath(); c.rect(0, 0, W, line); c.clip(); c.drawImage(body, Math.round(dx), Math.round(dy)); c.restore(); }
+    splash(pic, 0, s1);
+    if (s2 > 0.04) splash(pic, -from * 1.35, s2);
+  });
+}
+function sway(canvas) {   /* call after the plant has been drawn */
+  stopAnim(); if (reduceMotion || !canvas.width) return;
+  const W = canvas.width, H = canvas.height, c = canvas.getContext("2d"), still = el("canvas"); still.width = W; still.height = H; still.getContext("2d").drawImage(canvas, 0, 0);
+  const data = c.getImageData(0, 0, W, H).data; let top = H, bottom = 0;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (data[(y * W + x) * 4 + 3]) { if (y < top) top = y; if (y > bottom) bottom = y; }
+  if (top >= bottom) return;
+  const root = top + (bottom - top) * .6;   /* below this the pot and the soil stand still */
+  animate(canvas, 170, (tick) => {
+    c.clearRect(0, 0, W, H);
+    for (let y = 0; y < H; y++) {
+      const reach = y < root ? Math.pow((root - y) / (root - top), 1.4) : 0, off = Math.round(Math.sin(tick * .33 + y * .06) * 1.7 * reach);
+      c.drawImage(still, 0, y, W, 1, off, y, W, 1);
+    }
+  });
 }
 
 /* ==========================================================================
@@ -1029,9 +1235,9 @@ function renderBody(text, into, depth) {
    An opened log entry or quest: a see-through window over the home screen.
    ========================================================================== */
 /* open a log entry */
-function showPost(p) {
-  if (view !== "files") showFiles();
-  current = p; setHash(p.file);
+function showPost(p, from) {   /* from: the row it was opened from, when that is not the home list (the Chronicle) */
+  if (!(from && from.isConnected) && view !== "files") showFiles();
+  current = p; questFrom = from && from.isConnected ? from : null; setHash(p.file);
   rwin.textContent = "";
   const head = el("div", "filehead"), meta = el("p", "meta");
   meta.append(el("span", null, day(p.date))); if (p.place) meta.append(el("span", null, p.place));
@@ -1058,16 +1264,108 @@ function loadParty() {
   return fetch("/api/party", { cache: "no-cache" }).then((r) => (r.ok ? r.json() : null)).then((d) => {
     if (!d || !d.party || typeof d.party !== "object") return;
     PARTY = {}; partyOpen = true;
-    for (const k of Object.keys(d.party)) if (Array.isArray(d.party[k])) PARTY[k] = d.party[k].map((m) => ({ name: text(m && m.name).trim().slice(0, 40), role: text(m && m.role).trim().slice(0, 60) })).filter((m) => m.name).slice(0, 60);
-    if (view === "quests" && reader.hidden && !main.contains(document.activeElement)) showQuestLog(false);   /* the log is up: redraw it with the companies filled in */
+    for (const k of Object.keys(d.party)) if (Array.isArray(d.party[k])) PARTY[k] = d.party[k].map((m) => ({ name: text(m && m.name).trim().slice(0, 40), role: text(m && m.role).trim().slice(0, 60), at: day(text(m && m.at)) ? text(m.at).slice(0, 10) : "" })).filter((m) => m.name).slice(0, 60);
+    if (reader.hidden && !main.contains(document.activeElement)) { if (view === "quests") showQuestLog(false); if (view === "chron") showChronicle(false); if (view === "files") showFiles(false); if (view === "status") showStatus(false); }   /* redraw what is up, now that the companies are known */
   }).catch(() => {});
 }
 /* Who holds each post of a quest: the name written into the quest itself ("held"), or else the accepted
    companion who asked for it. Companions who asked for no post, or for one that no longer exists, are "others". */
 function roster(q) {
   const members = owns(PARTY, q.file) ? PARTY[q.file] : [], used = new Set();
-  const posts = q.roles.map((r) => { const m = r.held ? null : members.find((x) => !used.has(x) && x.role.toLowerCase() === r.name.toLowerCase()); if (m) used.add(m); return { name: r.name, about: r.about, holder: r.held || (m ? m.name : "") }; });
+  const posts = q.roles.map((r) => { const m = r.held ? null : members.find((x) => !used.has(x) && x.role.toLowerCase() === r.name.toLowerCase()); if (m) used.add(m); return { name: r.name, about: r.about, holder: r.held || (m ? m.name : ""), fellow: !!m }; });
   return { posts, others: members.filter((m) => !used.has(m)).map((m) => m.name), filled: posts.filter((p) => p.holder).length };
+}
+/* ---- The companions as characters ----
+   Everyone accepted onto a quest becomes a small figure with a page of their own: which posts they hold, how many
+   ventures they have joined and seen through, and a title that grows with them. Nothing more is known about a
+   companion than the name they gave and the posts they were given, so the figure is made up from the name itself:
+   the same name always gives the same cloak and hat. What they carry follows the post they hold. */
+function companions() {
+  const by = new Map();
+  for (const q of QUESTS) for (const m of (owns(PARTY, q.file) ? PARTY[q.file] : [])) {
+    const k = m.name.toLowerCase(); if (!by.has(k)) by.set(k, { name: m.name, posts: [] });
+    by.get(k).posts.push({ quest: q, role: m.role, at: m.at });
+  }
+  return [...by.values()].map((c) => {
+    const n = c.posts.length, done = c.posts.filter((x) => x.quest.status === "completed").length;
+    c.done = done; c.bond = Math.min(5, n + done * 2);
+    c.title = done >= 3 ? "Veteran of the Company" : done >= 1 ? "Proven Companion" : n >= 3 ? "Old Hand of the Company" : n === 2 ? "Twice-Sworn Companion" : "Fellow of the Road";
+    c.since = c.posts.map((x) => x.at).filter(day).sort()[0] || "";
+    return c;
+  });
+}
+const CLOAKS = [["#a8323c", "#6e1c26", "#d4606a"], ["#2a8c8c", "#175a5c", "#5cc0bc"], ["#5c8a3a", "#365a20", "#8cbc64"], ["#c08a2c", "#80581a", "#e6b85c"],
+                ["#7a4cb4", "#4a2c78", "#a880dc"], ["#3c68b8", "#22407c", "#6c98e0"], ["#b85c2c", "#7a3a18", "#e08c58"], ["#b8b0a0", "#787062", "#e4dccc"]];   /* base, shade, light */
+const CARRIES = [["scroll", /survey|map|chart|witness|post|scribe|letter/], ["pack", /haul|pack|bag|porter|coach|mend/], ["oar", /boat|oar|ferry|sail/], ["rod", /rod|net|angl|fish/],
+                 ["lantern", /lamp|lantern|light/], ["torch", /fire|cook|torch|flame/], ["staff", /guide|warden|pilgrim|mystic|charm|green/]];
+function nameHash(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+function drawCompanion(canvas, name, role) {
+  const W = 18, H = 22, g = Array.from({ length: H }, () => new Array(W).fill("")), h = nameHash(name.toLowerCase());
+  const [base, shade, light] = CLOAKS[h % CLOAKS.length], trim = CLOAKS[(h >>> 3) % CLOAKS.length][2], hat = (h >>> 6) % 4;
+  let carry = (CARRIES.find(([, re]) => re.test((role || "").toLowerCase())) || [CARRIES[(h >>> 9) % CARRIES.length][0]])[0];
+  const px = (x, y, c) => { if (x >= 0 && x < W && y >= 0 && y < H) g[y][x] = c; }, row = (y, a, b, c) => { for (let x = a; x <= b; x++) px(x, y, c); };
+  const WOOD = "#8a5a2c", WOOD2 = "#5c3a1a", DARK = "#15131c", EYE = "#e8e6ff", BOOT = "#241a14";
+  if (carry === "pack") { for (let y = 8; y <= 14; y++) row(y, 2, 4, y === 8 || y === 14 ? WOOD2 : WOOD); for (let y = 8; y <= 14; y++) row(y, 12, 14, y === 8 || y === 14 ? WOOD2 : WOOD); px(13, 10, "#c8a060"); px(3, 10, "#c8a060"); row(7, 3, 13, "#d8d0bc"); row(6, 5, 11, "#b8b0a0"); }   /* a bedroll and a loaded frame behind the shoulders */
+  for (let y = 8; y <= 19; y++) { const w = y < 10 ? 3 : y < 14 ? 4 : 5; row(y, 8 - w, 8 + w, base); px(8 - w, y, light); px(8 + w, y, shade); if (y > 9) px(8 + w - 1, y, shade); }   /* the cloak, widening to the hem */
+  for (let y = 10; y <= 19; y++) px(8, y, trim); row(19, 3, 13, shade); px(8, 19, trim); px(5, 13, light); px(5, 16, light);
+  row(20, 6, 7, BOOT); row(20, 9, 10, BOOT);
+  row(1, 6, 10, base); for (let y = 2; y <= 7; y++) { row(y, 5, 11, base); px(5, y, light); px(11, y, shade); } row(7, 6, 10, shade);   /* the hood */
+  for (let y = 3; y <= 6; y++) row(y, 6, 10, DARK); px(7, 4, EYE); px(9, 4, EYE);                                                        /* a face in shadow: two eyes and no more */
+  if (hat === 1) { px(8, 0, base); px(9, 0, shade); }                                                                                    /* a peaked hood */
+  if (hat === 2) { row(2, 3, 13, shade); row(1, 6, 10, shade); row(0, 7, 9, shade); px(7, 0, base); px(6, 1, base); row(2, 3, 5, base); }   /* a wide-brimmed hat */
+  if (hat === 3) { row(2, 6, 10, "#f0c040"); px(8, 2, "#fff0a0"); }                                                                      /* a gold band */
+  if (carry === "staff" || carry === "oar" || carry === "torch" || carry === "lantern") { for (let y = (carry === "lantern" ? 6 : 3); y <= 20; y++) px(15, y, y % 5 ? WOOD : WOOD2); px(14, 12, light); px(13, 12, light); }
+  if (carry === "staff") { px(15, 2, "#c8d8ff"); px(14, 3, WOOD); px(16, 3, WOOD); }
+  if (carry === "oar") { for (let y = 0; y <= 4; y++) row(y, 14, 16, y === 0 || y === 4 ? WOOD2 : "#b88448"); }
+  if (carry === "torch") { px(15, 2, "#f08030"); px(15, 1, "#ffd257"); px(14, 2, "#ffd257"); px(16, 2, "#f08030"); px(15, 0, "#fff0a0"); px(16, 1, "#f08030"); }
+  if (carry === "lantern") { row(5, 13, 15, WOOD2); for (let y = 6; y <= 8; y++) row(y, 12, 14, "#ffd257"); px(13, 7, "#fff8c0"); row(9, 12, 14, WOOD2); px(13, 5, WOOD2); }
+  if (carry === "rod") { for (let i = 0; i <= 12; i++) px(13 + Math.round(i / 4), 14 - i, WOOD); px(13, 13, light); for (let y = 3; y <= 9; y++) px(17, y, "#c8d8ff"); px(17, 10, "#f0c040"); }
+  if (carry === "scroll") { for (let y = 12; y <= 15; y++) row(y, 5, 11, "#efe6cc"); row(11, 5, 11, "#c8b890"); row(16, 5, 11, "#c8b890"); row(13, 6, 9, "#8a7a5a"); row(14, 7, 10, "#8a7a5a"); px(4, 13, light); px(12, 13, shade); }
+  const out = g.map((r) => r.slice());   /* a dark line round the whole figure */
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (!g[y][x] && [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([a, b]) => g[y + b] && g[y + b][x + a])) out[y][x] = "#0a0a14";
+  canvas.width = W; canvas.height = H; const c = canvas.getContext("2d");
+  out.forEach((r, y) => r.forEach((col, x) => { if (col) { c.fillStyle = col; c.fillRect(x, y, 1, 1); } }));
+}
+/* the companions, as a block of tiles at the foot of the Quest Log */
+function showCompany() {
+  const all = companions(); if (!all.length && !partyOpen) return;
+  main.append(el("p", "label questhead", "The Company"));
+  if (!all.length) { main.append(el("p", "sub", "None yet has thrown in with the keeper. The posts above stand open.")); return; }
+  const wrap = el("div", "fellows");
+  all.forEach((c, i) => {
+    const b = opt(null, () => showCompanion(c, b), "fellow"), pic = el("canvas", "fellowpic"); pic.setAttribute("aria-hidden", "true"); drawCompanion(pic, c.name, c.posts[0].role);
+    b.append(pic, el("span", "name", c.name), el("span", "ftitle", c.title), el("span", "fcount", count(c.posts.length, "venture")));
+    b.style.setProperty("--i", Math.min(i, 6)); wrap.append(b);
+  });
+  main.append(wrap);
+}
+/* one companion's page, in the pop-out window */
+function showCompanion(c, from) {
+  current = null; questFrom = from && from.isConnected ? from : null; setHash("");
+  rwin.textContent = "";
+  const head = el("div", "filehead"), meta = el("p", "meta"), pic = el("canvas", "fellowpic big"); pic.setAttribute("aria-hidden", "true"); drawCompanion(pic, c.name, c.posts[0].role);
+  meta.append(el("span", null, "Companion")); head.append(meta, el("h2", null, c.name));
+  const sheet = el("dl", "facts qstats"), row = (k, v) => { const dd = el("dd"); dd.append(v); sheet.append(el("dt", null, k), dd); };
+  row("Title", c.title); row("Ventures joined", String(c.posts.length)); row("Seen through", String(c.done));
+  const bond = el("span", "hard"); bond.append(pips(c.bond), c.bond + " / 5"); row("Bond", bond);
+  if (c.since) row("Of the company since", day(c.since));
+  const posts = el("ul", "posts");
+  c.posts.forEach((x) => {
+    const li = el("li", x.quest.status === "completed" ? "held" : "vacant"), words = el("span", "pwords");
+    words.append(el("span", "pname", x.role || "Of the company"), el("span", "pabout", x.quest.title));
+    li.append(words, el("span", "pholder", x.quest.status === "completed" ? "Fulfilled" : "In hand")); posts.append(li);
+  });
+  const tally = el("p", "goalhead"); tally.append(el("span", null, "Posts held"), el("span", "lmcount", String(c.posts.length)));
+  const nav = el("div", "row group"); nav.append(opt("Back", closePost));
+  rwin.append(head, pic, sheet, tally, posts, nav);
+  reader.hidden = false; document.body.style.overflow = "hidden"; syncLayers();
+  rwin.classList.remove("pop"); void rwin.offsetWidth; rwin.classList.add("pop");
+  rwin.scrollTop = 0; rwin.focus();
+}
+/* a companion's name as something to choose: it opens their page */
+function fellowLink(name) {
+  const c = companions().find((x) => x.name.toLowerCase() === name.toLowerCase()); if (!c) return el("span", null, name);
+  const b = el("button", "plink", name); b.type = "button"; b.addEventListener("click", () => showCompanion(c, questFrom)); return b;
 }
 function company(q) {
   const { posts, others } = roster(q), open = partyOpen && q.file && q.status !== "completed";
@@ -1104,13 +1402,13 @@ function company(q) {
     const list = el("ul", "posts");
     posts.forEach((p) => {
       const li = el("li", p.holder ? "held" : "vacant"), words = el("span", "pwords"); words.append(el("span", "pname", p.name)); if (p.about) words.append(el("span", "pabout", p.about));
-      li.append(words, el("span", "pholder", p.holder || "Open"));
+      const who = el("span", "pholder"); who.append(p.fellow ? fellowLink(p.holder) : (p.holder || "Open")); li.append(words, who);
       if (!p.holder && open && !asked) li.append(opt("Apply", () => form(p.name), "papply"));
       list.append(li);
     });
     rwin.append(list);
   }
-  if (others.length) { const list = el("ul", "party"); others.forEach((n) => list.append(el("li", null, n))); if (posts.length) rwin.append(el("p", "sub partynote", "Also of the company")); rwin.append(list); }
+  if (others.length) { const list = el("ul", "party"); others.forEach((n) => { const li = el("li"); li.append(fellowLink(n)); list.append(li); }); if (posts.length) rwin.append(el("p", "sub partynote", "Also of the company")); rwin.append(list); }
   else if (!posts.length) rwin.append(el("p", "sub partynote", "None yet has thrown in with this venture."));
   if (!open) return;
   rwin.append(box);
@@ -1118,7 +1416,7 @@ function company(q) {
   box.append(opt(posts.length ? "Petition without a post" : "Petition to join", () => form("")));
 }
 function showQuest(q, from) {
-  if (view !== "files" && view !== "quests") showFiles();
+  if (!(from && from.isConnected) && view !== "files" && view !== "quests") showFiles();
   current = null; questFrom = from && from.isConnected ? from : null; setHash("");
   rwin.textContent = "";
   const head = el("div", "filehead"), meta = el("p", "meta"), goals = el("ul", "goals"), got = q.objectives.filter((o) => o.done).length;
@@ -1148,7 +1446,7 @@ function showQuest(q, from) {
 function closePost() {
   if (reader.hidden) return;
   reader.hidden = true; document.body.style.overflow = ""; setHash(""); syncLayers();
-  const back = current ? [...main.querySelectorAll(".file")].find((b) => b.dataset.file === current.file) : (questFrom && questFrom.isConnected ? questFrom : null);
+  const back = questFrom && questFrom.isConnected ? questFrom : current ? [...main.querySelectorAll(".file")].find((b) => b.dataset.file === current.file) : null;
   current = null; questFrom = null; if (back) back.focus();
 }
 reader.addEventListener("click", (e) => { if (e.target === reader) closePost(); });
@@ -1671,8 +1969,7 @@ function showStatus(focusFirst) {
   openScreen("status", "m-status");
   const t = tally(), wrap = el("div", "sheet"), who = el("div", "who"), pic = el("canvas", "portrait"), facts = el("dl", "facts stats"), bar = el("div", "xpbar"), fill = el("i");
   pic.width = SPRITE_FRAMES[0][0].length; pic.height = SPRITE_FRAMES[0].length; pic.setAttribute("aria-hidden", "true");
-  const px = pic.getContext("2d");   /* the same figure that waves from the title screen */
-  SPRITE_FRAMES[0].forEach((row, y) => { for (let x = 0; x < row.length; x++) { const c = SPRITE_COLOURS[row[x]]; if (c) { px.fillStyle = c; px.fillRect(x, y, 1, 1); } } });
+  stopPortrait(); stopPortrait = figure(pic, AT_EASE);   /* the same figure that waves from the title screen, here standing at his ease */
   fill.style.width = Math.max(2, Math.min(100, t.into / t.span * 100)) + "%"; bar.append(fill);
   bar.setAttribute("role", "img"); bar.setAttribute("aria-label", t.toNext + " experience to the next level");
   who.append(pic, el("h2", null, STATUS.name || "The Keeper"));
@@ -1697,8 +1994,93 @@ function showStatus(focusFirst) {
   wrap.append(who, right);
   main.append(el("p", "label", "Status"), wrap);
   if (STATUS.body) { const words = el("div", "post lore"); renderBody(STATUS.body, words); main.append(words); }
+  main.append(honourBlock());
   main.append(backRow());
   if (focusFirst) main.querySelector(".opt").focus({ preventScroll: true });
+}
+
+/* ==========================================================================
+   9c. HONOURS
+   Medals for particular feats. Each is one line below: a short code name, a
+   family (which sets the ribbon and the device on the medal), a grade (1
+   bronze, 2 silver, 3 gold), the name, how it is won, and the test that
+   decides it. They pay no experience; the feat itself already did. To add
+   one, add a line. A medal not yet won is drawn as a dark locked shape.
+   ========================================================================== */
+const HONOURS = [
+  ["wet-hook", "fish", 1, "The First Wet Hook", "Catch a fish of any kind.", (c) => c.ft.species >= 1],
+  ["five-kinds", "fish", 1, "A Modest Slaughter", "Record five species.", (c) => c.ft.species >= 5],
+  ["ten-kinds", "fish", 2, "Ten Kinds of Regret", "Record ten species.", (c) => c.ft.species >= 10],
+  ["uncommon-luck", "fish", 2, "Something Out of the Ordinary", "Catch a fish that is Rare or better.", (c) => c.rareFish >= 1],
+  ["heft", "fish", 2, "Heft", "Land a fish of five pounds or more.", (c) => !!c.ft.heaviest && c.ft.heaviest.weight >= 5],
+  ["spoken-of", "fish", 3, "The Fish of Which They Speak", "Catch a Legendary fish.", (c) => c.legendFish >= 1],
+  ["empty-lakes", "fish", 3, "The Lakes Stand Empty", "Record every species in the Bestiary.", (c) => c.ft.all > 0 && c.ft.species >= c.ft.all],
+  ["out-of-doors", "map", 1, "Out of Doors", "See a first landmark.", (c) => c.mt.seen >= 1],
+  ["ten-places", "map", 2, "A Man of Several Addresses", "Reach ten places.", (c) => c.mt.places >= 10],
+  ["three-roads", "map", 2, "Three Roads Taken", "Make three journeys.", (c) => c.mt.trips >= 3],
+  ["fifty-sights", "map", 2, "Fifty Sights", "See fifty landmarks.", (c) => c.mt.seen >= 50],
+  ["region", "map", 3, "Nothing Left to Look At", "See every landmark of one region.", (c) => c.mt.mastered >= 1],
+  ["one-leaf", "plant", 1, "Something Green", "Keep one plant alive.", (c) => c.gt.living >= 1],
+  ["compost", "plant", 1, "The Compost Speaks", "Lose three plants. It is entered here without comment.", (c) => c.gt.perished >= 3],
+  ["indoor-wood", "plant", 2, "The Indoor Wood", "Keep five plants alive at once.", (c) => c.gt.living >= 5],
+  ["rare-leaf", "plant", 3, "A Leaf Beyond Price", "Keep alive a plant that is Epic or better.", (c) => c.rarePlant >= 1],
+  ["one-end", "quest", 1, "A Thing Finished", "Fulfil a quest.", (c) => c.qt.done >= 1],
+  ["peril", "quest", 2, "Against Advice", "Fulfil a quest rated Perilous or worse.", (c) => c.done.some((q) => q.difficulty >= 4)],
+  ["great-work", "quest", 3, "A Great Work Concluded", "Fulfil a Great Work.", (c) => c.done.some((q) => q.kind === "main")],
+  ["not-alone", "company", 1, "Not Alone", "Accept a first companion.", (c) => c.fellows >= 1],
+  ["full-company", "company", 2, "Every Post Filled", "Fill every post of a quest.", (c) => c.fullCompany],
+  ["five-fellows", "company", 3, "A Following", "Gather five companions.", (c) => c.fellows >= 5],
+  ["first-word", "log", 1, "The First Word", "Write an entry.", (c) => c.t.entries >= 1],
+  ["ten-entries", "log", 2, "A Habit of Record", "Write ten entries.", (c) => c.t.entries >= 10],
+  ["likenesses", "log", 2, "Five and Twenty Likenesses", "File twenty-five photographs.", (c) => c.t.photos >= 25],
+  ["level-5", "level", 1, "Of Some Account", "Reach level 5.", (c) => c.t.level >= 5],
+  ["level-10", "level", 2, "Of Considerable Account", "Reach level 10.", (c) => c.t.level >= 10],
+  ["level-20", "level", 3, "Of Alarming Account", "Reach level 20.", (c) => c.t.level >= 20]];
+function honours() {
+  const order = Object.keys(RARITY), first = new Map();
+  for (const b of BESTIARY) if (b.status !== "wanted" && !first.has(b.name.trim().toLowerCase())) first.set(b.name.trim().toLowerCase(), b);
+  const got = [...first.values()], done = QUESTS.filter((q) => q.status === "completed");
+  const c = { t: tally(), ft: fishTally(), mt: mapTally(), gt: plantTally(PLANTS), qt: questTally(), done,
+    rareFish: got.filter((b) => order.indexOf(b.rarity) >= 2).length, legendFish: got.filter((b) => b.rarity === "legendary").length,
+    rarePlant: PLANTS.filter((p) => p.status === "living" && order.indexOf(p.rarity) >= 3).length,
+    fellows: companions().length, fullCompany: QUESTS.some((q) => { const r = roster(q); return r.posts.length > 0 && r.filled === r.posts.length; }) };
+  return HONOURS.map(([id, family, grade, name, how, test]) => { let won = false; try { won = !!test(c); } catch (e) {} return { id, family, grade, name, how, won }; });
+}
+const MEDAL_METAL = [null, ["#b87333", "#e6a868", "#7a4a1e", "#43240c"], ["#b8c0cc", "#f2f5fa", "#6e7786", "#343c4a"], ["#f0c040", "#fff4b0", "#a87818", "#5e4006"]];   /* bronze, silver, gold: face, light, shade, and the dark of the device */
+const MEDAL_FAMILY = {   /* ribbon colour, and the 7x7 device struck into the medal */
+  fish:    ["#3c8fd0", ["..###..", "#.####.", "######.", "#.####.", "..###..", ".......", "......."]],
+  map:     ["#d0a030", [".#####.", ".#####.", ".####..", ".#.....", ".#.....", ".#.....", "###...."]],
+  plant:   ["#4ea858", ["....##.", "..####.", ".#####.", ".####..", ".###...", "#......", "#......"]],
+  quest:   ["#c04848", ["...#...", "...#...", "...#...", "...#...", ".#####.", "...#...", "...#..."]],
+  company: ["#e08c58", [".#...#.", "###.###", ".#...#.", ".#...#.", "###.###", "###.###", "......."]],
+  log:     ["#b8b0e8", ["##...##", "###.###", "###.###", "###.###", "###.###", ".##.##.", "......."]],
+  level:   ["#a060d0", ["...#...", "...#...", "#######", ".#####.", "..###..", ".##.##.", "#.....#"]] };
+function drawMedal(canvas, h, locked) {
+  const W = 16, H = 19, g = Array.from({ length: H }, () => new Array(W).fill("")), [face, light, shade, ink] = MEDAL_METAL[h.grade] || MEDAL_METAL[1], fam = MEDAL_FAMILY[h.family] || MEDAL_FAMILY.level;
+  for (let y = 0; y <= 6; y++) for (let x = 5; x <= 10; x++) g[y][x] = x === 7 || x === 8 ? "#f4f0e4" : fam[0];   /* the ribbon, with a pale stripe */
+  for (let y = 5; y < H; y++) for (let x = 0; x < W; x++) {   /* the disc, lit from the upper left */
+    const dx = x - 7.5, dy = y - 12, d = Math.sqrt(dx * dx + dy * dy); if (d > 6.4) continue;
+    g[y][x] = d > 5.2 ? (dx + dy > 2 ? shade : dx + dy < -3 ? light : face) : d > 4.3 && dx + dy < -4 ? light : face;
+  }
+  const dev = fam[1], top = h.family === "fish" ? 10 : 9;
+  dev.forEach((r, j) => { for (let i = 0; i < 7; i++) if (r[i] === "#" && g[top + j] && g[top + j][4 + i]) g[top + j][4 + i] = ink; });
+  canvas.width = W; canvas.height = H; const c = canvas.getContext("2d");
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    let col = g[y][x]; if (!col) continue;
+    if (locked) col = [[1, 0], [-1, 0], [0, 1], [0, -1]].every(([a, b]) => g[y + b] && g[y + b][x + a]) ? "#14161f" : "#8c92a8";
+    c.fillStyle = col; c.fillRect(x, y, 1, 1);
+  }
+}
+/* the block of medals on the Status screen */
+function honourBlock() {
+  const all = honours(), box = el("div", "honours"), head = el("p", "label sheethead", "Honours   " + all.filter((h) => h.won).length + " / " + all.length);
+  all.forEach((h) => {
+    const tile = el("div", "honour" + (h.won ? "" : " locked")), pic = el("canvas", "medal"), words = el("div");
+    pic.setAttribute("aria-hidden", "true"); drawMedal(pic, h, !h.won);
+    words.append(el("span", "hname", h.name), el("span", "hhow", h.how));
+    tile.append(pic, words); box.append(tile);
+  });
+  const wrap = el("div", "honourwrap"); wrap.append(head, box); return wrap;
 }
 
 /* ==========================================================================
@@ -1711,6 +2093,7 @@ $("#m-photos").addEventListener("click", () => showPhotos(true));
 $("#m-map").addEventListener("click", () => showMap(true));
 $("#m-status").addEventListener("click", () => showStatus(true));
 $("#m-quests").addEventListener("click", () => showQuestLog(true));
+$("#m-chron").addEventListener("click", () => showChronicle(true));
 $("#m-about").addEventListener("click", () => showPage("about", "m-about", "About", ABOUT));
 $("#m-how").addEventListener("click", () => showPage("help", "m-how", "Help", HELP));
 
@@ -1763,34 +2146,44 @@ function endIntro() {
   stage.classList.remove("go"); void stage.offsetWidth; stage.classList.add("go");   /* replay the windows' entrance */
   showFiles(true);
   if (pendingPost) { showPost(pendingPost); pendingPost = null; }
+  playMoments();
 }
 introBox.addEventListener("click", endIntro);
 
 /* ==========================================================================
-   12. TITLE SCREEN SPRITE
-   A small pixel figure of Chris that pops up from behind the title box and
-   waves: black cap, black sunglasses, black tee, black jeans, black boots.
-   Each string is one row of pixels; each letter is a colour below. The
-   outline is a shade lighter than the clothes so the black reads on a
-   dark page. The Status screen shows the same figure.
+   12. THE FIGURE
+   A small pixel figure of Chris: black cap, black sunglasses, black tee,
+   black jeans, black boots. Each string is one row of pixels; each letter is
+   a colour below. The outline is a shade lighter than the clothes so the
+   black reads on a dark page. There are six drawings of him (FIGURE names
+   them), and a "script" is a list of [which drawing, for how long] played in
+   a loop. On the title screen he pops up and waves; on the Status screen he
+   stands at his ease, and now and then sets his sunglasses straight.
    ========================================================================== */
 const SPRITE_COLOURS = {"o": "#33333e", "k": "#0c0c0f", "K": "#1d1d24", "j": "#2e2e38", "g": "#040405", "G": "#565664", "r": "#22222a", "s": "#6e4429", "d": "#523019", "m": "#3a2012", "l": "#87583a", "t": "#17171c", "T": "#26262e", "u": "#0b0b0e", "v": "#34343e", "b": "#0f0f14", "B": "#22222c", "c": "#07070a", "x": "#08080a", "X": "#3e3e4a", "z": "#1c1c22", "y": "#15151a"};
-const SPRITE_FRAMES = [["...........oooooooo.......o.o....", ".........ookkkKkkkkoo....ososo...", "........okkjjkKkkkkkko...osdsso..", ".......okkjkkkKkkkkkkko.osslsso..", "......okkjjkkkKkkkkkkkkoossslso..", "......okkjkkkkKkkkkkkkkosssssso..", "......okkkkkkkKkkkkkkkkoodsssso..", "......okKKKKKKKKKKKKKKko.ossoo...", "......okrgGGgggggGgggrko.osso....", "......okggrgggrrggrgggko.osso....", "......okkgggggssgggggkko.osso....", "......okKdssssddsssslkkoouuuuo...", "......okkdssssssssslskkootttto...", ".......okksssmmmmssskko.ottTto...", "........ooodssssssdooo.otttTto...", ".......ooooooddddooooooottTtto...", "....oootttttsssssstttttttttto....", "...ottttttttvssssvtttttuttto.....", "..oTttuttttttvvvvttttttuooo......", ".otTttutTttttttttttttutto........", ".otTttutTttTtttttttttutto........", ".otTttutTttttttutttttutto........", ".otTttutTttTttttuttttutto........", ".otTttutTttTtttttttttutto........", ".ottttutTttttttttttttutto........", ".ouuuuutTttTtutttttttutto........", "..odsoutTttTutttttuttutto........", "..ossoutTttttttttttttutto........", "..ossotuuuuuuuuuuuuuuuuto........", "..ossotttTtttttttttTttto.........", "..ossoottttttcbbcttttto..........", "..ossloobbBbbcbbcbbBbbo..........", "..osssoobbBbbccccbbBbbo..........", "...odo.obbBbbccccbbBbbo..........", "....o..obBBbbccccbbBBbo..........", ".......obBBbbccccbbBBbo..........", "......obbbBbbccccbbBbbbo.........", "......obbbBbbccccbbBbbbo.........", "......obcbbBbccccbBbbcbo.........", "......oxxxxxxooooxxxxxxo.........", "......oxXxxxxo..oxxxxXxo.........", ".....oxXxyxxxxooxxxxyxXxo........", ".....ozzzzzzzzoozzzzzzzzo........", "......oooooooo..oooooooo........."], ["...........oooooooo........o.o...", ".........ookkkKkkkkoo.....ososo..", "........okkjjkKkkkkkko....osdsso.", ".......okkjkkkKkkkkkkko..osslsso.", "......okkjjkkkKkkkkkkkko.ossslso.", "......okkjkkkkKkkkkkkkkoosssssso.", "......okkkkkkkKkkkkkkkko.odsssso.", "......okKKKKKKKKKKKKKKko..ossoo..", "......okrgGGgggggGgggrko..osso...", "......okggrgggrrggrgggko..osso...", "......okkgggggssgggggkko.ossso...", "......okKdssssddsssslkkoouuuuo...", "......okkdssssssssslskkootttto...", ".......okksssmmmmssskko.ottTto...", "........ooodssssssdooo.otttTto...", ".......ooooooddddooooooottTtto...", "....oootttttsssssstttttttttto....", "...ottttttttvssssvtttttuttto.....", "..oTttuttttttvvvvttttttuooo......", ".otTttutTttttttttttttutto........", ".otTttutTttTtttttttttutto........", ".otTttutTttttttutttttutto........", ".otTttutTttTttttuttttutto........", ".otTttutTttTtttttttttutto........", ".ottttutTttttttttttttutto........", ".ouuuuutTttTtutttttttutto........", "..odsoutTttTutttttuttutto........", "..ossoutTttttttttttttutto........", "..ossotuuuuuuuuuuuuuuuuto........", "..ossotttTtttttttttTttto.........", "..ossoottttttcbbcttttto..........", "..ossloobbBbbcbbcbbBbbo..........", "..osssoobbBbbccccbbBbbo..........", "...odo.obbBbbccccbbBbbo..........", "....o..obBBbbccccbbBBbo..........", ".......obBBbbccccbbBBbo..........", "......obbbBbbccccbbBbbbo.........", "......obbbBbbccccbbBbbbo.........", "......obcbbBbccccbBbbcbo.........", "......oxxxxxxooooxxxxxxo.........", "......oxXxxxxo..oxxxxXxo.........", ".....oxXxyxxxxooxxxxyxXxo........", ".....ozzzzzzzzoozzzzzzzzo........", "......oooooooo..oooooooo........."]];
-const spriteBox = $("#sprite"), spx = spriteBox.getContext("2d");
-let waveTimer = null;
-function drawSprite(n) {
-  spx.clearRect(0, 0, spriteBox.width, spriteBox.height);
-  SPRITE_FRAMES[n].forEach((row, y) => { for (let x = 0; x < row.length; x++) { const c = SPRITE_COLOURS[row[x]]; if (c) { spx.fillStyle = c; spx.fillRect(x, y, 1, 1); } } });
+const SPRITE_FRAMES = [["...........oooooooo.......o.o....", ".........ookkkKkkkkoo....ososo...", "........okkjjkKkkkkkko...osdsso..", ".......okkjkkkKkkkkkkko.osslsso..", "......okkjjkkkKkkkkkkkkoossslso..", "......okkjkkkkKkkkkkkkkosssssso..", "......okkkkkkkKkkkkkkkkoodsssso..", "......okKKKKKKKKKKKKKKko.ossoo...", "......okrgGGgggggGgggrko.osso....", "......okggrgggrrggrgggko.osso....", "......okkgggggssgggggkko.osso....", "......okKdssssddsssslkkoouuuuo...", "......okkdssssssssslskkootttto...", ".......okksssmmmmssskko.ottTto...", "........ooodssssssdooo.otttTto...", ".......ooooooddddooooooottTtto...", "....oootttttsssssstttttttttto....", "...ottttttttvssssvtttttuttto.....", "..oTttuttttttvvvvttttttuooo......", ".otTttutTttttttttttttutto........", ".otTttutTttTtttttttttutto........", ".otTttutTttttttutttttutto........", ".otTttutTttTttttuttttutto........", ".otTttutTttTtttttttttutto........", ".ottttutTttttttttttttutto........", ".ouuuuutTttTtutttttttutto........", "..odsoutTttTutttttuttutto........", "..ossoutTttttttttttttutto........", "..ossotuuuuuuuuuuuuuuuuto........", "..ossotttTtttttttttTttto.........", "..ossoottttttcbbcttttto..........", "..ossloobbBbbcbbcbbBbbo..........", "..osssoobbBbbccccbbBbbo..........", "...odo.obbBbbccccbbBbbo..........", "....o..obBBbbccccbbBBbo..........", ".......obBBbbccccbbBBbo..........", "......obbbBbbccccbbBbbbo.........", "......obbbBbbccccbbBbbbo.........", "......obcbbBbccccbBbbcbo.........", "......oxxxxxxooooxxxxxxo.........", "......oxXxxxxo..oxxxxXxo.........", ".....oxXxyxxxxooxxxxyxXxo........", ".....ozzzzzzzzoozzzzzzzzo........", "......oooooooo..oooooooo........."], ["...........oooooooo........o.o...", ".........ookkkKkkkkoo.....ososo..", "........okkjjkKkkkkkko....osdsso.", ".......okkjkkkKkkkkkkko..osslsso.", "......okkjjkkkKkkkkkkkko.ossslso.", "......okkjkkkkKkkkkkkkkoosssssso.", "......okkkkkkkKkkkkkkkko.odsssso.", "......okKKKKKKKKKKKKKKko..ossoo..", "......okrgGGgggggGgggrko..osso...", "......okggrgggrrggrgggko..osso...", "......okkgggggssgggggkko.ossso...", "......okKdssssddsssslkkoouuuuo...", "......okkdssssssssslskkootttto...", ".......okksssmmmmssskko.ottTto...", "........ooodssssssdooo.otttTto...", ".......ooooooddddooooooottTtto...", "....oootttttsssssstttttttttto....", "...ottttttttvssssvtttttuttto.....", "..oTttuttttttvvvvttttttuooo......", ".otTttutTttttttttttttutto........", ".otTttutTttTtttttttttutto........", ".otTttutTttttttutttttutto........", ".otTttutTttTttttuttttutto........", ".otTttutTttTtttttttttutto........", ".ottttutTttttttttttttutto........", ".ouuuuutTttTtutttttttutto........", "..odsoutTttTutttttuttutto........", "..ossoutTttttttttttttutto........", "..ossotuuuuuuuuuuuuuuuuto........", "..ossotttTtttttttttTttto.........", "..ossoottttttcbbcttttto..........", "..ossloobbBbbcbbcbbBbbo..........", "..osssoobbBbbccccbbBbbo..........", "...odo.obbBbbccccbbBbbo..........", "....o..obBBbbccccbbBBbo..........", ".......obBBbbccccbbBBbo..........", "......obbbBbbccccbbBbbbo.........", "......obbbBbbccccbbBbbbo.........", "......obcbbBbccccbBbbcbo.........", "......oxxxxxxooooxxxxxxo.........", "......oxXxxxxo..oxxxxXxo.........", ".....oxXxyxxxxooxxxxyxXxo........", ".....ozzzzzzzzoozzzzzzzzo........", "......oooooooo..oooooooo........."], ["...........oooooooo..............", ".........ookkkKkkkkoo............", "........okkjjkKkkkkkko...........", ".......okkjkkkKkkkkkkko..........", "......okkjjkkkKkkkkkkkko.........", "......okkjkkkkKkkkkkkkko.........", "......okkkkkkkKkkkkkkkko.........", "......okKKKKKKKKKKKKKKko.........", "......okrgGGgggggGgggrko.........", "......okggrgggrrggrgggko.........", "......okkgggggssgggggkko.........", "......okKdssssddsssslkko.........", "......okkdssssssssslskko.........", ".......okksssmmmmssskko..........", "........ooodssssssdooo...........", ".......ooooooddddoooooo..........", "....oootttttsssssstttttooo.......", "...ottttttttvssssvtttttttto......", "..oTttuttttttvvvvttttttuttuo.....", ".otTttutTttttttttttttututtuto....", ".otTttutTttTtttttttttututtuto....", ".otTttutTttttttutttttututtuto....", ".otTttutTttTttttuttttututtuto....", ".otTttutTttTtttttttttututtuto....", ".ottttutTttttttttttttututttto....", ".ouuuuutTttTtutttttttutuuuuuo....", "..odsoutTttTutttttuttutuosdo.....", "..ossoutTttttttttttttutuosso.....", "..ossotuuuuuuuuuuuuuuuutosso.....", "..ossotttTtttttttttTtttoosso.....", "..ossoottttttcbbcttttto.osso.....", "..ossloobbBbbcbbcbbBbboossdo.....", "..osssoobbBbbccccbbBbboossso.....", "...odo.obbBbbccccbbBbbo.odo......", "....o..obBBbbccccbbBBbo..o.......", ".......obBBbbccccbbBBbo..........", "......obbbBbbccccbbBbbbo.........", "......obbbBbbccccbbBbbbo.........", "......obcbbBbccccbBbbcbo.........", "......oxxxxxxooooxxxxxxo.........", "......oxXxxxxo..oxxxxXxo.........", ".....oxXxyxxxxooxxxxyxXxo........", ".....ozzzzzzzzoozzzzzzzzo........", "......oooooooo..oooooooo........."], [".................................", "...........oooooooo..............", ".........ookkkKkkkkoo............", "........okkjjkKkkkkkko...........", ".......okkjkkkKkkkkkkko..........", "......okkjjkkkKkkkkkkkko.........", "......okkjkkkkKkkkkkkkko.........", "......okkkkkkkKkkkkkkkko.........", "......okKKKKKKKKKKKKKKko.........", "......okrgGGgggggGgggrko.........", "......okggrgggrrggrgggko.........", "......okkgggggssgggggkko.........", "......okKdssssddsssslkko.........", "......okkdssssssssslskko.........", ".......okksssmmmmssskko..........", "........ooodssssssdooo...........", ".......ooooooddddoooooo..........", "....oootttttsssssstttttooo.......", "...ottttttttvssssvtttttttto......", "..oTttuttttttvvvvttttttuttuo.....", ".otTttutTttttttttttttututtuto....", ".otTttutTttTtttttttttututtuto....", ".otTttutTttttttutttttututtuto....", ".otTttutTttTttttuttttututtuto....", ".otTttutTttTtttttttttututtuto....", ".ottttutTttttttttttttututttto....", ".ouuuuutTttTtutttttttutuuuuuo....", "..odsoutTttTutttttuttutuosdo.....", "..ossotuuuuuuuuuuuuuuuutosso.....", "..ossotttTtttttttttTtttoosso.....", "..ossoottttttcbbcttttto.osso.....", "..ossloobbBbbcbbcbbBbboossdo.....", "..osssoobbBbbccccbbBbboossso.....", "...odo.obbBbbccccbbBbbo.odo......", "....o..obBBbbccccbbBBbo..o.......", ".......obBBbbccccbbBBbo..........", "......obbbBbbccccbbBbbbo.........", "......obbbBbbccccbbBbbbo.........", "......obcbbBbccccbBbbcbo.........", "......oxxxxxxooooxxxxxxo.........", "......oxXxxxxo..oxxxxXxo.........", ".....oxXxyxxxxooxxxxyxXxo........", ".....ozzzzzzzzoozzzzzzzzo........", "......oooooooo..oooooooo........."], ["...........oooooooo..............", ".........ookkkKkkkkoo............", "........okkjjkKkkkkkko...........", ".......okkjkkkKkkkkkkko..........", "......okkjjkkkKkkkkkkkko.........", "......okkjkkkkKkkkkkkkko.........", "......okkkkkkkKkkkkkkkko.........", "......okKKKKKKKKKKKKKKkooo.......", "......okrgGGgggggGgggrkssdo......", "......okggrgggrrggrgggklsso......", "......okkgggggssgggggkkssso......", "......okKdssssddsssslkkssdo......", "......okkdssssssssslskkossdo.....", ".......okksssmmmmssskkoossdo.....", "........ooodssssssdooo..ossdo....", ".......ooooooddddoooooo.ossdo....", "....oootttttsssssstttttooossdo...", "...ottttttttvssssvtttttttttto....", "..oTttuttttttvvvvttttttuttttto...", ".otTttutTttttttttttttututtttTto..", ".otTttutTttTtttttttttuttotttTto..", ".otTttutTttttttutttttuttootttto..", ".otTttutTttTttttuttttuttoouuuuo..", ".otTttutTttTtttttttttutto.oooo...", ".ottttutTttttttttttttutto........", ".ouuuuutTttTtutttttttutto........", "..odsoutTttTutttttuttutto........", "..ossoutTttttttttttttutto........", "..ossotuuuuuuuuuuuuuuuuto........", "..ossotttTtttttttttTttto.........", "..ossoottttttcbbcttttto..........", "..ossloobbBbbcbbcbbBbbo..........", "..osssoobbBbbccccbbBbbo..........", "...odo.obbBbbccccbbBbbo..........", "....o..obBBbbccccbbBBbo..........", ".......obBBbbccccbbBBbo..........", "......obbbBbbccccbbBbbbo.........", "......obbbBbbccccbbBbbbo.........", "......obcbbBbccccbBbbcbo.........", "......oxxxxxxooooxxxxxxo.........", "......oxXxxxxo..oxxxxXxo.........", ".....oxXxyxxxxooxxxxyxXxo........", ".....ozzzzzzzzoozzzzzzzzo........", "......oooooooo..oooooooo........."], ["...........oooooooo..............", ".........ookkkKkkkkoo............", "........okkjjkKkkkkkko...........", ".......okkjkkkKkkkkkkko..........", "......okkjjkkkKkkkkkkkko.........", "......okkjkkkkKkkkkkkkko.........", "......okkkkkkkKkkkkkkkkooo.......", "......okKKKKKKKKKKKKKKkssdo......", "......okrgGGGggggGgGgrklsso......", "......okggrgggrrgGrgggkssso......", "......okkgggggssgggggkkssdo......", "......okKdssssddsssslkkoooo......", "......okkdssssssssslskkossdo.....", ".......okksssmmmmssskkoossdo.....", "........ooodssssssdooo..ossdo....", ".......ooooooddddoooooo.ossdo....", "....oootttttsssssstttttooossdo...", "...ottttttttvssssvtttttttttto....", "..oTttuttttttvvvvttttttuttttto...", ".otTttutTttttttttttttututtttTto..", ".otTttutTttTtttttttttuttotttTto..", ".otTttutTttttttutttttuttootttto..", ".otTttutTttTttttuttttuttoouuuuo..", ".otTttutTttTtttttttttutto.oooo...", ".ottttutTttttttttttttutto........", ".ouuuuutTttTtutttttttutto........", "..odsoutTttTutttttuttutto........", "..ossoutTttttttttttttutto........", "..ossotuuuuuuuuuuuuuuuuto........", "..ossotttTtttttttttTttto.........", "..ossoottttttcbbcttttto..........", "..ossloobbBbbcbbcbbBbbo..........", "..osssoobbBbbccccbbBbbo..........", "...odo.obbBbbccccbbBbbo..........", "....o..obBBbbccccbbBBbo..........", ".......obBBbbccccbbBBbo..........", "......obbbBbbccccbbBbbbo.........", "......obbbBbbccccbbBbbbo.........", "......obcbbBbccccbBbbcbo.........", "......oxxxxxxooooxxxxxxo.........", "......oxXxxxxo..oxxxxXxo.........", ".....oxXxyxxxxooxxxxyxXxo........", ".....ozzzzzzzzoozzzzzzzzo........", "......oooooooo..oooooooo........."]];
+const FIGURE = { wave: 0, wave2: 1, stand: 2, breathe: 3, shades: 4, shades2: 5 };
+const WAVING = [[0, 280], [1, 280], [0, 280], [1, 280], [0, 280], [1, 280], [0, 280], [1, 280]], BREATHING = [[2, 950], [3, 950], [2, 950], [3, 950]], FIXING = [[4, 240], [5, 560], [4, 200]];
+const GREETING = WAVING.concat(WAVING, BREATHING, FIXING, BREATHING), AT_EASE = BREATHING.concat(BREATHING, FIXING, BREATHING, WAVING, [[2, 500]]);
+function drawFigure(c, n) {
+  c.clearRect(0, 0, c.canvas.width, c.canvas.height);
+  SPRITE_FRAMES[n].forEach((row, y) => { for (let x = 0; x < row.length; x++) { const col = SPRITE_COLOURS[row[x]]; if (col) { c.fillStyle = col; c.fillRect(x, y, 1, 1); } } });
 }
+/* play a script on a canvas for as long as it stays on the page; gives back a way to stop it */
+function figure(canvas, script) {
+  const c = canvas.getContext("2d"); let i = 0, timer = null;
+  if (reduceMotion) { drawFigure(c, script[0][0]); return () => {}; }
+  (function step() { if (i && !canvas.isConnected) return; const [n, ms] = script[i++ % script.length]; drawFigure(c, n); timer = setTimeout(step, ms); })();
+  return () => clearTimeout(timer);
+}
+const spriteBox = $("#sprite");
+let stopWave = () => {}, stopPortrait = () => {};
 function startSprite() {
-  drawSprite(0);
+  drawFigure(spriteBox.getContext("2d"), FIGURE.wave);
   if (reduceMotion) { spriteBox.classList.add("up"); return; }
-  setTimeout(() => {
-    spriteBox.classList.add("up");
-    let n = 0; waveTimer = setInterval(() => { n = 1 - n; drawSprite(n); }, 280);
-  }, 1300);
+  setTimeout(() => { if (introBox.classList.contains("done")) return; spriteBox.classList.add("up"); stopWave = figure(spriteBox, GREETING); }, 1300);
 }
-function stopSprite() { clearInterval(waveTimer); waveTimer = null; }
+function stopSprite() { stopWave(); }
 
 /* ==========================================================================
    13. DRIFTING SPARKLES (background)
@@ -1916,6 +2309,68 @@ if (/[?&]debug\b/.test(location.search)) {
 }
 
 /* ==========================================================================
+   14b. MOMENTS
+   When something has been earned since this visitor last looked in (a level,
+   a new standing, a quest fulfilled, a medal, a new species, a new entry), a
+   small banner drops in to say so, with a few notes of fanfare if the music
+   is on. To know what is new, the page keeps a short note of what was last
+   seen in the visitor's own browser. It never leaves their device and holds
+   nothing about them: only the level and the lists it last showed. A first
+   visit shows no banners; it only takes the note.
+   Add ?moments to the address to see a sample of the banners at any time.
+   ========================================================================== */
+const STANDINGS = [["As angler", ANGLER_RANKS], ["As wanderer", EXPLORER_RANKS], ["As gardener", GARDEN_RANKS], ["As finisher", QUEST_RANKS]];
+const momentBox = $("#moments");
+let momentQueue = [], momentTimer = null, momentsDone = false;
+function standingsNow() { const t = tally(); return [rankOf(ANGLER_RANKS, t.species, t.allSpecies), rankOf(EXPLORER_RANKS, t.seen, t.marks), rankOf(GARDEN_RANKS, t.green.living), rankOf(QUEST_RANKS, t.questsDone)].map((r) => r.name); }
+function fanfare(big) {   /* a few bright notes over the music; silent unless the music is on and already playing */
+  if (!ac || !musicOn || ac.state !== "running") return;
+  try { const t = ac.currentTime + 0.05; (big ? [74, 78, 81, 86] : [81, 86]).forEach((n, i) => { note(n, t + i * 0.11, 0.5, 0.07, "triangle"); note(n + 12, t + i * 0.11, 0.3, 0.02, "sine"); }); } catch (e) {}
+}
+function nextMoment() {
+  clearTimeout(momentTimer); momentBox.textContent = "";
+  const m = momentQueue.shift(); if (!m) return;
+  const card = el("button", "moment win"), words = el("span", "mwords"); card.type = "button"; card.setAttribute("aria-label", m.kind + ": " + m.title + ". Dismiss");
+  if (m.medal) { const pic = el("canvas", "medal"); pic.setAttribute("aria-hidden", "true"); drawMedal(pic, m.medal, false); card.append(pic); } else card.append(el("span", "mstar"));
+  words.append(el("span", "mkind", m.kind), el("span", "mtitle", m.title)); if (m.sub) words.append(el("span", "msub", m.sub));
+  card.append(words); card.addEventListener("click", nextMoment);
+  momentBox.append(card); fanfare(m.big);
+  momentTimer = setTimeout(nextMoment, 4600);
+}
+function playMoments() { if (momentQueue.length && !momentBox.firstChild && introBox.classList.contains("done")) momentTimer = setTimeout(nextMoment, 1500); }
+function moments() {   /* runs once, after everything has loaded */
+  if (momentsDone || loadNote.indexOf("Could not") === 0) return; momentsDone = true;
+  const t = tally(), ranks = standingsNow(), won = honours().filter((h) => h.won);
+  const fish = [...new Set(BESTIARY.filter((b) => b.status !== "wanted").map((b) => b.name))], done = QUESTS.filter((q) => q.status === "completed");
+  const list = (v) => (Array.isArray(v) ? v.map(text) : []);
+  let old = null; try { old = JSON.parse(store.get("seen1") || "null"); } catch (e) {}
+  const found = [];
+  if (old && typeof old === "object") {
+    const oldRanks = list(old.ranks), had = (key, v) => list(old[key]).includes(v);
+    if (t.level > (+old.level || 0) && +old.level > 0) found.push({ kind: "Level up", title: "Level " + t.level, sub: "The keeper has grown since you last looked in.", big: true });
+    STANDINGS.forEach(([label, ladder], i) => {   /* only a step up is announced */
+      const at = (name) => ladder.findIndex((r) => r[1] === name);
+      if (oldRanks[i] && at(ranks[i]) > at(oldRanks[i]) && at(oldRanks[i]) >= 0) found.push({ kind: "New standing", title: ranks[i], sub: label, big: true });
+    });
+    done.forEach((q) => { if (!had("quests", q.file)) found.push({ kind: "Quest fulfilled", title: q.title, sub: "+" + questExp(q) + " experience", big: true }); });
+    won.forEach((h) => { if (!had("honours", h.id)) found.push({ kind: "Honour won", title: h.name, sub: h.how, medal: h }); });
+    fish.forEach((n) => { if (!had("fish", n)) found.push({ kind: "New species", title: n, sub: "Entered in the Bestiary" }); });
+    sorted.forEach((p) => { if (!had("entries", p.file)) found.push({ kind: "New in the log", title: p.title, sub: day(p.date) }); });
+  }
+  /* the note only ever grows, so a thing announced once is never announced again */
+  const keep = (key, now) => [...new Set(list(old && old[key]).concat(now))].slice(-400);
+  store.set("seen1", JSON.stringify({ level: Math.max(t.level, (old && +old.level) || 0), ranks, quests: keep("quests", done.map((q) => q.file)), honours: keep("honours", won.map((h) => h.id)),
+    fish: keep("fish", fish), entries: keep("entries", sorted.map((p) => p.file)) }));
+  if (/[?&]moments\b/.test(location.search)) {   /* a sample, for looking at the banners */
+    found.length = 0; found.push({ kind: "Level up", title: "Level " + t.level, sub: "A sample of the banner.", big: true }, { kind: "New standing", title: ranks[0], sub: "As angler", big: true });
+    if (won[0]) found.push({ kind: "Honour won", title: won[0].name, sub: won[0].how, medal: won[0] });
+  }
+  const more = found.length - 5;
+  momentQueue = found.slice(0, 5); if (more > 0) momentQueue.push({ kind: "And more besides", title: count(more, "further matter"), sub: "See the Chronicle" });
+  playMoments();
+}
+
+/* ==========================================================================
    15. LOADING AND START
    Draws the first screen straight away (empty), then fetches posts.json,
    tidies every piece of it so one odd entry can never break a screen, and
@@ -1943,6 +2398,7 @@ function linkedPost() {   /* the entry named after # in the address, if there is
       const group = (g) => (g && typeof g === "object" && !Array.isArray(g) ? g : {});
       FISH = group(pics.fish); FISH_ALIAS = group(pics.fishAlias); PLANT = group(pics.plants); PLANT_ALIAS = group(pics.plantAlias);
       if (Array.isArray(pics.water)) FISH_WATER = pics.water.map(text);
+      if (Array.isArray(pics.divers)) DIVERS = pics.divers.map(text);
       if (Array.isArray(pics.size) && pics.size[0] > 0 && pics.size[1] > 0 && pics.size[0] <= 512 && pics.size[1] <= 512) FISH_SIZE = [Math.round(pics.size[0]), Math.round(pics.size[1])];
     }
     const data = (await r.json()) || {};
@@ -2002,9 +2458,10 @@ function linkedPost() {   /* the entry named after # in the address, if there is
   if (view === "plants") showPlants(plantsKind, started);
   if (view === "status") showStatus(started);
   if (view === "quests") showQuestLog(started);
+  if (view === "chron") showChronicle(started);
   if (view === "photos" || view === "album") showPhotos(started);
   if (view === "map") showMap(started);
-  drawMini(); loadLand().then(drawMini); loadParty();
+  drawMini(); loadLand().then(drawMini); loadParty().then(moments);
   if (view === "about") showPage("about", "m-about", "About", ABOUT);
   if (pendingPost && started) { showPost(pendingPost); pendingPost = null; }
 })();

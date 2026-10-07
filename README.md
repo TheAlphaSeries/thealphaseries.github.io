@@ -50,4 +50,10 @@ or cookie is kept, and nobody has an account. Petitions wait unseen until accept
 (passphrase only); a denied petition is deleted. The program behind this is `scripts/worker.js`, and the data is in
 a small Cloudflare database named `halflife-quests`.
 
+An accepted companion is shown on the site by the name they gave, the post they hold and the day they asked.
+
+In the visitor's own browser, and nowhere else, the page keeps two small notes: whether they turned the music off, and
+what the page last showed them (the level, and which quests, medals, fish and entries were already there), so that it
+can announce what is new on their next visit. Neither note is sent anywhere.
+
 The page that used to live in this repository (Polymath Robotics Terminal) is kept on the `polymath-terminal-backup` branch.
