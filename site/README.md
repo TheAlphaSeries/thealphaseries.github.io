@@ -48,7 +48,8 @@ is set out at the end of this file.
 | `13-moments.js` | Banners for what is new since the last visit |
 | `14-touches.js` | The old-game touches: help line, sounds, NEW marks, gamepad, the keeper speaking |
 | `15-sayings.js` | The day's saying, and the strangers who pass on the road |
-| `16-start.js` | Loading and start: fetches everything, tidies it, draws the first screen |
+| `16-fishing.js` | The fishing game: cast, wait, hook, fight, land |
+| `17-start.js` | Loading and start: fetches everything, tidies it, draws the first screen |
 | `site.css` | The look. Colours and fonts are set once near the top (the lines starting with `--`); each part of the screen has its own block below. |
 
 ## Rules the scripts keep
@@ -56,6 +57,6 @@ is set out at the end of this file.
 - Everything on the page is built as elements, never pasted in as raw HTML, so nothing typed into the editor or sent
   by a visitor can run as code.
 - Anything loaded from outside (posts.json, sprites.json, the server's answers) is tidied on the way in
-  (`16-start.js`, `05-popout.js`), so one odd record cannot break a screen.
+  (`17-start.js`, `05-popout.js`), so one odd record cannot break a screen.
 - What a visitor's browser remembers (music off, what they have opened, what the page last showed them, their own
   figure, their creel) stays on their device. The site sends nothing about them anywhere.

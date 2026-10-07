@@ -40,6 +40,10 @@ The Quests tab is the full log: what is in hand, and what has been fulfilled. Ea
 
 A finished quest opens with its report: a grade, the experience it paid, everyone who was there and what it earned them, and the keeper's account of how it went. Companions have a level of their own; it rises with every quest they see through. Choose Share to make a card of the report, or of any companion, to send to a friend.
 
+## A line in the water
+
+Choose Cast a line in the Bestiary to fish from the keeper's pier. Press (a tap, or Space) to cast; wait for the float to jerk and press again to hook; then hold to lift the green zone and let go to sink it, keeping the fish inside until the line is drawn in. Only what the keeper has caught can be caught. Your creel is kept on your own device.
+
 ## Like an old game
 
 The bar at the top says what the highlighted command does. Anything you have not opened yet is marked NEW, with a dot on its command; if an entry is waiting, the title screen offers Continue. A gamepad works: the pad or stick moves, A confirms, B goes back. On the Status screen, choose the keeper's portrait to hear from him. The Bestiary can be narrowed to the caught or the at-large, and put in order of number, rarity or name.

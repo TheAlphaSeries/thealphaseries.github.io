@@ -155,6 +155,7 @@ function showBestiary(focusFirst, pick) {
   [["all", "All  " + BESTIARY.length], ["caught", "Caught  " + caught.length], ["wanted", "At large  " + wanted]].forEach(([k, label]) => chip(label, beastShow === k, () => { beastShow = k; }));
   chips.append(el("span", "chipgap"));
   [["number", "By number"], ["rarity", "By rarity"], ["name", "By name"]].forEach(([k, label]) => chip(label, beastSort === k, () => { beastSort = k; }));
+  if (caught.length) { const go = el("div", "row"); go.append(opt("Cast a line", () => showFishing(go.firstChild))); main.append(go); }   /* the fishing game */
   main.append(chips);
   if (!rows.length) { main.append(el("p", "sub", beastShow === "caught" ? "Nothing has been caught yet." : "Nothing remains at large."), backRow()); return; }
   rows.forEach(([b, i], n) => {
