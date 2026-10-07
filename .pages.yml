@@ -563,6 +563,26 @@ content:
       - name: home
         label: Home (keep it general - the site is public)
         type: string
+      - name: equipment
+        label: Equipment (what is worn and carried - shown on the Equipment screen)
+        type: object
+        list: true
+        fields:
+          - name: slot
+            label: Slot (e.g. Head, Eyes, Body, Legs, Feet, Right hand, Left hand)
+            type: string
+          - name: name
+            label: What it is called
+            type: string
+          - name: maker
+            label: Maker (optional)
+            type: string
+          - name: bonus
+            label: What it confers (optional - e.g. Mystery +4)
+            type: string
+          - name: about
+            label: A line or two about it
+            type: string
       - name: body
         label: A few words about the character
         type: rich-text

@@ -63,6 +63,11 @@ which entries, quests and fish they have opened (so the rest can be marked NEW),
 what the page last showed them (the level, and which quests, medals, fish and entries were already there), so that it
 can announce what is new on their next visit. Neither note is sent anywhere.
 
+Someone already accepted onto a quest can leave a short remark under a log entry. They give the e-mail address they
+signed on with (so the remark can be shown beside their figure); the remark and that address are kept, the address is
+never shown, and nothing appears on the site until approved at `/keeper.html`. A remark turned away is deleted, and
+removing someone's last petition deletes their remarks too.
+
 A visitor can make a picture card of a companion or of a finished quest's report to send to friends. The card is drawn
 in their own browser from what the site already shows and handed to their device's share sheet (or saved as a
 picture); the site itself sends it nowhere.

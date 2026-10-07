@@ -156,7 +156,10 @@ const page = (f) => (existsSync("pages/" + f) ? parse(readFileSync("pages/" + f,
 const plantsIntro = { bonsai: page("bonsai.md"), house: page("houseplants.md") };
 // The Status screen: a name, a class and a few words (pages/status.md). The numbers on that screen are counted by the site itself.
 const statusPage = existsSync("pages/status.md") ? parse(readFileSync("pages/status.md", "utf8")) : { meta: {}, body: "" };
-const status = { name: str(statusPage.meta.name), class: str(statusPage.meta.class), home: str(statusPage.meta.home), body: statusPage.body };
+const status = { name: str(statusPage.meta.name), class: str(statusPage.meta.class), home: str(statusPage.meta.home), body: statusPage.body,
+  // what the keeper wears and carries, slot by slot
+  equipment: (Array.isArray(statusPage.meta.equipment) ? statusPage.meta.equipment : []).filter((x) => x && typeof x === "object" && String(x.name || "").trim())
+    .map((x) => ({ slot: String(x.slot || "").trim(), name: String(x.name).trim(), maker: String(x.maker || "").trim(), bonus: String(x.bonus || "").trim(), about: String(x.about || "").trim() })) };
 const about = existsSync("pages/about.md") ? parse(readFileSync("pages/about.md", "utf8")).body : "";
 // "source" records where this copy of the list was built, which helps when checking the site.
 const source = process.env.GITHUB_ACTIONS ? "github" : (process.env.WORKERS_CI || process.env.WORKERS_CI_BUILD_UUID) ? "cloudflare" : "other";

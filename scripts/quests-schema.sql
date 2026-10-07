@@ -4,3 +4,5 @@ CREATE TABLE IF NOT EXISTS applications (id INTEGER PRIMARY KEY AUTOINCREMENT, q
 -- email: where the keeper can reach them (never shown on the site). seed: the number their figure is drawn from.
 CREATE INDEX IF NOT EXISTS by_status ON applications (status, created);
 CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+-- Remarks left on log entries by companions (see /api/remark). Shown only once the keeper approves them.
+CREATE TABLE IF NOT EXISTS remarks (id INTEGER PRIMARY KEY AUTOINCREMENT, entry TEXT NOT NULL, email TEXT NOT NULL, body TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'pending', created INTEGER NOT NULL);
