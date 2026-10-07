@@ -107,9 +107,6 @@ function showBestiary(focusFirst, pick) {
   const kinds = (set) => new Set(set.map((b) => b.name.trim().toLowerCase())).size;   /* a species is told apart by its name */
   const ft = fishTally(), tiers = el("span", "tiers");
   ft.tiers.forEach(([r, got, all]) => { const t = el("span", "rarity " + r, RARITY[r][0] + " " + got + "/" + all); tiers.append(t); });
-  main.append(statBlock([["Standing", standing(ANGLER_RANKS, ft.species, ft.all)], ["Species", meter(ft.species, ft.all)], ["By rarity", tiers],
-    ["Experience", ft.earned + " earned  /  " + ft.offered + " still swimming"],
-    ["Rarest catch", ft.rarest && ft.rarest.rarity ? ft.rarest.name + " (" + RARITY[ft.rarest.rarity][0] + ")" : ""], ["Heaviest", ft.heaviest ? ft.heaviest.name + ", " + ft.heaviest.weight + " lb" : ""]]));
   const wrap = el("div", "beasts"), list = el("div", "beastlist"), card = el("div", "beastcard");
   const show = (b, btn) => {
     list.querySelectorAll(".opt").forEach((o) => o.setAttribute("aria-pressed", String(o === btn)));
@@ -168,7 +165,11 @@ function showBestiary(focusFirst, pick) {
     btn.style.setProperty("--i", Math.min(n, 12)); btn.dataset.at = i;
     list.append(btn);
   });
-  wrap.append(list, card); main.append(wrap, backRow());
+  wrap.append(list, card); main.append(wrap);
+  main.append(el("p", "label questhead", "The angler's standing"), statBlock([["Standing", standing(ANGLER_RANKS, ft.species, ft.all)], ["Species", meter(ft.species, ft.all)], ["By rarity", tiers],
+    ["Experience", ft.earned + " earned  /  " + ft.offered + " still swimming"],
+    ["Rarest catch", ft.rarest && ft.rarest.rarity ? ft.rarest.name + " (" + RARITY[ft.rarest.rarity][0] + ")" : ""], ["Heaviest", ft.heaviest ? ft.heaviest.name + ", " + ft.heaviest.weight + " lb" : ""]]));
+  main.append(backRow());   /* the fish first; the reckoning after */
   const start = [...list.querySelectorAll(".opt")].find((o) => +o.dataset.at === pick) || list.querySelector(".opt");
   show(BESTIARY[+start.dataset.at], start);
   if (focusFirst) start.focus();

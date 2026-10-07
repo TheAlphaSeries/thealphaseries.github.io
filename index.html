@@ -12,7 +12,7 @@
 <meta property="og:image" content="https://halflife.studio/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Half Life: a black 16-bit menu screen with a small pixel figure waving.">
+<meta property="og:image:alt" content="Half Life: a hooded pixel figure with three glowing eyes, an orb and a staff, under a dying red sun.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Half Life">
 <meta name="twitter:description" content="Photographs, a log, a bestiary of fish and a map of where it all happened. By Chris.">
@@ -42,6 +42,7 @@ img { max-width: 100%; }
   <main class="win" id="main" tabindex="-1"></main>
 
   <nav class="win" id="menu" aria-label="Commands">
+    <button class="opt menutoggle" type="button" id="menutoggle" aria-expanded="false"><span>Menu</span><span class="where" id="menuwhere"></span></button>
     <button class="opt" type="button" id="m-files">Log</button>
     <button class="opt" type="button" id="m-quests">Quests</button>
     <button class="opt" type="button" id="m-chron">Chronicle</button>
@@ -82,6 +83,7 @@ img { max-width: 100%; }
   <div class="win">
   <div class="name">HALF LIFE</div>
   <div class="tagline">Still receiving.</div>
+  <p class="firstline" id="firstline" hidden>The log of Chris, of San Francisco: what he wrote, caught, grew and saw, kept the way an old game keeps a save. Nothing here asks for an account.</p>
   <button class="opt start" id="startbtn" type="button">Start</button>
   <button class="opt start" id="continuebtn" type="button" hidden></button>
   </div>

@@ -50,7 +50,7 @@ function showFishing(from) {
   rwin.textContent = "";
   const head = el("div", "filehead"), meta = el("p", "meta"); meta.append(el("span", null, "A game")); head.append(meta, el("h2", null, "A Line in the Water"));
   const words = el("div", "post intro"), pool = fishable();
-  words.append(el("p", null, pool.length ? "The keeper lends his pier and, there being no rod to spare, his staff. Only what he has caught himself may be caught here; the rest is still at large, and keeps its own counsel." : "The keeper has caught nothing yet, so there is nothing to cast for. The water is, however, very pleasant to look at."));
+  words.append(el("p", null, pool.length ? "The keeper lends his pier and, having no rod to spare, his staff. Only what he has caught may be caught here." : "The keeper has caught nothing yet, so there is nothing to cast for. The water is, however, very pleasant to look at."));
   const cv = el("canvas", "fgame"), say = el("p", "fsay"), bag = el("p", "sub fcreel", creelLine()), result = el("div", "fresult"), nav = el("div", "row group");
   cv.width = FGAME.w; cv.height = FGAME.h; cv.setAttribute("role", "img"); cv.setAttribute("aria-label", "The pier, the water, and the keeper with his line out."); say.setAttribute("role", "status");
   nav.append(opt("Back", closePost));

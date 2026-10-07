@@ -35,6 +35,7 @@ function moments() {   /* runs once, after everything has loaded */
   const fish = [...new Set(BESTIARY.filter((b) => b.status !== "wanted").map((b) => b.name))], done = QUESTS.filter((q) => q.status === "completed");
   const list = (v) => (Array.isArray(v) ? v.map(text) : []);
   let old = null; try { old = JSON.parse(store.get("seen1") || "null"); } catch (e) {}
+  if (!old) $("#firstline").hidden = false;   /* a first visit: a line on the title screen saying what this is */
   const found = [];
   if (old && typeof old === "object") {
     const oldRanks = list(old.ranks), had = (key, v) => list(old[key]).includes(v);

@@ -1,6 +1,13 @@
 /* ==========================================================================
    10. MENU AND KEYBOARD
    ========================================================================== */
+/* On a phone the menu is folded to one row; the Menu button opens it, and choosing a command folds it again. Moving
+   the keyboard or gamepad cursor onto a hidden command opens it as well. */
+const menuToggle = $("#menutoggle");
+function foldMenu(open) { menu.classList.toggle("open", open); menuToggle.setAttribute("aria-expanded", String(open)); }
+menuToggle.addEventListener("click", () => foldMenu(!menu.classList.contains("open")));
+menu.addEventListener("click", (e) => { const b = e.target.closest && e.target.closest(".opt"); if (b && b !== menuToggle && b.id !== "m-music") foldMenu(false); });
+menu.addEventListener("focusin", (e) => { if (e.target !== menuToggle && getComputedStyle(menuToggle).display !== "none" && !menu.classList.contains("open")) foldMenu(true); });
 $("#m-files").addEventListener("click", () => showFiles(true));
 $("#m-bestiary").addEventListener("click", () => showBestiary(true));
 $("#m-plants").addEventListener("click", () => showPlants(plantsKind, true));
@@ -45,7 +52,8 @@ document.addEventListener("keydown", (e) => {
   let pane = inMenu ? menu : main;
   if (side) pane = (e.key === "ArrowRight" && !inMenu) ? menu : (e.key === "ArrowLeft" && inMenu) ? main : null;
   if (!pane) return;
-  const opts = [...pane.querySelectorAll(".opt:not(.locked)")]; if (!opts.length) return;
+  if (pane === menu && getComputedStyle(menuToggle).display !== "none") foldMenu(true);   /* on a phone the menu must be open before a command can take the cursor */
+  const opts = [...pane.querySelectorAll(".opt:not(.locked):not(.menutoggle)")]; if (!opts.length) return;
   let i = opts.indexOf(a);
   if (side || (!inMenu && !inMain)) i = Math.max(0, opts.findIndex((o) => o.getAttribute("aria-current") === "true"));
   else i = (i + dir + opts.length) % opts.length;

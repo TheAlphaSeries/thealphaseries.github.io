@@ -6,7 +6,8 @@
 /* Every screen starts the same way: note which screen is up, empty the main window, move the menu's marker. */
 function openScreen(name, menuId) {
   view = name; main.textContent = ""; stopAnim();
-  menu.querySelectorAll(".opt").forEach((b) => { if (b.id !== "m-music") b.setAttribute("aria-current", String(b.id === menuId)); });
+  menu.querySelectorAll(".opt").forEach((b) => { if (b.id !== "m-music" && b.id !== "menutoggle") b.setAttribute("aria-current", String(b.id === menuId)); });
+  { const on = $("#" + menuId); $("#menuwhere").textContent = on ? on.textContent : ""; }   /* the folded phone menu names the screen that is up */
   if (typeof sayHelp === "function" && !menu.contains(document.activeElement)) sayHelp(menuId);   /* the bar at the top says where you are */
 }
 /* the "Back" option at the foot of a screen: returns to the home screen */
@@ -31,7 +32,7 @@ function showFiles(focusFirst) {
   main.append(list);
   if (!sorted.length) main.append(el("p", "sub", loadNote));
   if (sorted.length) showSaying();
-  showQuests(); showLately();
+  showQuests();   /* the latest happenings are in the Chronicle; the home screen keeps to the log and the quests */
   if (focusFirst) { const f = list.querySelector(".opt"); if (f) f.focus(); }
 }
 /* ----- the quest log: a small strip under the entries. Each quest shows its name, a vague "when" and
@@ -97,7 +98,7 @@ function showQuestLog(focusFirst) {
   const open = QUESTS.filter((q) => q.status !== "completed"), done = QUESTS.filter((q) => q.status === "completed");
   main.append(el("p", "label", "Quest Log"));
   const intro = el("div", "post intro");
-  intro.append(el("p", null, "Here are entered the undertakings of the keeper: those in hand, and below them those brought to an end. An undertaking is struck from the first list only by being finished. Abandonment is not recorded, there being no column for it."));
+  intro.append(el("p", null, "The keeper's undertakings: in hand above, fulfilled below. Abandonment is not recorded, there being no column for it."));
   main.append(intro);
   if (!QUESTS.length) { main.append(el("p", "sub", loadNote === "Loading..." ? loadNote : "No undertakings are in hand."), backRow()); return; }
   const t = questTally(), facts = el("dl", "facts qstats"), fact = (k, v) => facts.append(el("dt", null, k), el("dd", null, v));
@@ -159,7 +160,7 @@ function showChronicle(focusFirst) {
   openScreen("chron", "m-chron");
   main.append(el("p", "label", "Chronicle"));
   const intro = el("div", "post intro");
-  intro.append(el("p", null, "What follows is the record entire, set down in the order it befell, the latest first. Matters that carry no date are omitted, the chronicler declining to guess."));
+  intro.append(el("p", null, "The record entire, latest first. What carries no date is left out, the chronicler declining to guess."));
   main.append(intro);
   const all = chronicle();
   if (!all.length) { main.append(el("p", "sub", loadNote === "Loading..." ? loadNote : "Nothing here carries a date as yet."), backRow()); return; }
