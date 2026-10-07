@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>The Lots - Half Life</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=DotGothic16&display=swap">
+<style>
+/* A gallery of the figures a companion may draw. It uses the same figure maker as the site (figures.js). */
+body { margin: 0; padding: 18px 14px 40px; background: #05071f; color: #fff; font: 17px/1.5 "DotGothic16", ui-monospace, Menlo, monospace; text-shadow: 1px 1px 0 rgba(0, 0, 0, .7); }
+main { max-width: 1040px; margin: 0 auto; padding: 20px; border: 3px solid #f6f2ff; border-radius: 9px; background: linear-gradient(#2a3da6, #080d48); }
+h1 { font: 400 15px/1.6 "Press Start 2P", monospace; margin: 0 0 10px; } p { margin: 0 0 14px; max-width: 64ch; color: #cfd6ff; }
+.bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 0 0 16px; }
+button, input { font: inherit; color: inherit; } .go { font: 400 12px/1.7 "Press Start 2P", monospace; background: none; border: 2px solid #fff; border-radius: 6px; padding: 8px 14px; cursor: pointer; text-shadow: inherit; }
+.go:hover, .go:focus-visible { background: rgba(255, 255, 255, .14); outline: none; }
+input { background: rgba(0, 0, 0, .35); border: 2px solid rgba(255, 255, 255, .5); border-radius: 6px; padding: 6px 10px; width: 13ch; }
+#grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+.fig { display: grid; justify-items: center; gap: 4px; padding: 10px 4px 8px; background: none; border: 2px solid rgba(255, 255, 255, .28); border-radius: 7px; cursor: pointer; text-align: center; text-shadow: inherit; font-size: 15px; line-height: 1.25; }
+.fig:hover, .fig:focus-visible, .fig[aria-pressed="true"] { border-color: #fff; outline: none; } .fig small { color: #b9c4f5; font-size: 13px; }
+canvas { image-rendering: pixelated; width: 96px; height: 120px; display: block; }
+#one { display: flex; gap: 18px; align-items: center; margin: 0 0 16px; min-height: 240px; } #one canvas { width: 192px; height: 240px; flex: none; }
+#one h2 { font: 400 13px/1.7 "Press Start 2P", monospace; margin: 0 0 6px; color: #ffd257; } #one p { margin: 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>The Lots</h1>
+  <p>Whoever signs on to a quest is drawn a figure by lot: some kind of creature, of some calling. These are a few of the lots in the bag. Each has a number, and the same number always draws the same figure.</p>
+  <div id="one"><canvas id="big" width="24" height="30" aria-hidden="true"></canvas><div><h2 id="name"></h2><p id="num"></p></div></div>
+  <div class="bar"><button class="go" id="again" type="button">Draw again</button><label for="seed">or a number:</label><input id="seed" inputmode="numeric" maxlength="10" autocomplete="off"><button class="go" id="show" type="button">Show</button></div>
+  <div id="grid"></div>
+</main>
+<script src="figures.js"></script>
+<script>
+const $ = (s) => document.querySelector(s), grid = $("#grid");
+function paint(canvas, f) { canvas.width = FW; canvas.height = FH; const c = canvas.getContext("2d"); f.grid.forEach((r, y) => r.forEach((col, x) => { if (col) { c.fillStyle = col; c.fillRect(x, y, 1, 1); } })); }
+function show(seed) { const f = conjure(seed); paint($("#big"), f); $("#name").textContent = f.title; $("#num").textContent = "Lot number " + seed; grid.querySelectorAll(".fig").forEach((b) => b.setAttribute("aria-pressed", String(+b.dataset.seed === seed))); }
+function deal() {
+  grid.textContent = ""; const seeds = [...crypto.getRandomValues(new Uint32Array(48))].map((n) => n % 2147483646 + 1);
+  seeds.forEach((seed) => { const f = conjure(seed), b = document.createElement("button"), c = document.createElement("canvas"), n = document.createElement("small"); b.className = "fig"; b.type = "button"; b.dataset.seed = seed; c.setAttribute("aria-hidden", "true"); paint(c, f); n.textContent = f.kind; b.append(c, f.calling, n); b.addEventListener("click", () => show(seed)); grid.append(b); });
+  show(seeds[0]);
+}
+$("#again").addEventListener("click", deal);
+$("#show").addEventListener("click", () => { const n = parseInt($("#seed").value, 10); if (n > 0 && n < 4294967296) show(n); });
+$("#seed").addEventListener("keydown", (e) => { if (e.key === "Enter") $("#show").click(); });
+deal();
+</script>
+</body>
+</html>

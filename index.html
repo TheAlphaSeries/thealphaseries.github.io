@@ -380,7 +380,8 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
 .fellows { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(150px, 100%), 1fr)); gap: 8px; }
 .fellow { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 2px; padding: 12px 8px 10px; text-align: center; border: 2px solid var(--border-shade); border-radius: 7px; overflow-wrap: anywhere; }
 .fellow::before { display: none; } .fellow:hover, .fellow:focus-visible { transform: translateY(-2px); border-color: var(--border); }
-.fellowpic { display: block; width: 72px; height: 88px; image-rendering: pixelated; margin-bottom: 6px; } .fellowpic.big { width: 108px; height: 132px; margin: 6px auto 4px; }
+.fellowpic { display: block; width: 96px; height: 120px; image-rendering: pixelated; margin-bottom: 6px; } .fellowpic.big { width: 144px; height: 180px; margin: 6px auto 4px; }
+.fellow .fkind { font-size: 15.5px; line-height: 1.3; }
 .fellow .name { font-family: var(--display); font-size: 10px; line-height: 1.7; } .fellow .ftitle { color: #ffd257; font-size: 14.5px; line-height: 1.3; } .fellow .fcount { color: var(--dim); font-size: 14.5px; }
 .plink { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; text-shadow: inherit; overflow-wrap: anywhere; }
 .plink:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
@@ -485,6 +486,7 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
   </div>
 </div></div>
 
+<script src="figures.js"></script>
 <script>
 /* ==========================================================================
    HOW THIS PAGE WORKS
@@ -1262,9 +1264,8 @@ function roster(q) {
 }
 /* ---- The companions as characters ----
    Everyone accepted onto a quest becomes a small figure with a page of their own: which posts they hold, how many
-   ventures they have joined and seen through, and a title that grows with them. Nothing more is known about a
-   companion than the name they gave and the posts they were given, so the figure is made up from the name itself:
-   the same name always gives the same cloak and hat. What they carry follows the post they hold. */
+   ventures they have joined and seen through, and a title that grows with them. Each is some kind of creature
+   with some calling (a Frogfolk Bard, a Skeleton Cook), drawn by lot when they first sign on and never changed after. */
 function companions() {
   const by = new Map();
   for (const q of QUESTS) for (const m of (owns(PARTY, q.file) ? PARTY[q.file] : [])) {
@@ -1279,39 +1280,16 @@ function companions() {
     return c;
   });
 }
-const CLOAKS = [["#a8323c", "#6e1c26", "#d4606a"], ["#2a8c8c", "#175a5c", "#5cc0bc"], ["#5c8a3a", "#365a20", "#8cbc64"], ["#c08a2c", "#80581a", "#e6b85c"],
-                ["#7a4cb4", "#4a2c78", "#a880dc"], ["#3c68b8", "#22407c", "#6c98e0"], ["#b85c2c", "#7a3a18", "#e08c58"], ["#b8b0a0", "#787062", "#e4dccc"]];   /* base, shade, light */
-const CARRIES = [["scroll", /survey|map|chart|witness|post|scribe|letter/], ["pack", /haul|pack|bag|porter|coach|mend/], ["oar", /boat|oar|ferry|sail/], ["rod", /rod|net|angl|fish/],
-                 ["lantern", /lamp|lantern|light/], ["torch", /fire|cook|torch|flame/], ["staff", /guide|warden|pilgrim|mystic|charm|green/]];
 function nameHash(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
-function drawCompanion(canvas, name, role, seed) {   /* seed: the number given to them when they first signed on; without one, the name stands in */
-  const W = 18, H = 22, g = Array.from({ length: H }, () => new Array(W).fill("")), h = seed > 0 ? Math.imul(seed, 2654435761) >>> 0 : nameHash(name.toLowerCase());
-  const [base, shade, light] = CLOAKS[h % CLOAKS.length], trim = CLOAKS[(h >>> 3) % CLOAKS.length][2], hat = (h >>> 6) % 4;
-  let carry = (CARRIES.find(([, re]) => re.test((role || "").toLowerCase())) || [CARRIES[(h >>> 9) % CARRIES.length][0]])[0];
-  const px = (x, y, c) => { if (x >= 0 && x < W && y >= 0 && y < H) g[y][x] = c; }, row = (y, a, b, c) => { for (let x = a; x <= b; x++) px(x, y, c); };
-  const WOOD = "#8a5a2c", WOOD2 = "#5c3a1a", DARK = "#15131c", EYE = ["#e8e6ff", "#ffd257", "#8fd6ff", "#7fd68a"][(h >>> 12) % 4], BOOT = "#241a14", hem = (h >>> 14) % 3;
-  if (carry === "pack") { for (let y = 8; y <= 14; y++) row(y, 2, 4, y === 8 || y === 14 ? WOOD2 : WOOD); for (let y = 8; y <= 14; y++) row(y, 12, 14, y === 8 || y === 14 ? WOOD2 : WOOD); px(13, 10, "#c8a060"); px(3, 10, "#c8a060"); row(7, 3, 13, "#d8d0bc"); row(6, 5, 11, "#b8b0a0"); }   /* a bedroll and a loaded frame behind the shoulders */
-  for (let y = 8; y <= 19; y++) { const w = y < 10 ? 3 : y < 14 ? 4 : 5; row(y, 8 - w, 8 + w, base); px(8 - w, y, light); px(8 + w, y, shade); if (y > 9) px(8 + w - 1, y, shade); }   /* the cloak, widening to the hem */
-  for (let y = 10; y <= 19; y++) px(8, y, trim); row(19, 3, 13, shade); px(8, 19, trim); px(5, 13, light); px(5, 16, light);
-  if (hem === 1) row(17, 4, 12, trim);                                                   /* a band round the hem */
-  if (hem === 2) for (let x = 4; x <= 12; x += 2) px(x, 18, trim);                       /* or a row of studs */
-  row(20, 6, 7, BOOT); row(20, 9, 10, BOOT);
-  row(1, 6, 10, base); for (let y = 2; y <= 7; y++) { row(y, 5, 11, base); px(5, y, light); px(11, y, shade); } row(7, 6, 10, shade);   /* the hood */
-  for (let y = 3; y <= 6; y++) row(y, 6, 10, DARK); px(7, 4, EYE); px(9, 4, EYE);                                                        /* a face in shadow: two eyes and no more */
-  if (hat === 1) { px(8, 0, base); px(9, 0, shade); }                                                                                    /* a peaked hood */
-  if (hat === 2) { row(2, 3, 13, shade); row(1, 6, 10, shade); row(0, 7, 9, shade); px(7, 0, base); px(6, 1, base); row(2, 3, 5, base); }   /* a wide-brimmed hat */
-  if (hat === 3) { row(2, 6, 10, "#f0c040"); px(8, 2, "#fff0a0"); }                                                                      /* a gold band */
-  if (carry === "staff" || carry === "oar" || carry === "torch" || carry === "lantern") { for (let y = (carry === "lantern" ? 6 : 3); y <= 20; y++) px(15, y, y % 5 ? WOOD : WOOD2); px(14, 12, light); px(13, 12, light); }
-  if (carry === "staff") { px(15, 2, "#c8d8ff"); px(14, 3, WOOD); px(16, 3, WOOD); }
-  if (carry === "oar") { for (let y = 0; y <= 4; y++) row(y, 14, 16, y === 0 || y === 4 ? WOOD2 : "#b88448"); }
-  if (carry === "torch") { px(15, 2, "#f08030"); px(15, 1, "#ffd257"); px(14, 2, "#ffd257"); px(16, 2, "#f08030"); px(15, 0, "#fff0a0"); px(16, 1, "#f08030"); }
-  if (carry === "lantern") { row(5, 13, 15, WOOD2); for (let y = 6; y <= 8; y++) row(y, 12, 14, "#ffd257"); px(13, 7, "#fff8c0"); row(9, 12, 14, WOOD2); px(13, 5, WOOD2); }
-  if (carry === "rod") { for (let i = 0; i <= 12; i++) px(13 + Math.round(i / 4), 14 - i, WOOD); px(13, 13, light); for (let y = 3; y <= 9; y++) px(17, y, "#c8d8ff"); px(17, 10, "#f0c040"); }
-  if (carry === "scroll") { for (let y = 12; y <= 15; y++) row(y, 5, 11, "#efe6cc"); row(11, 5, 11, "#c8b890"); row(16, 5, 11, "#c8b890"); row(13, 6, 9, "#8a7a5a"); row(14, 7, 10, "#8a7a5a"); px(4, 13, light); px(12, 13, shade); }
-  const out = g.map((r) => r.slice());   /* a dark line round the whole figure */
-  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (!g[y][x] && [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([a, b]) => g[y + b] && g[y + b][x + a])) out[y][x] = "#0a0a14";
-  canvas.width = W; canvas.height = H; const c = canvas.getContext("2d");
-  out.forEach((r, y) => r.forEach((col, x) => { if (col) { c.fillStyle = col; c.fillRect(x, y, 1, 1); } }));
+/* The figures are made in figures.js (the same file the gallery at /figures.html uses). what(): which creature and
+   calling a companion drew; drawCompanion(): their picture. A companion from before figures were drawn by lot has
+   no number of their own, so their name stands in for one. */
+const lot = (name, seed) => (seed > 0 ? seed : nameHash(String(name).toLowerCase()) || 1);
+function what(name, seed) { return typeof conjure === "function" ? conjure(lot(name, seed)) : null; }
+function drawCompanion(canvas, name, seed) {
+  const f = what(name, seed); if (!f) return;   /* the figure maker did not load: leave the frame empty */
+  canvas.width = FW; canvas.height = FH; const c = canvas.getContext("2d");
+  f.grid.forEach((r, y) => r.forEach((col, x) => { if (col) { c.fillStyle = col; c.fillRect(x, y, 1, 1); } }));
 }
 /* the companions, as a block of tiles at the foot of the Quest Log */
 function showCompany() {
@@ -1320,8 +1298,8 @@ function showCompany() {
   if (!all.length) { main.append(el("p", "sub", "None yet has thrown in with the keeper. The posts above stand open.")); return; }
   const wrap = el("div", "fellows");
   all.forEach((c, i) => {
-    const b = opt(null, () => showCompanion(c, b), "fellow"), pic = el("canvas", "fellowpic"); pic.setAttribute("aria-hidden", "true"); drawCompanion(pic, c.name, c.posts[0].role, c.seed);
-    b.append(pic, el("span", "name", c.name), el("span", "ftitle", c.title), el("span", "fcount", count(c.posts.length, "venture")));
+    const b = opt(null, () => showCompanion(c, b), "fellow"), pic = el("canvas", "fellowpic"); pic.setAttribute("aria-hidden", "true"); drawCompanion(pic, c.name, c.seed); const w = what(c.name, c.seed);
+    b.append(pic, el("span", "name", c.name), el("span", "fkind", w ? w.title : ""), el("span", "ftitle", c.title), el("span", "fcount", count(c.posts.length, "venture")));
     b.style.setProperty("--i", Math.min(i, 6)); wrap.append(b);
   });
   main.append(wrap);
@@ -1330,9 +1308,10 @@ function showCompany() {
 function showCompanion(c, from) {
   current = null; questFrom = from && from.isConnected ? from : null; setHash("");
   rwin.textContent = "";
-  const head = el("div", "filehead"), meta = el("p", "meta"), pic = el("canvas", "fellowpic big"); pic.setAttribute("aria-hidden", "true"); drawCompanion(pic, c.name, c.posts[0].role, c.seed);
+  const head = el("div", "filehead"), meta = el("p", "meta"), pic = el("canvas", "fellowpic big"); pic.setAttribute("aria-hidden", "true"); drawCompanion(pic, c.name, c.seed);
   meta.append(el("span", null, "Companion")); head.append(meta, el("h2", null, c.name));
   const sheet = el("dl", "facts qstats"), row = (k, v) => { const dd = el("dd"); dd.append(v); sheet.append(el("dt", null, k), dd); };
+  const w = what(c.name, c.seed); if (w) { row("Kind", w.kind); row("Calling", w.calling); }
   row("Title", c.title); row("Ventures joined", String(c.posts.length)); row("Seen through", String(c.done));
   const bond = el("span", "hard"); bond.append(pips(c.bond), c.bond + " / 5"); row("Bond", bond);
   if (c.since) row("Of the company since", day(c.since));
@@ -1384,7 +1363,7 @@ function company(q) {
           box.textContent = "";
           if (Number.isInteger(d.seed) && d.seed > 0) store.set("figure", String(d.seed));   /* a new figure was drawn: remember it on this device, to show it again */
           const mine = parseInt(store.get("figure"), 10);
-          if (mine > 0) { const pic = el("canvas", "fellowpic big"); pic.setAttribute("aria-hidden", "true"); drawCompanion(pic, name.value, pick.value, mine); box.append(pic, el("p", "sub partynote figurenote", d.returning ? "The keeper knows you of old. Your figure is as it was." : "A figure has been drawn for you by lot. It is yours for as long as you sign with the same address.")); }
+          if (mine > 0) { const pic = el("canvas", "fellowpic big"); pic.setAttribute("aria-hidden", "true"); drawCompanion(pic, name.value, mine); const w = what(name.value, mine); box.append(pic, el("p", "sub partynote figurenote", d.returning ? "The keeper knows you of old. Your figure is as it was." : "The lot is drawn" + (w ? ": you are a " + w.title : "") + ". The figure is yours for as long as you sign with the same address.")); }
           else if (d.returning) box.append(el("p", "sub partynote", "The keeper knows you of old. Your figure is as it was, and will be shown when you are accepted."));
           box.append(el("p", "sub partynote", "Your petition has been carried to the keeper. He will consider it at his leisure, which is considerable."));
           rwin.querySelectorAll(".posts .opt").forEach((b) => b.remove());
