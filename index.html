@@ -381,6 +381,7 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
 .fellow { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 2px; padding: 12px 8px 10px; text-align: center; border: 2px solid var(--border-shade); border-radius: 7px; overflow-wrap: anywhere; }
 .fellow::before { display: none; } .fellow:hover, .fellow:focus-visible { transform: translateY(-2px); border-color: var(--border); }
 .fellowpic { display: block; width: 96px; height: 120px; image-rendering: pixelated; margin-bottom: 6px; } .fellowpic.big { width: 144px; height: 180px; margin: 6px auto 4px; }
+.lotbox { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; margin: 4px 0 14px; } .lotbox .fellowpic { margin: 0; } .lotbox .lotname { margin: 2px 0 8px; font-family: var(--display); font-size: 11px; line-height: 1.7; color: #ffd257; } .lotbox .partynote { margin: 0; }
 .fellow .fkind { font-size: 15.5px; line-height: 1.3; }
 .fellow .name { font-family: var(--display); font-size: 10px; line-height: 1.7; } .fellow .ftitle { color: #ffd257; font-size: 14.5px; line-height: 1.3; } .fellow .fcount { color: var(--dim); font-size: 14.5px; }
 .plink { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; text-shadow: inherit; overflow-wrap: anywhere; }
@@ -579,7 +580,7 @@ Nearly everything here pays experience: an entry written, a species caught (rare
 
 ## Quests
 
-The Quests tab is the full log: what is in hand, and what has been fulfilled. Each quest has a difficulty and pays experience when it is finished; harder ones and Great Works pay more. Open a quest to see who travels with it. Some quests have named posts to fill: choose Apply beside an open one. Otherwise choose Petition to join. Either way you give a name of your choosing and an e-mail address. No account is needed, only what you write is kept, and the address is seen by the keeper alone. Each newcomer is drawn a figure by lot; sign again with the same address and the figure stays the same. The keeper accepts or declines in his own time. Those accepted are entered under The Company at the foot of the Quest Log, each with a figure and a page of their own.
+The Quests tab is the full log: what is in hand, and what has been fulfilled. Each quest has a difficulty and pays experience when it is finished; harder ones and Great Works pay more. Open a quest to see who travels with it. Some quests have named posts to fill: choose Apply beside an open one. Otherwise choose Petition to join. Either way you give a name of your choosing and an e-mail address. No account is needed, only what you write is kept, and the address is seen by the keeper alone. Each newcomer is drawn a figure by lot, and may draw again as often as they please before sending; once sent it is theirs, and signing again with the same address keeps it. The keeper accepts or declines in his own time. Those accepted are entered under The Company at the foot of the Quest Log, each with a figure and a page of their own.
 
 ## Chronicle
 
@@ -1350,12 +1351,18 @@ function company(q) {
     note.type = "text"; note.maxLength = 200; note.autocomplete = "off"; note.id = "pnote"; l2.htmlFor = "pnote";
     trap.type = "text"; trap.name = "website"; trap.tabIndex = -1; trap.autocomplete = "off"; trap.className = "trap"; trap.setAttribute("aria-hidden", "true");   /* people never see this; only a machine fills it in */
     send.type = "submit"; note2.setAttribute("role", "status"); note2.textContent = "Only what you write here is kept, and your address is never shown. Sign with the same address and your figure stays the same.";
+    /* the lot: a figure drawn at random, which a newcomer may draw again as often as they like before sending */
+    const lotBox = el("div", "lotbox"), lotPic = el("canvas", "fellowpic big"), lotWords = el("div"), lotName = el("p", "lotname"), again = opt("Draw again"); let lotSeed = 0;
+    const draw = () => { lotSeed = (crypto.getRandomValues(new Uint32Array(1))[0] % 2147483646) + 1; drawCompanion(lotPic, "", lotSeed); const w = what("", lotSeed); lotName.textContent = w ? w.title : ""; };
+    lotPic.setAttribute("aria-hidden", "true"); lotName.setAttribute("aria-live", "polite"); again.type = "button"; again.addEventListener("click", draw);
+    lotWords.append(el("p", "sub partynote", "Your lot"), lotName, again); lotBox.append(lotPic, lotWords);
+    if (typeof conjure === "function") { draw(); f.append(lotBox); }
     if (free.length) f.append(l0, pick);
     f.append(l1, name, l3, mail, l2, note, trap, send, note2); box.append(f); name.focus();
     f.addEventListener("submit", (e) => {
       e.preventDefault(); if (!name.value.trim() || !mail.value.trim() || send.disabled) return;
       send.disabled = true; note2.textContent = "Sending...";
-      fetch("/api/apply", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ quest: q.file, name: name.value, email: mail.value, note: note.value, role: free.length ? pick.value : "", website: trap.value }) })
+      fetch("/api/apply", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ quest: q.file, name: name.value, email: mail.value, seed: lotSeed, note: note.value, role: free.length ? pick.value : "", website: trap.value }) })
         .then((r) => r.json().catch(() => ({})).then((d) => ({ ok: r.ok, d })))
         .then(({ ok, d }) => {
           if (!ok) { send.disabled = false; note2.textContent = text(d.error) || "The petition could not be carried. Try again."; return; }
@@ -1363,8 +1370,8 @@ function company(q) {
           box.textContent = "";
           if (Number.isInteger(d.seed) && d.seed > 0) store.set("figure", String(d.seed));   /* a new figure was drawn: remember it on this device, to show it again */
           const mine = parseInt(store.get("figure"), 10);
-          if (mine > 0) { const pic = el("canvas", "fellowpic big"); pic.setAttribute("aria-hidden", "true"); drawCompanion(pic, name.value, mine); const w = what(name.value, mine); box.append(pic, el("p", "sub partynote figurenote", d.returning ? "The keeper knows you of old. Your figure is as it was." : "The lot is drawn" + (w ? ": you are a " + w.title : "") + ". The figure is yours for as long as you sign with the same address.")); }
-          else if (d.returning) box.append(el("p", "sub partynote", "The keeper knows you of old. Your figure is as it was, and will be shown when you are accepted."));
+          if (mine > 0) { const pic = el("canvas", "fellowpic big"); pic.setAttribute("aria-hidden", "true"); drawCompanion(pic, name.value, mine); const w = what(name.value, mine); box.append(pic, el("p", "sub partynote figurenote", d.returning ? "The keeper knows you of old. The figure you first drew stands; the new lot is returned to the bag." : "The lot is drawn" + (w ? ": you are a " + w.title : "") + ". The figure is yours for as long as you sign with the same address.")); }
+          else if (d.returning) box.append(el("p", "sub partynote", "The keeper knows you of old. The figure you first drew stands, and the new lot is returned to the bag."));
           box.append(el("p", "sub partynote", "Your petition has been carried to the keeper. He will consider it at his leisure, which is considerable."));
           rwin.querySelectorAll(".posts .opt").forEach((b) => b.remove());
         }).catch(() => { send.disabled = false; note2.textContent = "The petition could not be carried. Try again."; });

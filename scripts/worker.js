@@ -96,10 +96,12 @@ async function api(request, env, path) {
     const busy = await db.prepare("SELECT (SELECT COUNT(*) FROM applications WHERE status = 'pending') AS waiting, (SELECT COUNT(*) FROM applications WHERE created > ?) AS lately").bind(now - 3600000).first();
     if (busy.waiting >= 150 || busy.lately >= 40) return json({ error: "The keeper's desk is buried. Try again in a while." }, 429);
     /* The figure. Each address is given a random number the first time it signs, and keeps it: the same address
-       always gets the same figure, whatever name it signs under. The number is only handed back when it is new,
+       always gets the same figure, whatever name it signs under (so a figure cannot be changed by someone who
+       merely knows the address). The number is only handed back when it is new,
        so nobody can type in someone else's address to find out which companion they are. */
     const known = await db.prepare("SELECT seed FROM applications WHERE email = ? AND seed != 0 LIMIT 1").bind(email).first();
-    const seed = known ? known.seed : crypto.getRandomValues(new Uint32Array(1))[0] % 2147483646 + 1;
+    const chosen = Number.isInteger(b.seed) && b.seed > 0 && b.seed < 2147483647 ? b.seed : 0;   /* a newcomer may draw again before sending, and sends the number they settled on */
+    const seed = known ? known.seed : chosen || crypto.getRandomValues(new Uint32Array(1))[0] % 2147483646 + 1;
     const twin = await db.prepare("SELECT id FROM applications WHERE quest = ? AND email = ?").bind(quest, email).first();   /* one petition per address per quest */
     if (!twin) await db.prepare("INSERT INTO applications (quest, name, note, role, status, created, email, seed) VALUES (?, ?, ?, ?, 'pending', ?, ?, ?)").bind(quest, name, note, role || "", now, email, seed).run();
     return json(known ? { ok: true, returning: true } : { ok: true, seed });
