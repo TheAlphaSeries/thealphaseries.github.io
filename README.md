@@ -58,7 +58,8 @@ a small Cloudflare database named `halflife-quests`.
 
 An accepted companion is shown on the site by the name they gave, the post they hold and the day they asked.
 
-In the visitor's own browser, and nowhere else, the page keeps two small notes: whether they turned the music off, and
+In the visitor's own browser, and nowhere else, the page keeps a few small notes: whether they turned the music off,
+which entries, quests and fish they have opened (so the rest can be marked NEW), and
 what the page last showed them (the level, and which quests, medals, fish and entries were already there), so that it
 can announce what is new on their next visit. Neither note is sent anywhere.
 

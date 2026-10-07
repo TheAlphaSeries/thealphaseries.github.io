@@ -293,7 +293,7 @@ h3 { font-size: 12px; line-height: 1.7; color: var(--accent); margin-top: 8px; }
 .mapkeys button { width: 34px; height: 34px; font-family: var(--display); font-size: 12px; color: var(--fg); background: #000; border: 3px solid var(--border); border-radius: 6px; cursor: pointer; padding: 0; }
 .mapkeys button.wide { width: auto; padding: 0 6px; font-size: 9px; }
 .mapkeys button:hover, .mapkeys button:focus-visible { background: var(--accent); color: #000; outline: none; }
-.chips { display: flex; flex-wrap: wrap; gap: 6px 8px; margin: 0 0 12px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px 8px; margin: 0 0 12px; } .chipgap { flex: 0 0 10px; }
 .chip { display: inline-flex; align-items: center; gap: 8px; font: inherit; color: var(--dim); background: none; border: 2px solid currentColor; border-radius: 6px; padding: 3px 10px; cursor: pointer; opacity: .55; }
 .chip[aria-pressed="true"] { color: var(--fg); opacity: 1; }
 .chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -424,6 +424,17 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
 .qreport.fresh .roll li:nth-child(2) { --n: 1; } .qreport.fresh .roll li:nth-child(3) { --n: 2; } .qreport.fresh .roll li:nth-child(4) { --n: 3; } .qreport.fresh .roll li:nth-child(n+5) { --n: 4; }
 @keyframes qland { from { transform: translateY(-60px) scale(1.5); opacity: 0; } } @keyframes qrise { from { transform: translateY(10px); opacity: 0; } } @keyframes qstamp { from { transform: scale(3.2) rotate(-14deg); opacity: 0; } }
 
+/* the old-game touches: the help line, NEW marks, the dot on a menu command, the keeper's speech */
+#titlebar { display: flex; flex-wrap: wrap; gap: 4px 18px; align-items: baseline; justify-content: space-between; } #helpline { color: var(--dim); font-size: 16px; line-height: 1.4; min-height: 1.4em; text-align: right; overflow-wrap: anywhere; }
+.newtag { justify-self: start; align-self: center; padding: 1px 6px; border: 2px solid #ffd257; border-radius: 4px; color: #ffd257; font-family: var(--display); font-size: 8px; line-height: 1.6; letter-spacing: .06em; animation: newpulse 1.4s steps(2) infinite; }
+@keyframes newpulse { 50% { opacity: .55; } }
+.file .name .newtag, .beast .name .newtag, .quest .name .newtag { display: inline-block; margin-left: 10px; vertical-align: middle; }
+#menu .opt.fresh::after { content: ""; width: 8px; height: 8px; margin-left: 8px; align-self: center; background: #ffd257; box-shadow: 1px 1px 0 rgba(0, 0, 0, .7); }
+#intro #continuebtn { margin-top: 6px; font-size: 11px; max-width: 100%; overflow-wrap: anywhere; text-align: left; } #intro #continuebtn::before { animation: none; visibility: hidden; } #intro #continuebtn:hover::before, #intro #continuebtn:focus-visible::before { visibility: visible; }
+.talkbtn { display: block; margin: 0 auto; padding: 0; background: none; border: 0; cursor: pointer; } .talkbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 6px; }
+.says { margin: 0 0 12px; padding: 8px 10px; border: 2px solid var(--border); border-radius: 7px; background: rgba(0, 0, 0, .28); text-align: left; font-size: 16px; line-height: 1.4; min-height: 4.2em; }
+.complete .region { display: grid; grid-template-columns: 11ch minmax(0, 1fr); gap: 0 10px; align-items: center; } .complete { display: grid; gap: 4px; }
+
 /* phone view: the command window becomes a bar fixed to the bottom of the screen */
 @media (max-width: 720px) {
   body { padding-bottom: 212px; }   /* room for the menu fixed to the bottom of a phone screen (four rows) */
@@ -456,14 +467,14 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
 @media (prefers-reduced-motion: reduce) {
   .opt:focus-visible::before, .file.chosen, .beastcard.pop, #readerwin.pop, .stage.go > .win, #main > *, #main .files > *, #main .group, #titlebar .site, #intro .win, #intro .start::before { animation: none; }
   #intro, .opt, #sprite, .fishbtn, #minimap { transition: none; }
-  .moment, .moment .mstar, .qreport.fresh * { animation: none; }
+  .moment, .moment .mstar, .qreport.fresh *, .newtag { animation: none; }
 }
 </style>
 
 <canvas id="sky" aria-hidden="true"></canvas>
 
 <div class="stage" id="stage">
-  <div class="win" id="titlebar"><span class="site">HALF LIFE</span></div>
+  <div class="win" id="titlebar"><span class="site">HALF LIFE</span><span id="helpline" aria-live="off"></span></div>
 
   <main class="win" id="main" tabindex="-1"></main>
 
@@ -486,6 +497,7 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
     <dt>Level</dt><dd id="lvl">-</dd>
     <dt>Entries</dt><dd id="count">0</dd>
     <dt>Saved</dt><dd id="latest">-</dd>
+    <dt>Complete</dt><dd id="pct">-</dd>
     <dt>Time</dt><dd id="clock">--:--:--</dd>
   </dl>
 
@@ -507,6 +519,7 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
   <div class="name">HALF LIFE</div>
   <div class="tagline">Still receiving.</div>
   <button class="opt start" id="startbtn" type="button">Start</button>
+  <button class="opt start" id="continuebtn" type="button" hidden></button>
   </div>
 </div></div>
 
@@ -610,6 +623,10 @@ The Quests tab is the full log: what is in hand, and what has been fulfilled. Ea
 
 A finished quest opens with its report: a grade, the experience it paid, everyone who was there and what it earned them, and the keeper's account of how it went. Companions have a level of their own; it rises with every quest they see through. Choose Share to make a card of the report, or of any companion, to send to a friend.
 
+## Like an old game
+
+The bar at the top says what the highlighted command does. Anything you have not opened yet is marked NEW, with a dot on its command; if an entry is waiting, the title screen offers Continue. A gamepad works: the pad or stick moves, A confirms, B goes back. On the Status screen, choose the keeper's portrait to hear from him. The Bestiary can be narrowed to the caught or the at-large, and put in order of number, rarity or name.
+
 ## Chronicle
 
 The Chronicle is everything recorded here, in the order it happened, newest first. Choose a row to go to the thing itself.
@@ -620,7 +637,7 @@ Medals for particular feats are shown on the Status screen: in colour once won, 
 
 ## What is new
 
-When something has been earned since you last looked in, a banner says so. To know what is new, this page keeps a short note in your own browser of what it last showed you. The note never leaves your device.`;
+When something has been earned since you last looked in, a banner says so. To know what is new, this page keeps short notes in your own browser of what it last showed you and what you have opened. The notes never leave your device.`;
 
 /* ==========================================================================
    2. HELPERS
@@ -663,6 +680,7 @@ function syncLayers() { stage.inert = !introBox.classList.contains("done") || !r
 function openScreen(name, menuId) {
   view = name; main.textContent = ""; stopAnim();
   menu.querySelectorAll(".opt").forEach((b) => { if (b.id !== "m-music") b.setAttribute("aria-current", String(b.id === menuId)); });
+  if (typeof sayHelp === "function" && !menu.contains(document.activeElement)) sayHelp(menuId);   /* the bar at the top says where you are */
 }
 /* the "Back" option at the foot of a screen: returns to the home screen */
 function backRow() { const nav = el("div", "row group"); nav.append(opt("Back", () => showFiles(true))); return nav; }
@@ -678,7 +696,8 @@ function showFiles(focusFirst) {
       b.classList.add("chosen");
       setTimeout(() => { b.classList.remove("chosen"); if (b.isConnected && reader.hidden) showPost(p); }, 250);
     }, "file"); b.dataset.file = p.file;
-    b.append(el("span", "name", p.title), el("span", "date", day(p.date)));
+    const nm = el("span", "name", p.title); if (isNew("entries", p.file)) nm.append(newTag());
+    b.append(nm, el("span", "date", day(p.date)));
     b.style.setProperty("--i", i);
     list.append(b);
   });
@@ -697,7 +716,8 @@ function showQuests() {
   active.forEach((q, i) => {
     const got = q.objectives.filter((o) => o.done).length, b = opt(null, () => showQuest(q, b), "quest"), bar = el("span", "qbar");
     q.objectives.slice(0, 12).forEach((o) => bar.append(el("i", o.done ? "on" : null)));   /* one small square per objective, lit when done */
-    b.append(el("span", "name", q.title), el("span", "when", q.when), bar, el("span", "qcount", q.objectives.length ? got + "/" + q.objectives.length : ""));
+    const nm = el("span", "name", q.title); if (isNew("quests", questMark(q))) nm.append(newTag()); b.dataset.quest = q.file;
+    b.append(nm, el("span", "when", q.when), bar, el("span", "qcount", q.objectives.length ? got + "/" + q.objectives.length : ""));
     b.style.setProperty("--i", Math.min(i, 6));
     wrap.append(b);
   });
@@ -735,7 +755,8 @@ function questRow(q, i) {
   const got = q.objectives.filter((o) => o.done).length, b = opt(null, () => showQuest(q, b), "quest" + (q.status === "completed" ? " fulfilled" : "")), bar = el("span", "qbar");
   const ro = roster(q), names = (owns(PARTY, q.file) ? PARTY[q.file] : []).map((m) => m.name);
   q.objectives.slice(0, 24).forEach((o) => bar.append(el("i", o.done ? "on" : null)));
-  b.append(el("span", "name", q.title), el("span", "when", q.status === "completed" ? "Fulfilled" + (q.completed ? " " + day(q.completed) : "") + "   Grade " + questGrade(q) : q.when), questTags(q), bar, el("span", "qcount", q.objectives.length ? got + "/" + q.objectives.length : ""));
+  const nm = el("span", "name", q.title); if (isNew("quests", questMark(q))) nm.append(newTag()); b.dataset.quest = q.file;
+  b.append(nm, el("span", "when", q.status === "completed" ? "Fulfilled" + (q.completed ? " " + day(q.completed) : "") + "   Grade " + questGrade(q) : q.when), questTags(q), bar, el("span", "qcount", q.objectives.length ? got + "/" + q.objectives.length : ""));
   if (q.reward) b.append(el("span", "qparty", "Spoils: " + q.reward));
   if (names.length) b.append(el("span", "qparty", "Company of " + (names.length + 1) + ": the keeper, " + names.join(", ")));
   else if (partyOpen && q.status !== "completed" && !ro.posts.length) b.append(el("span", "qparty", "Seeking companions"));
@@ -936,6 +957,7 @@ function mapTally() {
   return { marks, seen, regions, trips, mastered, places, earned: seen * MAP_EXP.landmark + places * MAP_EXP.place + trips * MAP_EXP.journey + mastered * MAP_EXP.mastered };
 }
 /* the Bestiary screen. pick: which fish to open on (used when arriving from the map) */
+let beastShow = "all", beastSort = "number";   /* which fish the Bestiary lists, and in what order */
 function showBestiary(focusFirst, pick) {
   openScreen("bestiary", "m-bestiary");
   main.append(el("p", "label", "Bestiary"));
@@ -982,20 +1004,34 @@ function showBestiary(focusFirst, pick) {
     if (pin) { const row = el("div", "row"); row.append(opt("Show on map", () => showMap(true, pin.file))); card.append(row); }
     if (b.lore) { const lore = el("div", "post lore"); renderBody(b.lore, lore); card.append(lore); }
     card.classList.remove("pop"); void card.offsetWidth; card.classList.add("pop");
+    if (!ghost && isNew("fish", b.name)) { markKnown("fish", b.name); const t = btn.querySelector(".newtag"); if (t) setTimeout(() => t.remove(), 1600); }   /* looked at: no longer new */
     if (ghost) stopAnim(); else leap(pic, b.sprite, b.file);   /* a caught fish leaps; one still at large stays a still shape */
   };
-  BESTIARY.forEach((b, i) => {
+  /* which to list, and in what order: as the old creature-books allowed. Each keeps its own number whatever the order. */
+  if (BESTIARY[pick]) { beastShow = "all"; }
+  const order = Object.keys(RARITY), named = (b) => !(b.status === "wanted" && b.rarity !== "common");
+  let rows = BESTIARY.map((b, i) => [b, i]).filter(([b]) => beastShow === "all" || (beastShow === "caught") === (b.status !== "wanted"));
+  if (beastSort === "rarity") rows.sort((x, y) => order.indexOf(y[0].rarity) - order.indexOf(x[0].rarity) || x[1] - y[1]);
+  if (beastSort === "name") rows.sort((x, y) => named(y[0]) - named(x[0]) || (named(x[0]) ? x[0].name.localeCompare(y[0].name) : x[1] - y[1]));   /* those still unnamed go last */
+  const chips = el("div", "chips"), chip = (label, on, go) => { const c = el("button", "chip", label); c.type = "button"; c.setAttribute("aria-pressed", String(on)); c.addEventListener("click", () => { go(); showBestiary(false); const now = [...main.querySelectorAll(".chip")].find((x) => x.textContent === label); if (now) now.focus({ preventScroll: true }); }); chips.append(c); };
+  [["all", "All  " + BESTIARY.length], ["caught", "Caught  " + caught.length], ["wanted", "At large  " + wanted]].forEach(([k, label]) => chip(label, beastShow === k, () => { beastShow = k; }));
+  chips.append(el("span", "chipgap"));
+  [["number", "By number"], ["rarity", "By rarity"], ["name", "By name"]].forEach(([k, label]) => chip(label, beastSort === k, () => { beastSort = k; }));
+  main.append(chips);
+  if (!rows.length) { main.append(el("p", "sub", beastShow === "caught" ? "Nothing has been caught yet." : "Nothing remains at large."), backRow()); return; }
+  rows.forEach(([b, i], n) => {
     const pick = () => { if (btn.getAttribute("aria-pressed") !== "true") show(b, btn); };
     const btn = opt(null, pick, "beast");
     btn.addEventListener("focus", pick);   /* moving the cursor shows that fish */
     const ghost = b.status === "wanted", known = ghost && b.rarity === "common"; if (ghost) btn.classList.add(known ? "known" : "ghost");
-    btn.append(el("span", "num", String(i + 1).padStart(3, "0")), el("span", "name", ghost && !known ? "???" : b.name));
-    btn.style.setProperty("--i", i);
+    const nm = el("span", "name", ghost && !known ? "???" : b.name); if (!ghost && isNew("fish", b.name)) nm.append(newTag());
+    btn.append(el("span", "num", String(i + 1).padStart(3, "0")), nm);
+    btn.style.setProperty("--i", Math.min(n, 12)); btn.dataset.at = i;
     list.append(btn);
   });
   wrap.append(list, card); main.append(wrap, backRow());
-  const at = BESTIARY[pick] ? pick : 0, start = list.querySelectorAll(".opt")[at];
-  show(BESTIARY[at], start);
+  const start = [...list.querySelectorAll(".opt")].find((o) => +o.dataset.at === pick) || list.querySelector(".opt");
+  show(BESTIARY[+start.dataset.at], start);
   if (focusFirst) start.focus();
 }
 
@@ -1252,6 +1288,7 @@ function renderBody(text, into, depth) {
 function showPost(p, from) {   /* from: the row it was opened from, when that is not the home list (the Chronicle) */
   if (!(from && from.isConnected) && view !== "files") showFiles();
   current = p; questFrom = from && from.isConnected ? from : null; setHash(p.file);
+  if (isNew("entries", p.file)) { markKnown("entries", p.file); main.querySelectorAll(".file").forEach((b) => { if (b.dataset.file === p.file) { const t = b.querySelector(".newtag"); if (t) t.remove(); } }); }
   rwin.textContent = "";
   const head = el("div", "filehead"), meta = el("p", "meta");
   meta.append(el("span", null, day(p.date))); if (p.place) meta.append(el("span", null, p.place));
@@ -1570,6 +1607,7 @@ async function shareCard(making, fileName, title, note) {
 function showQuest(q, from) {
   if (!(from && from.isConnected) && view !== "files" && view !== "quests") showFiles();
   current = null; questFrom = from && from.isConnected ? from : null; setHash("");
+  if (isNew("quests", questMark(q))) { markKnown("quests", questMark(q)); main.querySelectorAll(".quest").forEach((b) => { if (b.dataset.quest === q.file) { const t = b.querySelector(".newtag"); if (t) t.remove(); } }); }
   rwin.textContent = "";
   const head = el("div", "filehead"), meta = el("p", "meta"), goals = el("ul", "goals"), got = q.objectives.filter((o) => o.done).length;
   meta.append(el("span", null, "Quest")); if (q.status === "completed") meta.append(el("span", "when", "Fulfilled")); else if (q.when) meta.append(el("span", "when", q.when));
@@ -2126,7 +2164,9 @@ function showStatus(focusFirst) {
   stopPortrait(); stopPortrait = figure(pic, "ease");   /* the same figure that waves from the title screen, here standing at his ease */
   fill.style.width = Math.max(2, Math.min(100, t.into / t.span * 100)) + "%"; bar.append(fill);
   bar.setAttribute("role", "img"); bar.setAttribute("aria-label", t.toNext + " experience to the next level");
-  who.append(pic, el("h2", null, STATUS.name || "The Keeper"));
+  const talk = el("button", "talkbtn"), says = el("p", "says"); talk.type = "button"; talk.setAttribute("aria-label", "Speak with the keeper"); says.hidden = true; says.setAttribute("role", "status");
+  talk.append(pic); talk.addEventListener("click", () => { sfx("confirm"); keeperSays(says); });
+  who.append(talk, says, el("h2", null, STATUS.name || "The Keeper"));
   if (STATUS.class) who.append(el("p", "class", STATUS.class));
   who.append(el("p", "level", "Level " + t.level), bar, el("p", "tonext", t.toNext + " to next level"));
   if (STATUS.home) { const home = el("p", "home"); home.append(el("span", null, "Home"), el("span", null, STATUS.home)); who.append(home); }
@@ -2144,7 +2184,9 @@ function showStatus(focusFirst) {
     .forEach(([k, r]) => ranks.append(el("dt", null, k), el("dd", null, r.name)));
   ledger().forEach(([k, how, xp]) => { const dd = el("dd"); dd.append(el("span", "how", how), el("span", "xp", String(xp))); book.append(el("dt", null, k), dd); });
   const sum = el("dd", "total"); sum.append(el("span", "how", "Level " + t.level), el("span", "xp", String(t.xp))); book.append(el("dt", "total", "Total"), sum);
-  right.append(facts, el("p", "label sheethead", "Standings"), ranks, el("p", "label sheethead", "Experience"), book);
+  const done = completion(), tot = el("div", "complete");
+  done.rows.forEach(([k, part, whole]) => { const line = el("span", "region"); line.append(el("span", "rname", k), meter(part, whole)); tot.append(line); });
+  right.append(facts, el("p", "label sheethead", "Completion   " + done.all + "%"), tot, el("p", "label sheethead", "Standings"), ranks, el("p", "label sheethead", "Experience"), book);
   wrap.append(who, right);
   main.append(el("p", "label", "Status"), wrap);
   if (STATUS.body) { const words = el("div", "post lore"); renderBody(STATUS.body, words); main.append(words); }
@@ -2270,7 +2312,8 @@ $("#m-how").addEventListener("click", () => showPage("help", "m-how", "Help", HE
 document.addEventListener("keydown", (e) => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   if (!introBox.classList.contains("done")) {   /* title screen: Enter or Space starts */
-    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); endIntro(); }
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); if (document.activeElement === $("#continuebtn")) $("#continuebtn").click(); else endIntro(); }
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") { const c = $("#continuebtn"); if (!c.hidden) (document.activeElement === c ? $("#startbtn") : c).focus(); }
     return;
   }
   if (!zoomBox.hidden) {   /* an enlarged photo: Left and Right step through a set, anything else that confirms or cancels closes it */
@@ -2629,6 +2672,108 @@ function moments() {   /* runs once, after everything has loaded */
 }
 
 /* ==========================================================================
+   14c. THE OLD-GAME TOUCHES
+   Small things the old console games did, and their players still expect:
+     - a help line: the bar at the top says what the highlighted command is
+     - sounds: a blip as the cursor moves, a chime on confirm, a lower one
+       on going back (only while the music is on)
+     - NEW marks: an entry, quest or fish this visitor has not opened yet is
+       marked, with a dot on its menu command, until they open it
+     - Continue: on the title screen, a second button that goes straight to
+       the newest entry they have not read
+     - a gamepad works: the pad or stick moves, A confirms, B goes back
+     - talk: choose the keeper's portrait on Status and he says something
+     - and the old cheat code is recognised
+   The NEW marks need to know what the visitor has already opened. That is
+   kept as a short list in their own browser, like the other notes; a first
+   visit marks nothing as new.
+   ========================================================================== */
+const HELPS = { "m-files": "The log: what was written, newest first.", "m-quests": "Undertakings in hand, those fulfilled, and the company.", "m-chron": "Everything recorded, in the order it befell.",
+  "m-bestiary": "Fish caught, and fish still at large.", "m-plants": "The plants: the living and the perished.", "m-photos": "Likenesses, by album.", "m-map": "Where it all happened.",
+  "m-status": "The keeper: level, standings, honours.", "m-prints": "The shop is shut.", "m-about": "What this is.", "m-how": "How to get about.", "m-music": "Music and sounds, on or off." };
+const helpLine = $("#helpline");
+function sayHelp(id) { helpLine.textContent = owns(HELPS, id) ? HELPS[id] : ""; }
+menu.addEventListener("focusin", (e) => { const b = e.target.closest && e.target.closest(".opt"); if (b) sayHelp(b.id); });
+menu.addEventListener("pointerover", (e) => { const b = e.target.closest && e.target.closest(".opt"); if (b) sayHelp(b.id); });
+menu.addEventListener("pointerleave", () => { const on = menu.querySelector('.opt[aria-current="true"]'); sayHelp(on ? on.id : ""); });
+menu.addEventListener("focusout", () => { const on = menu.querySelector('.opt[aria-current="true"]'); sayHelp(on ? on.id : ""); });
+/* ---- sounds: short and plain, the same three everywhere ---- */
+function sfx(kind) {
+  if (!ac || !musicOn || ac.state !== "running") return;
+  try { const t = ac.currentTime + 0.01;
+    if (kind === "move") note(88, t, 0.05, 0.022, "square");
+    else if (kind === "back") { note(76, t, 0.07, 0.03, "square"); note(69, t + 0.06, 0.1, 0.03, "square"); }
+    else if (kind === "talk") note(72 + Math.floor(Math.random() * 5), t, 0.03, 0.014, "square");
+    else { note(79, t, 0.06, 0.03, "square"); note(86, t + 0.055, 0.12, 0.03, "square"); }
+  } catch (e) {}
+}
+document.addEventListener("click", (e) => {   /* confirm, or back, by what was chosen */
+  const b = e.target.closest && e.target.closest(".opt, .chip, .plink, .fig"); if (!b || b.id === "m-music" || b.classList.contains("moment")) return;
+  sfx(/^(Back|Close)$/.test(b.textContent.trim()) ? "back" : "confirm");
+}, true);
+document.addEventListener("keydown", (e) => { if (!e.metaKey && !e.ctrlKey && !e.altKey && introBox.classList.contains("done")) { if (/^Arrow/.test(e.key) && !/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName || "")) sfx("move"); else if (e.key === "Escape") sfx("back"); } });
+/* ---- NEW marks ---- */
+let KNOWN = null;   /* what this visitor has already opened: { entries, quests, fish }, or nothing until the site has loaded */
+function loadKnown() {
+  let v = null; try { v = JSON.parse(store.get("known1") || "null"); } catch (e) {}
+  const list = (x) => (Array.isArray(x) ? x.map(text) : []);
+  if (v && typeof v === "object") KNOWN = { entries: list(v.entries), quests: list(v.quests), fish: list(v.fish) };
+  else { KNOWN = { entries: sorted.map((p) => p.file), quests: QUESTS.map(questMark), fish: BESTIARY.filter((b) => b.status !== "wanted").map((b) => b.name) }; saveKnown(); }   /* a first visit: everything counts as seen */
+}
+const saveKnown = () => store.set("known1", JSON.stringify({ entries: KNOWN.entries.slice(-600), quests: KNOWN.quests.slice(-300), fish: KNOWN.fish.slice(-300) }));
+const questMark = (q) => q.file + (q.status === "completed" ? "#done" : "");   /* a quest is new when first posted, and new again once fulfilled */
+const isNew = (kind, id) => !!KNOWN && !KNOWN[kind].includes(id);
+function markKnown(kind, id) { if (!KNOWN || KNOWN[kind].includes(id)) return; KNOWN[kind].push(id); saveKnown(); menuDots(); }
+const newTag = () => el("span", "newtag", "NEW");
+function menuDots() {   /* a dot on a menu command while something under it is new */
+  const any = { "m-files": sorted.some((p) => isNew("entries", p.file)), "m-quests": QUESTS.some((q) => isNew("quests", questMark(q))), "m-bestiary": BESTIARY.some((b) => b.status !== "wanted" && isNew("fish", b.name)) };
+  for (const id of Object.keys(any)) $("#" + id).classList.toggle("fresh", any[id]);
+}
+/* ---- Continue, on the title screen ---- */
+function offerContinue() {
+  const p = sorted.find((x) => isNew("entries", x.file)), b = $("#continuebtn"); if (!p || introBox.classList.contains("done")) { b.hidden = true; return; }
+  b.textContent = "Continue:  " + p.title; b.hidden = false; b.onclick = (e) => { e.stopPropagation(); endIntro(); showPost(p); };
+}
+/* ---- a gamepad: its buttons are turned into the keys the page already understands ---- */
+(function pad() {
+  let held = "", since = 0, on = false;
+  const press = (key) => { if (key === "Enter" && introBox.classList.contains("done")) { const a = document.activeElement; if (a && a !== document.body && a.click) a.click(); return; } document.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true })); };
+  const poll = (now) => {
+    const g = [...(navigator.getGamepads ? navigator.getGamepads() : [])].find(Boolean); if (!g) { on = false; return; }
+    const b = (i) => !!(g.buttons[i] && g.buttons[i].pressed), ax = g.axes || [];
+    const want = b(12) || ax[1] < -.6 ? "ArrowUp" : b(13) || ax[1] > .6 ? "ArrowDown" : b(14) || ax[0] < -.6 ? "ArrowLeft" : b(15) || ax[0] > .6 ? "ArrowRight" : b(0) || b(9) ? "Enter" : b(1) ? "Escape" : "";
+    if (want && (want !== held || (/^Arrow/.test(want) && now - since > 260))) { press(want); since = now; }   /* a held direction repeats; a held button does not */
+    held = want; requestAnimationFrame(poll);
+  };
+  window.addEventListener("gamepadconnected", () => { if (!on) { on = true; requestAnimationFrame(poll); } });
+})();
+/* ---- the old cheat code ---- */
+(function cheat() {
+  const want = ["ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown", "ArrowLeft", "ArrowRight", "ArrowLeft", "ArrowRight", "b", "a"]; let at = 0;
+  document.addEventListener("keydown", (e) => {
+    if (!e.isTrusted) return; const k = e.key.length === 1 ? e.key.toLowerCase() : e.key; at = k === want[at] ? at + 1 : k === want[0] ? 1 : 0;
+    if (at === want.length) { at = 0; momentQueue.unshift({ kind: "The old sign", title: "Recognised", sub: "Nothing is granted. It is, however, noted.", big: true }); clearTimeout(momentTimer); if (introBox.classList.contains("done")) nextMoment(); }
+  }, true);
+})();
+/* ---- talk to the keeper ---- */
+const SAYINGS = ["You find me at my ease. This should not be taken as an invitation.", "The fish are where they were. I have checked.", "I had a plant once that outlived two governments. It is listed among the perished.",
+  "Ask me nothing about the third eye. It was there when I woke.", "The orb is not for sale. The staff is not for sale. Enquire again when the shop opens.", "A level is a small thing. I have several.",
+  "The sun came up again today, which I am told should not be relied upon.", "Sign on to a quest if you must. The pay is nothing and the company is drawn by lot.", "I keep a log so that I may later dispute it.",
+  "You have the look of someone about to give advice. Reconsider.", "Everything here is true, in the sense that it is written down.", "The map is accurate to within one grievance."];
+let lastSaid = -1, talkTimer = null;
+function keeperSays(box) {
+  let n = Math.floor(Math.random() * SAYINGS.length); if (n === lastSaid) n = (n + 1) % SAYINGS.length; lastSaid = n;
+  const line = SAYINGS[n]; clearInterval(talkTimer); box.hidden = false; box.setAttribute("aria-label", line);
+  if (reduceMotion) { box.textContent = line; return; }
+  let i = 0; box.textContent = ""; talkTimer = setInterval(() => { if (!box.isConnected || i >= line.length) return clearInterval(talkTimer); box.textContent = line.slice(0, ++i); if (i % 3 === 0 && line[i - 1] !== " ") sfx("talk"); }, 28);   /* letter by letter, as the old games spoke */
+}
+/* ---- how complete it all is: the things that can be finished, each by itself and all together ---- */
+function completion() {
+  const ft = fishTally(), mt = mapTally(), hs = honours(), rows = [["Species", ft.species, ft.all], ["Landmarks", mt.seen, mt.marks], ["Honours", hs.filter((h) => h.won).length, hs.length], ["Quests", QUESTS.filter((q) => q.status === "completed").length, QUESTS.length]].filter((r) => r[2] > 0);
+  return { rows, all: rows.length ? Math.round(rows.reduce((t, r) => t + r[1] / r[2], 0) / rows.length * 100) : 0 };
+}
+
+/* ==========================================================================
    15. LOADING AND START
    Draws the first screen straight away (empty), then fetches posts.json,
    tidies every piece of it so one odd entry can never break a screen, and
@@ -2712,6 +2857,7 @@ function linkedPost() {   /* the entry named after # in the address, if there is
   } catch (e) { ABOUT = ""; BESTIARY_INTRO = ""; BESTIARY = []; ALBUMS = []; PLACES = []; QUESTS = []; PLANTS = []; PLANT_INTRO = { bonsai: "", house: "" }; sorted = []; loadNote = "Could not load the log. Refresh to try again."; }
   $("#count").textContent = sorted.length; $("#lvl").textContent = tally().level;
   $("#latest").textContent = sorted[0] ? day(sorted[0].date).split(",")[0] || "-" : "-";
+  loadKnown(); menuDots(); offerContinue(); $("#pct").textContent = sorted.length || BESTIARY.length ? completion().all + "%" : "-";
   pendingPost = linkedPost();
   const started = introBox.classList.contains("done");
   if (view === "files" && reader.hidden) showFiles(started);   /* redraw whichever screen is up, now that there is something to show */
