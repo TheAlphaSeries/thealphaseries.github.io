@@ -1,7 +1,7 @@
 # The figure of Chris as a black-robed high mage: 41 x 58 pixels, five drawings. The orb is not in them: the page draws it, so it can fly.
 # Run: python3 keeper.py   It writes keeper.json (the colours and frames, to paste into section 12 of index.html) and keeper.png (a preview).
-# A tall three-tiered black hat with a jewel, black sunglasses, a long black robe with a high collar, a violet
-# sash and gold trim, an orb floating over one hand and a staff in the other.
+# A deep peaked hood that hides the face (only a glint off the sunglasses shows), a long black robe with a high
+# collar, a violet sash and gold trim, an orb floating over one hand and a staff in the other.
 import json
 from PIL import Image
 W, H = 41, 58; OX, OY = 2, 6   # the figure is drawn 2 in from the left and 6 down, leaving room above for the lifted staff and the orb's flight
@@ -62,7 +62,7 @@ def frame(staff_dy=0, flare=0, orb_y=None, orb_r=2, sparks=0):
     rect(sx, top - 4, sx + 1, top - 2, 'A'); px(sx, top - 4, 'c'); px(sx + 1, top - 2, 'a')
     if flare: px(sx, top - 3, 'c'); px(sx + 1, top - 4, 'c'); px(sx - 4, top - 3, 'e'); px(sx + 5, top - 3, 'e'); px(sx, top - 7, 'e'); px(sx + 1, top - 7, 'e'); px(sx - 3, top - 6, 'e'); px(sx + 4, top - 6, 'e')
     hy = 30 + staff_dy // 2; rect(30, hy, 32, hy + 1, 's'); px(33, hy, 's'); px(30, hy + 1, 'd'); px(32, hy, 'l')          # the hand on the staff
-    # ---- the cowl: a deep hood drawn close under the hat, the face lost in its shadow but for a glint off the sunglasses
+    # ---- inside the hood: the face lost in its shadow but for a glint off the sunglasses
     for y, x0, x1 in ((16, 10, 23), (17, 9, 24), (18, 9, 24), (19, 9, 24), (20, 9, 24), (21, 10, 23), (22, 10, 23), (23, 11, 22), (24, 12, 21), (25, 13, 20)): row(y, x0, x1, 'k')
     for y in range(17, 21): px(9, y, 'K'); px(24, y, 'u')
     px(10, 16, 'K'); px(10, 21, 'K'); px(10, 22, 'K'); px(11, 23, 'K'); px(12, 24, 'K'); px(23, 21, 'u'); px(22, 23, 'u')
@@ -70,15 +70,18 @@ def frame(staff_dy=0, flare=0, orb_y=None, orb_r=2, sparks=0):
     px(11, 17, 'u'); px(22, 17, 'u'); px(12, 22, 'u'); px(21, 22, 'u'); row(24, 14, 19, 'u')
     row(18, 12, 15, 'r'); row(18, 18, 21, 'r'); px(13, 18, 'G'); px(19, 18, 'G'); px(14, 18, 'X'); px(20, 18, 'X')                # all that shows: the rims of the sunglasses, catching the light
     px(16, 25, 'y'); px(17, 25, 'y'); px(16, 26, 'Y')                                                                              # the clasp at the throat
-    # ---- the hat: a wide brim and three tiers, leaning a little, with a jewel
-    row(16, 6, 27, 'k'); row(15, 5, 28, 'k'); row(14, 7, 26, 'k'); row(16, 6, 27, 'u'); px(5, 15, 'K'); px(6, 14, 'K'); row(14, 8, 14, 'K')
-    for i, (x0, x1, y0, y1) in enumerate(((10, 23, 10, 13), (12, 22, 6, 9), (14, 21, 2, 5))):
-        rect(x0, y0, x1, y1, 'k'); row(y1, x0 - 1, x1 + 1, 'k'); row(y1, x0 - 1, x1 + 1, 'u' if i else 'k')
-        for y in range(y0, y1): px(x0, y, 'K'); px(x0 + 1, y, 'j' if y == y0 else 'K'); px(x1, y, 'u')
-        row(y0, x0 + 1, x1 - 1, 'K')
-    row(13, 9, 24, 'v'); row(13, 9, 12, 'V'); px(24, 13, 'w')                                                                 # the band
-    rect(15, 11, 18, 13, 'y'); px(16, 12, 'A'); px(17, 12, 'a'); px(15, 11, 'Y'); px(16, 11, 'c' if flare else 'A')            # the jewel
-    row(1, 16, 20, 'k'); px(21, 1, 'k'); px(22, 0, 'k'); px(21, 0, 'K')                                                        # the tip, bent
+    # ---- the hood: a deep peaked hood over the head, its edge trimmed in violet where it frames the dark
+    for y, x0, x1 in ((7, 15, 17), (8, 13, 19), (9, 12, 21), (10, 11, 22), (11, 10, 23), (12, 9, 24), (13, 9, 24), (14, 8, 25), (15, 8, 25), (16, 8, 25)): row(y, x0, x1, 'k')
+    px(16, 6, 'k'); px(17, 6, 'k'); px(17, 5, 'k'); px(18, 5, 'K')                                                                # the peak, tipped back
+    for y in range(17, 22): px(8, y, 'k'); px(25, y, 'k'); px(8, y, 'K'); px(25, y, 'u')                                          # its sides, falling to the shoulders
+    px(9, 22, 'k'); px(24, 22, 'k'); px(9, 23, 'k'); px(24, 23, 'k')
+    for x, y in ((14, 8), (13, 9), (12, 10), (11, 11), (10, 12), (10, 13), (9, 14), (9, 15), (15, 8), (13, 10)): px(x, y, 'K')    # light along the crown
+    for x, y in ((14, 9), (12, 11), (11, 13)): px(x, y, 'j')
+    for x, y in ((21, 10), (22, 11), (23, 12), (24, 14), (24, 15), (24, 16), (20, 9)): px(x, y, 'u')                              # and shade down the far side
+    for y in range(9, 16): px(16, y, 'u' if y % 2 else 'k')                                                                       # the seam
+    for x, y in ((12, 16), (13, 15), (14, 15), (15, 14), (16, 14), (17, 14), (18, 14), (19, 15), (20, 15), (21, 16), (11, 17), (22, 17)): px(x, y, 'v')   # the violet lining at the opening
+    px(13, 15, 'V'); px(14, 15, 'V'); px(15, 14, 'V')
+    for y, x0, x1 in ((15, 15, 18), (16, 13, 20)): row(y, x0, x1, 'g')                                                           # the opening runs up under the peak
     # ---- the orb, floating over the open hand
     ox, oy = 4, orb_y if orb_y is not None else -99
     for y in range(oy - orb_r - 1, oy + orb_r + 2):
