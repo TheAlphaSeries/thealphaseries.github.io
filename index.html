@@ -524,7 +524,7 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
    3b. Chronicle         one dated list of everything recorded
       4. Bestiary           the fish pictures and the fish screen
    4b. Herbarium         the plant pictures and the plant screen
-   4c. Moving pictures   the leaping fish and the swaying plants
+   4c. Moving pictures   the leaping fish
       5. Entry text         turning what the editor saves into paragraphs, photos, links
       6. Pop-out window     an opened entry, quest or companion
       7. Photo viewer       one enlarged photo, or a set to step through
@@ -1037,7 +1037,6 @@ function showPlants(kind, focusFirst) {
     card.append(facts);
     if (p.lore) { const lore = el("div", "post lore"); renderBody(p.lore, lore); card.append(lore); }
     card.classList.remove("pop"); void card.offsetWidth; card.classList.add("pop");
-    if (dead) stopAnim(); else sway(pic);   /* the living stir; the perished do not */
   };
   set.forEach((p, i) => {
     const pick = () => { if (btn.getAttribute("aria-pressed") !== "true") show(p, btn); };
@@ -1057,9 +1056,9 @@ function showPlants(kind, focusFirst) {
    A caught fish leaps: its picture is split into the creature and the water,
    the creature rises out of the water to the pose it was drawn in, hangs
    there, and falls back, while the splash swells and dies away with it. A
-   fish drawn going in head first only wriggles where it is. A living plant
-   sways a little, as in a draught. Only the picture on show moves, and
-   nothing moves for a visitor who has asked their device for less motion.
+   fish drawn going in head first only wriggles where it is. The plants are
+   left still. Only the picture on show moves, and nothing moves for a
+   visitor who has asked their device for less motion.
    ========================================================================== */
 let animTimer = null, DIVERS = [];
 function stopAnim() { clearInterval(animTimer); animTimer = null; }
@@ -1120,21 +1119,6 @@ function leap(canvas, kind, file) {
     if (show) { c.save(); c.beginPath(); c.rect(0, 0, W, line); c.clip(); c.drawImage(body, Math.round(dx), Math.round(dy)); c.restore(); }
     splash(pic, 0, s1);
     if (s2 > 0.04) splash(pic, -from * 1.35, s2);
-  });
-}
-function sway(canvas) {   /* call after the plant has been drawn */
-  stopAnim(); if (reduceMotion || !canvas.width) return;
-  const W = canvas.width, H = canvas.height, c = canvas.getContext("2d"), still = el("canvas"); still.width = W; still.height = H; still.getContext("2d").drawImage(canvas, 0, 0);
-  const data = c.getImageData(0, 0, W, H).data; let top = H, bottom = 0;
-  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (data[(y * W + x) * 4 + 3]) { if (y < top) top = y; if (y > bottom) bottom = y; }
-  if (top >= bottom) return;
-  const root = top + (bottom - top) * .6;   /* below this the pot and the soil stand still */
-  animate(canvas, 170, (tick) => {
-    c.clearRect(0, 0, W, H);
-    for (let y = 0; y < H; y++) {
-      const reach = y < root ? Math.pow((root - y) / (root - top), 1.4) : 0, off = Math.round(Math.sin(tick * .33 + y * .06) * 1.7 * reach);
-      c.drawImage(still, 0, y, W, 1, off, y, W, 1);
-    }
   });
 }
 
