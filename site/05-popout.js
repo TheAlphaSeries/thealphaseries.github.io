@@ -73,6 +73,13 @@ const lot = (name, seed) => (seed > 0 ? seed : nameHash(String(name).toLowerCase
 function what(name, seed, calling) { return typeof conjure === "function" ? conjure(lot(name, seed), calling) : null; }
 /* the short past written for a companion (see "The teller of backgrounds" in figures.js) */
 function pastOf(name, seed, calling, item) { return typeof conjure === "function" ? conjure.tale(lot(name, seed), { name, calling, item }) : ""; }
+/* the facts of a companion's record, as the annals want them (see conjure.annals in figures.js) */
+function factsOf(c) {
+  const posts = c.posts.slice().sort((a, b) => (b.at || "").localeCompare(a.at || "")).map((x) => ({ quest: x.quest.title, place: x.quest.place, role: x.role, done: x.quest.status === "completed", grade: x.quest.status === "completed" ? questGrade(x.quest) : "", commended: x.quest.status === "completed" && commendedOn(x.quest, c), when: x.at }));
+  const remarks = Object.keys(REMARKS).reduce((n, k) => n + REMARKS[k].filter((m) => c.names.has(m.name.toLowerCase())).length, 0);
+  return { name: c.name, calling: c.calling, item: c.item, since: c.since, level: c.level, bond: c.bond, title: c.title, stars: c.stars, remarks, keeper: STATUS.name || "", posts };
+}
+function annalsOf(c) { return typeof conjure === "function" && conjure.annals ? conjure.annals(lot(c.name, c.seed), factsOf(c)) : ""; }
 function drawCompanion(canvas, name, seed, calling) {
   const f = what(name, seed, calling); if (!f) return;   /* the figure maker did not load: leave the frame empty */
   canvas.width = FW; canvas.height = FH; canvas.getContext("2d").putImageData(new ImageData(f.pixels, FW, FH), 0, 0);
@@ -111,8 +118,8 @@ function showCompanion(c, from) {
   const tally = el("p", "goalhead"); tally.append(el("span", null, "Posts held"), el("span", "lmcount", String(c.posts.length)));
   const nav = el("div", "row group"); nav.append(opt("Back", closePost));
   if (typeof conjure === "function") { const note = el("span", "sharenote"); note.setAttribute("role", "status");
-    nav.append(opt("Share card", () => shareCard(companionCard({ name: c.name, seed: c.seed, calling: c.calling, item: c.item, title: c.title, level: c.level, bond: c.bond, lines: c.posts.map((x) => (x.role || "Of the company") + ", " + x.quest.title) }), "half-life-" + (c.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "companion") + ".png", c.name + " of the keeper's company", note)), note); }
-  const past = el("div", "post lore pastlore"), tale = pastOf(c.name, c.seed, c.calling, c.item); if (tale) past.append(el("p", null, tale));
+    nav.append(opt("Share card", () => shareCard(companionCard({ name: c.name, seed: c.seed, calling: c.calling, item: c.item, title: c.title, level: c.level, bond: c.bond, lines: c.posts.map((x) => (x.role || "Of the company") + ", " + x.quest.title), story: c.posts.length ? annalsOf(c) : "" }), "half-life-" + (c.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "companion") + ".png", c.name + " of the keeper's company", note)), note); }
+  const past = el("div", "post lore pastlore"), tale = pastOf(c.name, c.seed, c.calling, c.item), annals = annalsOf(c); if (tale) past.append(el("p", null, tale)); if (annals) { past.append(el("p", "goalhead", "The annals"), el("p", null, annals)); }
   rwin.append(head, pic, sheet); if (tale) rwin.append(past); rwin.append(tally, posts, nav);
   reader.hidden = false; document.body.style.overflow = "hidden"; syncLayers();
   rwin.classList.remove("pop"); void rwin.offsetWidth; rwin.classList.add("pop");
@@ -374,7 +381,7 @@ async function companionCard(who) {
   if (item) { const t = el("canvas"); conjure.paintItem(t, who.item); c.imageSmoothingEnabled = false; c.drawImage(t, X - 8, y, 110, 110); c.fillStyle = CARD.dim; c.font = '26px "DotGothic16", monospace'; cardText(c, item, X + 112, y + 12, W - 112, 32, 3); }
   y = 790; c.fillStyle = "#fff"; c.font = '28px "DotGothic16", monospace';
   (who.lines || []).slice(0, 3).forEach((l) => { c.fillStyle = CARD.gold; c.fillRect(100, y + 10, 12, 12); c.fillStyle = "#fff"; y = cardText(c, l, 128, y, CARD.w - 228, 36, 2) + 4; });
-  const tale = pastOf(who.name, who.seed, who.calling, who.item);
+  const tale = who.story || pastOf(who.name, who.seed, who.calling, who.item);   /* a companion with a record gets their annals on the card; a newcomer, their background */
   if (tale) { c.fillStyle = CARD.dim; c.font = 'italic 31px "Newsreader", Georgia, serif'; cardText(c, tale, 100, y + 18, CARD.w - 200, 42, Math.max(2, Math.floor((CARD.h - 190 - y - 18) / 42))); }
   c.fillStyle = CARD.dim; c.font = '26px "DotGothic16", monospace'; c.fillText("Lot No. " + lot(who.name, who.seed), 96, CARD.h - 140);
   c.textAlign = "right"; c.fillStyle = "#fff"; c.fillText("Draw your own lot: halflife.studio", CARD.w - 96, CARD.h - 140); c.textAlign = "left";

@@ -31,7 +31,7 @@ Saving there creates or changes a file in one of the folders below. The site upd
 | `pages/status.md` | The name, class and blurb on the Status screen. Its numbers are counted by the site. |
 | `photos/` | Photos as uploaded. `thumbs/` and `large/` are smaller copies made automatically; do not edit those. |
 | `posts.json` | The list the site loads. Rebuilt automatically; do not edit by hand. |
-| `figures.js` | The figure maker: draws a companion (a kind of creature, a calling, colours, details) from one number, lists the starting curiosities, and writes each companion's short background. Add a line to its lists to add a creature, a calling, a curiosity or a turn of phrase. |
+| `figures.js` | The figure maker: draws a companion (a kind of creature, a calling, colours, details) from one number, lists the starting curiosities, writes each companion's short background, and writes their annals from their record. Add a line to its lists to add a creature, a calling, a curiosity or a turn of phrase. |
 | `figures.html` | A gallery for trying the figure maker: halflife.studio/figures.html |
 | `sprites.png` | Every Bestiary and Herbarium picture, on one sheet (each 144 pixels square). Written by the scripts in `tools/sprites`; do not edit by hand. |
 | `sprites.json` | The list that says where each picture is on that sheet. Written by the same scripts. |

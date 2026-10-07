@@ -126,7 +126,10 @@ function encounter(force) {
   const old = reader.querySelector(".encounter"); if (old) old.remove(); clearTimeout(encounterTimer);
   const seed = Math.floor(Math.random() * 2147483646) + 1, f = conjure(seed), box = el("button", "encounter win"), pic = el("canvas", "fellowpic"), words = el("span", "ewords");
   box.type = "button"; pic.setAttribute("aria-hidden", "true"); pic.width = FW; pic.height = FH; pic.getContext("2d").putImageData(new ImageData(f.pixels, FW, FH), 0, 0);
-  const line = Math.random() < .7 && owns(PASSING, f.calling) ? PASSING[f.calling] : PASSING_ANY[Math.floor(Math.random() * PASSING_ANY.length)];
+  const here = current && current.place ? current.place : "", lvl = tally().level, kname = STATUS.name || "the keeper";   /* some strangers know where you are reading about, and of whom */
+  const knowing = [here ? "I was at " + here + " once. It was not as described." : "", here ? "They still speak of " + kname + " at " + here + ". Not warmly, but at length." : "", current ? "I have read \u201c" + current.title + "\u201d. I was promised it would be shorter." : "",
+    kname + " is level " + lvl + " now, I hear. He was level " + Math.max(1, lvl - 1) + " when I knew him, and no better company.", "The day's saying was \u201c" + sayingOfTheDay().words.split(" ").slice(0, 6).join(" ") + "...\u201d I did not stay for the rest."].filter(Boolean);
+  const line = Math.random() < .35 ? knowing[Math.floor(Math.random() * knowing.length)] : Math.random() < .7 && owns(PASSING, f.calling) ? PASSING[f.calling] : PASSING_ANY[Math.floor(Math.random() * PASSING_ANY.length)];
   words.append(el("span", "ewho", (/^[AEIOU]/.test(f.kind) ? "An " : "A ") + f.title + " passes on the road."), el("span", "esays", "“" + line + "”"));
   box.append(pic, words); box.setAttribute("aria-label", words.textContent + " Dismiss"); box.addEventListener("click", () => box.remove());
   reader.append(box); encounterTimer = setTimeout(() => box.remove(), 11000);

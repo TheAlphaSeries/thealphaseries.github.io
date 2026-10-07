@@ -274,5 +274,37 @@ conjure.tale = function (seed, who) {
   const lines = [origin(n, place, birth), OF_KIND[f.kind], OF_CALLING[f.calling]]; if (who && OF_ITEM[who.item]) lines.push(OF_ITEM[who.item]); lines.push(ending);
   return lines.filter(Boolean).map((l) => l.split("{N}").join(n)).join(" ");
 };
+/* ---- The annals ----
+   What a companion has actually done, written up: the posts they hold, the ventures seen through and how the keeper
+   graded them, commendations, remarks left in the log, their level and bond. It is written afresh from the record each
+   time, so it changes as the record does; the turns of phrase are chosen by the companion's own number, so one
+   companion keeps one voice. facts: { name, calling, item, kind, since, level, bond, title, stars, remarks,
+   keeper, posts: [{ quest, place, role, done, grade, commended, when }] } */
+const SEASONS = ["the dead of winter", "late winter", "the first of spring", "spring", "late spring", "early summer", "high summer", "late summer", "the turn of autumn", "autumn", "late autumn", "the onset of winter"];
+const ITEM_SHORT = { lamp: "the lamp", map: "the drowned map", bottle: "the bottle of old light", coin: "the faceless coin", key: "the key", compass: "the compass", ring: "the ring", whistle: "the whistle", book: "the book", tooth: "the tooth", mirror: "the mirror", egg: "the egg" };
+const GRADE_WORDS = { S: ["beyond reproach", "a verdict he reaches perhaps once in an age"], A: ["handsomely done", "which from him is lavish"], B: ["done", "which is the most he says of most things"], C: ["done, after a fashion", "and left it at that"], D: ["survived", "which he entered without further comment"] };
+conjure.annals = function (seed, F) {
+  let s = ((seed >>> 0) ^ 0x2545f491) >>> 0 || 3; const rnd = () => { s = (s + 0x6D2B79F5) >>> 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }, pick = (a) => a[Math.floor(rnd() * a.length)];
+  const N = String(F.name || "").trim() || "This one", K = String(F.keeper || "").trim() || "the keeper", posts = Array.isArray(F.posts) ? F.posts.filter((p) => p && p.quest) : [], done = posts.filter((p) => p.done), open = posts.filter((p) => !p.done), out = [];
+  const since = /^\d{4}-(\d{2})/.exec(String(F.since || "")), when = since ? SEASONS[+since[1] - 1] : "";
+  /* how they came to the company */
+  if (!posts.length) out.push(pick([N + " is of the company in name, having signed on and so far done nothing further, which the keeper notes is also the record of several kings.", "Of " + N + "'s service there is as yet nothing to set down. The ink is ready.", N + " has drawn a lot and awaits an undertaking; the undertakings, for their part, await " + N + "."]));
+  else out.push(pick([N + " threw in with " + K + (when ? " in " + when : "") + ", and has since put a name to " + (posts.length === 1 ? "one undertaking" : posts.length + " undertakings") + ".", "The record shows " + N + " of the company" + (when ? " since " + when : "") + ", answerable for " + (posts.length === 1 ? "a single venture" : posts.length + " ventures") + ".", (when ? "Since " + when + ", " : "") + N + " has signed to " + (posts.length === 1 ? "one of " + K + "'s undertakings" : posts.length + " of " + K + "'s undertakings") + (done.length ? ", and seen " + (done.length === posts.length ? (done.length === 1 ? "it" : "all of them") : done.length === 1 ? "one" : done.length + " of them") + " through" : "") + "."]));
+  /* each venture, newest first, up to four */
+  posts.slice(0, 4).forEach((p, i) => {
+    const role = p.role ? "as " + p.role : "without a post, which " + K + " permits and does not encourage", q = "the matter of " + p.quest;
+    if (!p.done) out.push(pick([N + " stands " + role + " on " + p.quest + ", a thing still in hand; " + K + " reports " + pick(["no complaint", "nothing he is prepared to repeat", "that the post is held, which is more than can be said for most"]) + ".", "On " + p.quest + ", " + N + " serves " + role + ". It is not finished. Neither, " + K + " observes, is anything else.", (i ? "There is also " : "There is ") + q + ", in which " + N + " is engaged " + role + "; its end is " + pick(["not yet written", "expected, which is not the same as scheduled", "a matter for the calendar, which has been slow to commit"]) + "."]));
+    else { const g = GRADE_WORDS[p.grade] || GRADE_WORDS.B;
+      out.push(pick([N + " served " + role + " on " + p.quest + ", and " + K + " graded the affair " + g[0] + ", " + g[1] + ".", "In " + q + ", " + N + " " + (p.role ? "held the post of " + p.role : "went along unposted") + " to the end; the keeper's verdict on the whole was that it was " + g[0] + ".", p.quest + " was seen through with " + N + " " + role + ". It is entered as " + g[0] + ", " + g[1] + "."]));
+      if (p.commended) out.push(pick([N + " was commended for it, in writing, a thing " + K + " does otherwise only under compulsion.", "For that venture " + N + " is named in the keeper's commendation, a short list that has had few additions.", "The keeper set down a commendation of " + N + " for it, and has not since asked for it back."])); }
+  });
+  /* the curiosity they set out with */
+  const it = ITEM_SHORT[F.item]; if (it) out.push(done.length ? pick([it.charAt(0).toUpperCase() + it.slice(1) + " has by now been to " + (done[0].place || done[0].quest) + " and back, and is none the worse, which is more than its bearer claims.", "Through all this " + it + " was carried, unused, which " + N + " holds to be the proper use of it."]) : pick([it.charAt(0).toUpperCase() + it.slice(1) + " has not yet left the bag.", N + " still carries " + it + ", and has so far found no occasion for it, which " + N + " counts as the occasion going well."]));
+  /* remarks left in the log */
+  if (F.remarks > 0) out.push(pick([N + " has left " + (F.remarks === 1 ? "one remark" : F.remarks + " remarks") + " in the keeper's log, each read by him before it was shown and each allowed to stand.", "There are besides " + (F.remarks === 1 ? "a remark" : F.remarks + " remarks") + " of " + N + "'s in the margins of the log, which the keeper read first and let through, a courtesy he extends to few."]));
+  /* the reckoning */
+  if (posts.length) out.push(pick(["At level " + F.level + ", with a bond of " + F.bond + " of five, " + N + " is reckoned " + (F.title ? "a " + F.title : "of the company") + ". The keeper's reckoning is not generous, so it may be taken as meant.", "All of which leaves " + N + " at level " + F.level + " and a bond of " + F.bond + " in five: " + (F.title ? "a " + F.title : "of the company") + ", in the keeper's phrase, and he chooses his phrases with care and his companions with less."]));
+  return out.join(" ");
+};
 return conjure;
 })();

@@ -40,6 +40,10 @@ The Quests tab is the full log: what is in hand, and what has been fulfilled. Ea
 
 A finished quest opens with its report: a grade, the experience it paid, everyone who was there and what it earned them, and the keeper's account of how it went. Companions have a level of their own; it rises with every quest they see through. Choose Share to make a card of the report, or of any companion, to send to a friend.
 
+## The annals
+
+A companion's page carries their annals: an account of what they have actually done, written afresh from the record each time it is opened, so it grows as they do.
+
 ## A line in the water
 
 Choose Cast a line in the Bestiary to fish from the keeper's pier. Press (a tap, or Space) to cast; wait for the float to jerk and press again to hook; then hold to lift the green zone and let go to sink it, keeping the fish inside until the line is drawn in. Only what the keeper has caught can be caught. Your creel is kept on your own device.
