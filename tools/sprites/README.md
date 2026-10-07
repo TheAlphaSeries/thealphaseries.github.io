@@ -1,6 +1,6 @@
 # The pictures in the Bestiary and the Herbarium
 
-These files draw every creature and plant on the site. They are not part of the website and are not published with it; what the website reads is `sprites.json` at the top of the repository, which these scripts write.
+These files draw every creature and plant on the site. They are not part of the website and are not published with it; what the website reads is `sprites.png` (the pictures, on one sheet) and `sprites.json` (where each one is on it) at the top of the repository, which these scripts write.
 
 ## What is here
 
@@ -19,7 +19,7 @@ By file name. The entry `bestiary/001-rainbow-trout.md` uses the picture named `
 
 1. Edit or add its spec sheet (copy a similar species and change the numbers).
 2. `python3 run.py its-name` and look at `try.png`.
-3. When it looks right, `python3 run.py` to redraw everything and rewrite `sprites.json`, then commit.
+3. When it looks right, `python3 run.py` to redraw everything and rewrite `sprites.png` and `sprites.json`, then commit.
 
 Needs Python with numpy, scipy, Pillow and opencv.
 

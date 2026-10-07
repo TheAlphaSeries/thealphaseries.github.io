@@ -32,7 +32,8 @@ Saving there creates or changes a file in one of the folders below. The site upd
 | `posts.json` | The list the site loads. Rebuilt automatically; do not edit by hand. |
 | `figures.js` | The figure maker: draws a companion (a kind of creature, a calling, colours, details) from one number, lists the starting curiosities, and writes each companion's short background. Add a line to its lists to add a creature, a calling, a curiosity or a turn of phrase. |
 | `figures.html` | A gallery for trying the figure maker: halflife.studio/figures.html |
-| `sprites.json` | Every Bestiary and Herbarium picture. Written by the scripts in `tools/sprites`; do not edit by hand. |
+| `sprites.png` | Every Bestiary and Herbarium picture, on one sheet (each 144 pixels square). Written by the scripts in `tools/sprites`; do not edit by hand. |
+| `sprites.json` | The list that says where each picture is on that sheet. Written by the same scripts. |
 | `tools/sprites/` | The scripts that draw those pictures. Not published. See the README inside. |
 | `map-land.json`, `map-bay.json` | Coastlines for the map (the world, and finer detail around San Francisco, Hong Kong and Shanghai). |
 | `og.png` | The picture shown when the link is shared. |

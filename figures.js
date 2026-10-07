@@ -4,7 +4,8 @@
    picture as a grid of colours and says what it drew. To add a kind of creature, add a line to KINDS and, if it
    needs ears or a tail of its own, a few lines under "the head" or "behind the body" in conjure(). To add a
    calling, add a line to CALLINGS. */
-const FW = 24, FH = 30;   /* how many pixels wide and tall a figure is */
+const LW = 24, LH = 30, UP = 4;   /* a figure is planned on a grid 24 wide and 30 tall, then drawn four times that size and smoothed */
+const FW = LW * UP, FH = LH * UP;   /* how many pixels wide and tall the finished picture is */
 const conjure = (function () {   /* everything inside is private to the figure maker, so its names cannot clash with the page's */
 const tint = (hex, f) => { const n = parseInt(hex.slice(1), 16), ch = (v) => Math.max(0, Math.min(255, Math.round(f >= 0 ? v + (255 - v) * f : v * (1 + f)))); return "#" + [n >> 16, (n >> 8) & 255, n & 255].map((v) => ch(v).toString(16).padStart(2, "0")).join(""); };
 const NATURAL = ["#f1c9a5", "#e0ac7e", "#c68a5c", "#9c6239", "#6e4429"], HAIR = ["#1c1814", "#4a2c18", "#8a5a2c", "#c89a48", "#e8e0d0", "#a83a2a", "#5a5a6a", "#3a6ab0", "#8a4ab0", "#3a9a6a"];
@@ -47,8 +48,8 @@ function conjure(seed, wanted) {   /* wanted: the calling the companion chose, i
   const skin = pick(skins), main = pick(DYES); let second = pick(DYES); if (second === main) second = tint(main, -.45);
   const accent = pick(["#f0c040", "#e8e6ff", "#ff7a5a", "#7fd6ff", "#9af08a", "#ff9ad8"]), metal = pick(METALS), hair = pick(HAIR), eye = pick(["#15131c", "#15131c", "#15131c", "#3a2a1a", "#1a3a5a"]);
   const glow = pick(["#ffd257", "#8fd6ff", "#9af08a", "#ff8a8a", "#e0a8ff"]), WOOD = "#8a5a2c", CREAM = "#efe6cc", STEEL = "#c8d0dc", BOOT = "#2a2018";
-  const g = Array.from({ length: FH }, () => new Array(FW).fill(null)); let part = 0;
-  const put = (x, y, c, flat) => { x = Math.round(x); y = Math.round(y); if (x >= 0 && x < FW && y >= 0 && y < FH && c) g[y][x] = { c, p: part, flat: !!flat }; };
+  const g = Array.from({ length: LH }, () => new Array(LW).fill(null)); let part = 0;
+  const put = (x, y, c, flat) => { x = Math.round(x); y = Math.round(y); if (x >= 0 && x < LW && y >= 0 && y < LH && c) g[y][x] = { c, p: part, flat: !!flat }; };
   const box = (x0, y0, x1, y1, c, flat) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) put(x, y, c, flat); };
   const next = () => { part++; };
   let [hw, hh, bw, bh, lh] = dims; const clothes = frame === "float" && clothes0 !== "armour" ? "robe" : clothes0;
@@ -192,15 +193,45 @@ function conjure(seed, wanted) {   /* wanted: the calling the companion chose, i
   if (off === "shield" && frame !== "blob") { next(); box(L - 5, bt + 1, L - 1, bt + 6, main); box(L - 4, bt + 7, L - 2, bt + 7, main); put(L - 3, bt + 8, main); box(L - 5, bt + 1, L - 1, bt + 1, metal, 1); box(L - 3, bt + 3, L - 3, bt + 5, accent, 1); put(L - 4, bt + 4, accent, 1); put(L - 2, bt + 4, accent, 1); }
   if (off === "book" && frame !== "blob") { next(); box(L - 4, handY - 2, L - 1, handY + 1, second); box(L - 4, handY + 1, L - 1, handY + 1, CREAM, 1); put(L - 3, handY - 1, accent, 1); }
   /* ---- light and line: each piece is lit from the left and shaded on the right, then the whole is outlined ---- */
-  const out = Array.from({ length: FH }, () => new Array(FW).fill(""));
-  const same = (x, y, p) => x >= 0 && x < FW && y >= 0 && y < FH && g[y][x] && g[y][x].p === p;
-  for (let y = 0; y < FH; y++) for (let x = 0; x < FW; x++) {
-    const q = g[y][x]; if (!q) continue; let c = q.c;
-    if (!q.flat) { const l = same(x - 1, y, q.p), r = same(x + 1, y, q.p), d = same(x, y + 1, q.p), u = same(x, y - 1, q.p); if (!r && l) c = tint(c, -.24); else if (!l && r) c = tint(c, .2); else if (!d && u) c = tint(c, -.14); else if (!u && d && l && r) c = tint(c, .1); }
-    out[y][x] = kind === "Ghost" ? tint(c, .12) : c;
+  return { pixels: finishBig(g, kind === "Ghost" ? 232 : 255), kind, calling, title: kind + " " + calling };
+}
+/* ---- From the plan to the picture ----
+   The plan is small and blocky. Here it is drawn four times the size: the stair-steps are rounded off (twice over,
+   by a rule that looks at each square's neighbours), every piece is shaded smoothly from light at its upper left to
+   dark at its lower right, and the whole is given a dark edge. This is what makes it look 32-bit, not 16-bit.
+   cells: rows of { c: colour, p: which piece, flat: leave unshaded } or nothing. Gives back raw pixels. */
+function rounder(grid) {   /* one doubling */
+  const h = grid.length, w = grid[0].length, key = (q) => (q ? q.c + "|" + q.p : ""), at = (x, y) => (y >= 0 && y < h && x >= 0 && x < w ? grid[y][x] : null), out = Array.from({ length: h * 2 }, () => new Array(w * 2));
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const P = grid[y][x], A = at(x, y - 1), B = at(x + 1, y), Cc = at(x - 1, y), Dd = at(x, y + 1), a = key(A), b = key(B), c = key(Cc), d = key(Dd);
+    out[y * 2][x * 2] = c === a && c !== d && a !== b ? A : P; out[y * 2][x * 2 + 1] = a === b && a !== c && b !== d ? B : P;
+    out[y * 2 + 1][x * 2] = d === c && d !== b && c !== a ? Cc : P; out[y * 2 + 1][x * 2 + 1] = b === d && b !== a && d !== c ? Dd : P;
   }
-  for (let y = 0; y < FH; y++) for (let x = 0; x < FW; x++) if (!g[y][x] && [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([a, b]) => g[y + b] && g[y + b][x + a])) out[y][x] = "#0a0a14";
-  return { grid: out, kind, calling, title: kind + " " + calling };
+  return out;
+}
+const rgbOf = (hex) => { const n = parseInt(hex.slice(1), 16); return [n >> 16, (n >> 8) & 255, n & 255]; };
+function finishBig(cells, solid) {
+  const big = rounder(rounder(cells)), H = big.length, W = big[0].length, px = new Uint8ClampedArray(W * H * 4), box = {};
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const q = big[y][x]; if (!q) continue; const b = box[q.p] || (box[q.p] = [x, y, x, y]); if (x < b[0]) b[0] = x; if (y < b[1]) b[1] = y; if (x > b[2]) b[2] = x; if (y > b[3]) b[3] = y; }
+  const piece = (x, y) => (y >= 0 && y < H && x >= 0 && x < W && big[y][x] ? big[y][x].p : -1), set = (x, y, r, g, b, a) => { const i = (y * W + x) * 4; px[i] = r; px[i + 1] = g; px[i + 2] = b; px[i + 3] = a; };
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const q = big[y][x]; if (!q) continue; let [r, g, b] = rgbOf(q.c);
+    if (!q.flat) {
+      const bx = box[q.p], u = (x - bx[0]) / Math.max(6, bx[2] - bx[0]), v = (y - bx[1]) / Math.max(6, bx[3] - bx[1]); let f = .17 - .4 * (.62 * u + .38 * v);
+      if (piece(x - 1, y) !== q.p || piece(x, y - 1) !== q.p) f += .1; if (piece(x + 1, y) !== q.p || piece(x, y + 1) !== q.p) f -= .16; else if (piece(x + 2, y) !== q.p) f -= .07;
+      const k = f >= 0 ? f : 0, m = f < 0 ? 1 + f : 1; r = (r + (255 - r) * k) * m; g = (g + (255 - g) * k) * m; b = (b + (255 - b) * k) * m;
+    }
+    set(x, y, r, g, b, solid);
+  }
+  for (let pass = 0; pass < 2; pass++) {   /* the edge: first a dark shade of whatever it touches, then near-black outside that */
+    const add = [];
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      if (px[(y * W + x) * 4 + 3]) continue;
+      for (const [i, j] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const X = x + i, Y = y + j; if (X < 0 || Y < 0 || X >= W || Y >= H) continue; const n = (Y * W + X) * 4; if (px[n + 3]) { add.push(pass ? [x, y, 10, 10, 20] : [x, y, px[n] * .3, px[n + 1] * .3, px[n + 2] * .34]); break; } }
+    }
+    add.forEach(([x, y, r, g, b]) => set(x, y, r, g, b, 255));
+  }
+  return px;
 }
 /* ---- The starting items ----
    One curiosity each companion sets out with, chosen when they sign on. Each line: a short code name, what it is
@@ -222,8 +253,9 @@ conjure.callings = CALLINGS.map((c) => c[0]);
 conjure.items = ITEMS.map((i) => [i[0], i[1]]);
 conjure.itemName = (id) => (ITEMS.find((i) => i[0] === id) || ["", ""])[1];
 conjure.paintItem = (canvas, id) => {
-  const it = ITEMS.find((i) => i[0] === id); canvas.width = 9; canvas.height = 9; if (!it) return; const c = canvas.getContext("2d");
-  it[3].forEach((r, y) => { for (let x = 0; x < r.length; x++) if (it[2][r[x]]) { c.fillStyle = it[2][r[x]]; c.fillRect(x, y, 1, 1); } });
+  const it = ITEMS.find((i) => i[0] === id), n = 11; canvas.width = n * UP; canvas.height = n * UP; if (!it) return;   /* the little picture, with a square of room all round, drawn large and smoothed like the figures */
+  const cells = Array.from({ length: n }, (_, y) => Array.from({ length: n }, (_, x) => { const ch = (it[3][y - 1] || "")[x - 1], col = it[2][ch]; return col ? { c: col, p: ch, flat: false } : null; }));
+  canvas.getContext("2d").putImageData(new ImageData(finishBig(cells, 255), n * UP, n * UP), 0, 0);
 };
 /* ---- The teller of backgrounds ----
    Writes a short past for a companion, in the manner of the site: where they came from, what their kind is like,

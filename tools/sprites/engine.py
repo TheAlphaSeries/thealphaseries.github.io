@@ -3,14 +3,16 @@
 #   fish     - a curved spine, separate back and belly outlines, a rounded lit body with pigment, scales and gloss,
 #              fins built ray by ray, then head details
 #   others   - layered "puffy" parts (shell, legs, arms), each a lit dome
-# The model is painted at 3x, shrunk to a 96 x 96 grid, cut down to a small palette with ordered dither,
-# outlined, and given a splash.
+# The model is painted large, shrunk to 144 x 144 in full colour (no small palette, no dither: the look of the
+# 32-bit machines), outlined, and given a splash.
 import numpy as np, math, json, sys, random, cv2
 from PIL import Image, ImageDraw
 from scipy import ndimage as ndi
 from scipy.spatial import cKDTree
 from scipy.interpolate import PchipInterpolator
-G, Q = 96, 3; R = G * Q; BASE = 85
+# The models are measured on a 96 x 96 grid (G). They are painted 6 times that size (Q) and shrunk to a picture of
+# 144 x 144 (OUT): S pixels of picture to each unit of the grid, D painted pixels to each pixel of picture.
+G, Q = 96, 6; R = G * Q; BASE = 85; OUT = 144; S = OUT / G; D = R // OUT
 YY, XX = (np.mgrid[0:R, 0:R] + .5) / Q
 L = np.array([-.42, -.74, .53]); L /= np.linalg.norm(L)
 Hh = L + np.array([0, 0, 1.]); Hh /= np.linalg.norm(Hh)
@@ -199,97 +201,86 @@ class Fish:
         sh = (np.abs(uu + .9) / a + np.abs(dv - 1.0) / b < 1) & (s.t > t0) & (s.t < t1) & ~m; s.shade(sh, f=.62); s.shade(m, f, col)
     def whisker(s, pts, col, late=True): s.cv.line([s.P(t, v) for t, v in pts], col, late=late)
 def finish(cv, seed, ex=48, ncol=28, dith=5., power=1., jets=None, drips=True, water=True):
-    a3 = cv.a.reshape(G, Q, G, Q); cnt = a3.sum((1, 3)); m = cnt >= 5
-    rgb = (cv.rgb * cv.a[..., None]).reshape(G, Q, G, Q, 3).sum((1, 3)) / np.maximum(cnt, 1)[..., None]
-    bayer = (np.array([[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]]) / 16 - .47)
-    data = np.clip(rgb + np.tile(bayer, (G // 4, G // 4))[..., None] * dith, 0, 255)[m].astype(np.float32)
-    cv2.setRNGSeed(seed)
-    _, lab, cen = cv2.kmeans(data, ncol, None, (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 40, .3), 5, cv2.KMEANS_PP_CENTERS)
-    out = np.zeros((G, G, 3), int); out[m] = np.round(cen[lab[:, 0]]).astype(int)
+    # Shrink the painting to the picture: OUT x OUT pixels, full colour, no dither. Returns an RGBA array in which
+    # the creature is fully opaque (alpha 255) and the water one step less (alpha 254), so the page can tell them apart.
+    a3 = cv.a.reshape(OUT, D, OUT, D); cnt = a3.sum((1, 3)); m = cnt >= D * D * .5
+    rgb = (cv.rgb * cv.a[..., None]).reshape(OUT, D, OUT, D, 3).sum((1, 3)) / np.maximum(cnt, 1)[..., None]
+    out = np.zeros((OUT, OUT, 3)); out[m] = rgb[m]
+    def blocks(x, y):   # a spot given on the 96 grid, as the pixels it covers in the picture
+        return [(xx, yy) for yy in range(int(y * S), max(int(y * S) + 1, int((y + 1) * S))) for xx in range(int(x * S), max(int(x * S) + 1, int((x + 1) * S))) if 0 <= xx < OUT and 0 <= yy < OUT]
     for x, y, c in cv.stamps:
-        if 0 <= x < G and 0 <= y < G: out[y, x] = c; m[y, x] = True
+        for xx, yy in blocks(x, y): out[yy, xx] = c; m[yy, xx] = True
     # outline: every empty pixel touching the creature takes a dark shade of what it touches
-    acc = np.zeros((G, G, 3)); n = np.zeros((G, G))
+    acc = np.zeros((OUT, OUT, 3)); n = np.zeros((OUT, OUT))
     for dy, dx in ((0, 1), (0, -1), (1, 0), (-1, 0)):
         sm = np.roll(m, (dy, dx), (0, 1)); so = np.roll(out, (dy, dx), (0, 1)); acc += so * sm[..., None]; n += sm
     edge = (~m) & (n > 0); oc = acc[edge] / n[edge][..., None]
-    lum = oc.mean(1); oc = np.where(lum[:, None] > 150, oc * .36, oc * .3); oc = np.maximum(oc, [18, 20, 27])
-    oc = (np.round(oc / 12) * 12).astype(int); out[edge] = oc; m2 = m | edge
+    lum = oc.mean(1); oc = np.where(lum[:, None] > 150, oc * .36, oc * .3); oc = np.maximum(oc, [18, 20, 27]); out[edge] = oc; m2 = m | edge
     for x, y, c in cv.late:
-        if 0 <= x < G and 0 <= y < G and not m[y, x]: out[y, x] = c; m2[y, x] = True
-    px = [[tuple(int(v) for v in out[y, x]) if m2[y, x] else None for x in range(G)] for y in range(G)]
-    if water: splash(px, ex, seed, power, jets, cv.drips if drips else [])
-    return px
-def splash(px, ex, seed, power=1., jets=None, drips=()):
-    rnd = random.Random(seed * 13 + 5); T = lambda h: tuple(int(v) for v in C(h))
-    def put(x, y, col, over=False):
-        x, y = int(round(x)), int(round(y))
-        if 0 <= x < G and 0 <= y < G and (over or px[y][x] is None): px[y][x] = T(col)
-    for y in range(BASE + 2, G):   # nothing shows below the surface
-        for x in range(G): px[y][x] = None
+        for xx, yy in blocks(x, y):
+            if not m[yy, xx]: out[yy, xx] = c; m2[yy, xx] = True
+    wet = np.zeros((OUT, OUT, 3)); wm = np.zeros((OUT, OUT), bool)
+    if water:
+        splash(out, m2, wet, wm, ex, seed, power, jets, cv.drips if drips else [])
+        k = ndi.gaussian_filter(wm.astype(float), .75); wet = np.stack([ndi.gaussian_filter(wet[..., i] * wm, .75) for i in range(3)], -1) / np.maximum(k, 1e-6)[..., None]   # soften the water's colours into one another
+    rgba = np.zeros((OUT, OUT, 4), np.uint8)
+    body = m2 & ~wm; col = np.where(wm[..., None], wet, out); col = np.clip(np.round(col / 8) * 8, 0, 255)   # five bits a channel, as the 32-bit machines had
+    rgba[..., :3] = col; rgba[..., 3] = np.where(wm, 254, np.where(body, 255, 0)); rgba[rgba[..., 3] == 0] = 0
+    return rgba
+def splash(out, m2, wet, wm, ex, seed, power=1., jets=None, drips=()):
+    # All measures below are on the 96 grid, as the models are; put() places them in the picture.
+    rnd = random.Random(seed * 13 + 5); T = lambda h: C(h); BY = int(round((BASE + 2) * S))
+    def putp(X, Y, col, over=False):
+        if 0 <= X < OUT and 0 <= Y < OUT and (over or not m2[Y, X] or wm[Y, X]): wet[Y, X] = T(col); wm[Y, X] = True
+    def put(x, y, col, over=False): putp(int(round(x * S)), int(round(y * S)), col, over)
+    m2[BY:] = False; out[BY:] = 0   # nothing shows below the surface
     for k, (rx, col, gap) in enumerate([(10, WLIGHT, 6), (17, WMID, 5), (25, WMID, 4), (34, WDEEP, 3), (43, WDARK, 3)]):   # rings spreading from where it left the water
-        ry = rx * .16 + .8; steps = int(rx * 7)
+        ry = rx * .16 + .8; steps = int(rx * 7 * S)
         for i in range(steps):
             a = 2 * math.pi * i / steps; x = ex + rx * math.cos(a); y = BASE + 2 + ry * math.sin(a)
-            if int(i * rx / steps * 2.2 + k * 2 + seed) % gap == 0: continue
-            if y < BASE + 1.5: put(x, y, col)
-            else: put(x, y, col, True)
-    for x in range(ex - 8, ex + 9):   # the churned patch
-        d = abs(x - ex) / 8
-        for y in (BASE, BASE + 1, BASE + 2):
-            if d < 1 - (y - BASE) * .22: put(x, y, FOAM if (x * 3 + y * 5 + seed) % 4 == 0 else WLIGHT if (x + y) % 3 else WMID, True)
-    for x in range(ex - 11, ex + 12):   # a mound of foam where the water is still boiling
-        d = abs(x - ex) / 11; hgt = int(round(4.2 * power * (1 - d * d) + rnd.random() * 1.6))
+            if int(i / S * rx / (steps / S) * 2.2 + k * 2 + seed) % gap == 0: continue
+            put(x, y, col, y >= BASE + 1.5)
+    for X in range(int((ex - 8) * S), int((ex + 9) * S)):   # the churned patch
+        d = abs(X / S - ex) / 8
+        for Y in range(int(BASE * S), int((BASE + 3) * S)):
+            if d < 1 - (Y / S - BASE) * .22: putp(X, Y, FOAM if (X * 3 + Y * 5 + seed) % 4 == 0 else WLIGHT if (X + Y) % 3 else WMID, True)
+    for X in range(int((ex - 11) * S), int((ex + 12) * S)):   # a mound of foam where the water is still boiling
+        d = abs(X / S - ex) / 11; hgt = int(round((4.2 * power * (1 - d * d) + rnd.random() * 1.6) * S))
         for k in range(hgt + 1):
-            col = FOAM if k >= hgt - 1 else WLIGHT if (k > hgt // 2 or (x + k) % 3 == 0) else WMID
-            put(x, BASE + 1 - k, col, k < 2)
+            col = FOAM if k >= hgt - 2 else WLIGHT if (k > hgt // 2 or (X + k) % 3 == 0) else WMID
+            putp(X, int(round((BASE + 1) * S)) - k, col, k < 3)
     n = jets or 7
     for j in range(n):   # the crown: jets of water thrown up and outward
         f = (j + .5) / n * 2 - 1; ang = math.radians(f * 46 + rnd.uniform(-6, 6)); v0 = (3.2 + rnd.random() * 1.5) * power * (.8 + .42 * abs(f)); g = .55
-        x0 = ex + f * 9; tend = v0 * math.cos(ang) / g * rnd.uniform(.95, 1.2); steps = int(tend * 9) + 1; front = j % 3 == 1
+        x0 = ex + f * 9; tend = v0 * math.cos(ang) / g * rnd.uniform(.95, 1.2); steps = int(tend * 9 * S) + 1; front = j % 3 == 1
         for i in range(steps + 1):
             tau = tend * i / steps; x = x0 + v0 * math.sin(ang) * tau; y = BASE + 1 - (v0 * math.cos(ang) * tau - .5 * g * tau * tau); k = i / steps
-            w = 4.4 * (1 - k) ** 1.2 + 1.0
-            for q in range(int(round(w))):
-                xx = x - w / 2 + q + .5
-                col = FOAM if (k > .72 or q == 0 and k > .3) else WMID if (q == int(round(w)) - 1 and w >= 2) else WLIGHT
-                if k < .16 and q == int(round(w)) - 1: col = WDEEP
-                put(xx, y, col, front and k < .35)
+            w = (4.4 * (1 - k) ** 1.2 + 1.0) * S; nq = int(round(w))
+            for q in range(nq):
+                col = FOAM if (k > .72 or q == 0 and k > .3) else WMID if (q == nq - 1 and nq >= 2) else WLIGHT
+                if k < .16 and q == nq - 1: col = WDEEP
+                putp(int(round(x * S - w / 2 + q + .5)), int(round(y * S)), col, front and k < .35)
         for d in range(rnd.randint(1, 3)):   # drops let go from the tip
             tau = tend * (1.1 + d * .14 + rnd.random() * .08); x = x0 + v0 * math.sin(ang) * tau * 1.05; y = BASE + 1 - (v0 * math.cos(ang) * tau - .5 * g * tau * tau) - rnd.uniform(0, 2.5)
-            put(x, y, FOAM); 
-            if rnd.random() < .55: put(x, y + 1, WLIGHT)
-            if rnd.random() < .3: put(x + 1, y + 1, WMID)
+            X, Y = int(round(x * S)), int(round(y * S)); putp(X, Y, FOAM); putp(X + 1, Y, FOAM)
+            if rnd.random() < .55: putp(X, Y + 1, WLIGHT); putp(X + 1, Y + 1, WLIGHT)
+            if rnd.random() < .3: putp(X + 1, Y + 2, WMID)
     for (dx, dy) in drips:   # water still running off the tail
         dx += rnd.uniform(-1, 1); y = dy + 2
         if dy > BASE - 3: continue
         while y < BASE - 1:
-            if rnd.random() < .5: put(dx + rnd.choice((0, 0, 1, -1)), y, rnd.choice((FOAM, WLIGHT, WLIGHT))); 
+            if rnd.random() < .5: xx = dx + rnd.choice((0, 0, 1, -1)); c = rnd.choice((FOAM, WLIGHT, WLIGHT)); put(xx, y, c); put(xx, y + .7, c)
             y += rnd.uniform(1.5, 4)
     for _ in range(int(12 * power)):   # stray spray
-        x = ex + rnd.choice((-1, 1)) * rnd.uniform(5, 26); y = BASE - rnd.uniform(4, 22) * power
-        put(x, y, FOAM if rnd.random() < .6 else WLIGHT)
-        if rnd.random() < .3: put(x, y + 1, WMID)
-def export(pxs, path):
-    CH = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!#$%()*+,-/:;=?@[]^_{|}~'; data = {}
-    for k, px in pxs.items():
-        pal = {}; rows = []
-        for row in px:
-            s = ''
-            for c in row:
-                if c is None: s += '.'; continue
-                h = '#%02x%02x%02x' % c
-                if h not in pal: pal[h] = CH[len(pal)]
-                s += pal[h]
-            rows.append(s)
-        data[k] = {'pal': {v: kk for kk, v in pal.items()}, 'rows': rows}
-    if path: json.dump({'w': G, 'h': G, 'water': WATER, 'fish': data}, open(path, 'w'))
-    return data
-def sheet(pxs, path, sc=4, cols=5, bg=(22, 36, 120)):
-    n = len(pxs); rws = (n + cols - 1) // cols; im = Image.new('RGB', (cols * (G * sc + 8) + 8, rws * (G * sc + 8) + 8), bg); a = np.array(im)
+        x = ex + rnd.choice((-1, 1)) * rnd.uniform(5, 26); y = BASE - rnd.uniform(4, 22) * power; X, Y = int(round(x * S)), int(round(y * S))
+        c = FOAM if rnd.random() < .6 else WLIGHT; putp(X, Y, c); putp(X + 1, Y, c)
+        if rnd.random() < .3: putp(X, Y + 1, WMID)
+def sheet(pxs, path, sc=2, cols=8, bg=(22, 36, 120)):   # a preview of many pictures on the site's blue
+    n = len(pxs); rws = (n + cols - 1) // cols; a = np.zeros((rws * (OUT + 8) + 8, cols * (OUT + 8) + 8, 3), np.uint8); a[:] = bg
     for i, px in enumerate(pxs.values()):
-        ox, oy = 8 + (i % cols) * (G * sc + 8), 8 + (i // cols) * (G * sc + 8)
-        for y in range(G):
-            for x in range(G):
-                if px[y][x] is not None: a[oy + y * sc: oy + y * sc + sc, ox + x * sc: ox + x * sc + sc] = px[y][x]
-    Image.fromarray(a).save(path)
+        ox, oy = 8 + (i % cols) * (OUT + 8), 8 + (i // cols) * (OUT + 8); k = px[..., 3:] > 0; a[oy:oy + OUT, ox:ox + OUT] = np.where(k, px[..., :3], a[oy:oy + OUT, ox:ox + OUT])
+    im = Image.fromarray(a); im.resize((im.width * sc, im.height * sc), Image.NEAREST).save(path)
+def atlas(pxs, path, cols=8):   # every picture in one image, in rows of eight; returns where each one is: name -> [column, row]
+    names = list(pxs); rws = (len(names) + cols - 1) // cols; a = np.zeros((rws * OUT, cols * OUT, 4), np.uint8); where = {}
+    for i, k in enumerate(names): a[(i // cols) * OUT:(i // cols + 1) * OUT, (i % cols) * OUT:(i % cols + 1) * OUT] = pxs[k]; where[k] = [i % cols, i // cols]
+    Image.fromarray(a, 'RGBA').save(path, optimize=True); return where
