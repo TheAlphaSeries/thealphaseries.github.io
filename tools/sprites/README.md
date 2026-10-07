@@ -26,3 +26,5 @@ Needs Python with numpy, scipy, Pillow and opencv.
 ## Where the details came from
 
 Proportions, fin positions and markings follow agency and museum identification guides (state fish and wildlife departments, NOAA, the Smithsonian's Shorefishes of the Eastern Pacific, Wikipedia species pages, grower listings for the orchid). Bodies are drawn deeper than life on purpose: at this size a true-to-scale fish reads as thin.
+
+`keeper.py` draws the figure of Chris shown on the title and Status screens (the high mage). It is separate from the rest: it writes `keeper.json`, whose colours and frames are pasted into section 12 of `index.html`.
