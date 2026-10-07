@@ -1954,7 +1954,28 @@
       "reward": "A bag that closes",
       "exp": null,
       "completed": "",
-      "roles": [],
+      "roles": [
+        {
+          "name": "Owner of the Bag",
+          "about": "Bears the cost, and the blame for having let it come to this",
+          "held": "The keeper"
+        },
+        {
+          "name": "Mender",
+          "about": "A tailor of steady hand, willing to look inside",
+          "held": ""
+        },
+        {
+          "name": "Holder of the Lamp",
+          "about": "Holds the light over the work and does not look down",
+          "held": ""
+        },
+        {
+          "name": "Witness",
+          "about": "Keeps the account of whatever has already fallen out",
+          "held": ""
+        }
+      ],
       "objectives": [
         {
           "text": "Find a mender willing to look inside",
@@ -1991,7 +2012,38 @@
       "reward": "Fat trout, numb hands, and the right to speak of it",
       "exp": null,
       "completed": "",
-      "roles": [],
+      "roles": [
+        {
+          "name": "Master of the Rod",
+          "about": "Decides where the fish are, and is answerable when they are elsewhere",
+          "held": "The keeper"
+        },
+        {
+          "name": "Coachman",
+          "about": "Drives the company up into the high country and, it is hoped, back down",
+          "held": ""
+        },
+        {
+          "name": "Boatman",
+          "about": "Rows the hired boat and keeps his opinions of the fishing to himself",
+          "held": ""
+        },
+        {
+          "name": "Camp Cook",
+          "about": "Feeds the company before dawn and makes something of whatever is caught",
+          "held": ""
+        },
+        {
+          "name": "Keeper of the Fire",
+          "about": "Lights it, feeds it, and is blamed when it goes out",
+          "held": ""
+        },
+        {
+          "name": "Net Man",
+          "about": "Stands ready at the bank and does not miss",
+          "held": ""
+        }
+      ],
       "objectives": [
         {
           "text": "Take the sullen recluse of the undercut bank",
@@ -2028,7 +2080,33 @@
       "reward": "A darker complexion, and sand in everything owned",
       "exp": null,
       "completed": "",
-      "roles": [],
+      "roles": [
+        {
+          "name": "Pilgrim",
+          "about": "Goes to be restored in body and soul, and to return with better opinions",
+          "held": "The keeper"
+        },
+        {
+          "name": "Woman of Singular Distinction",
+          "about": "Travels under her own authority; knows what is actually worth doing",
+          "held": "Appointed"
+        },
+        {
+          "name": "Guide Most Trusted",
+          "about": "A brother of the island, who counts the sand and claims no mastery of the beach",
+          "held": "Appointed"
+        },
+        {
+          "name": "Warden of the Green",
+          "about": "Stays behind and waters the plants; the last holder of this post is not spoken of",
+          "held": ""
+        },
+        {
+          "name": "Keeper of the Post",
+          "about": "Minds the door and gathers what the couriers leave in the keeper's absence",
+          "held": ""
+        }
+      ],
       "objectives": [
         {
           "text": "Stand at the rim of the burning mountain",
