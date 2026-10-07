@@ -1,4 +1,4 @@
-# The figure of Chris: a high mage in black. 41 x 58 pixels, six drawings.
+# The figure of Chris: a high mage in black. 45 x 58 pixels, six drawings.
 # Run: python3 keeper.py   It writes keeper.json (the colours and frames, to paste into section 12 of index.html) and keeper.png (a preview).
 # A tall lean figure in a deep peaked hood. Nothing of the face shows but three eyes burning in the dark: two, and a
 # third above them. A layered mantle edged in gold over a long black robe that narrows at the waist and falls ragged
@@ -7,7 +7,7 @@
 # that it can fly.
 import json
 from PIL import Image
-W, H = 41, 58; OX, OY = 2, 6   # the figure is drawn 2 in from the left and 6 down, leaving room above for the lifted staff and the orb's flight
+W, H = 45, 58; OX, OY = 6, 6   # the figure is drawn 6 in from the left and 6 down, leaving room for the lifted staff, the orb and its sparks
 COL = {'o': '#3a3a4a',                                              # outline (lighter than the cloth so black reads on a dark page)
        'k': '#101016', 'K': '#24242e', 'j': '#383844', 'u': '#07070a', 'g': '#030304',   # black cloth: base, light, highlight, fold, and the dark inside the hood
        's': '#6e4429', 'd': '#523019', 'l': '#87583a',               # skin (the hands)
