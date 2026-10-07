@@ -1,10 +1,10 @@
-# The figure of Chris as a black-robed high mage: 37 x 52 pixels, six frames.
+# The figure of Chris as a black-robed high mage: 41 x 58 pixels, five drawings. The orb is not in them: the page draws it, so it can fly.
 # Run: python3 keeper.py   It writes keeper.json (the colours and frames, to paste into section 12 of index.html) and keeper.png (a preview).
 # A tall three-tiered black hat with a jewel, black sunglasses, a long black robe with a high collar, a violet
 # sash and gold trim, an orb floating over one hand and a staff in the other.
 import json
 from PIL import Image
-W, H = 37, 52
+W, H = 41, 58; OX, OY = 2, 6   # the figure is drawn 2 in from the left and 6 down, leaving room above for the lifted staff and the orb's flight
 COL = {'o': '#3a3a4a',                                              # outline (lighter than the cloth so black reads on a dark page)
        'k': '#101016', 'K': '#24242e', 'j': '#34343f', 'u': '#07070a',   # black cloth: base, light, highlight, fold
        'g': '#040405', 'G': '#565664', 'r': '#22222a',               # sunglasses
@@ -14,9 +14,10 @@ COL = {'o': '#3a3a4a',                                              # outline (l
        'b': '#3a2a1e', 'B': '#5a4230',                               # staff wood
        'x': '#08080a', 'X': '#3e3e4a',                               # boots
        'a': '#6a3ad0', 'A': '#b98cff', 'c': '#f4eaff', 'e': '#d8c0ff'}   # orb: outer, mid, core, sparks
-def frame(orb_y=26, orb_r=2, staff_dy=0, flare=0, sparks=0):
+def frame(staff_dy=0, flare=0, orb_y=None, orb_r=2, sparks=0):
     g = [['.'] * W for _ in range(H)]
     def px(x, y, ch):
+        x += OX; y += OY
         if 0 <= x < W and 0 <= y < H: g[y][x] = ch
     def row(y, x0, x1, ch):
         for x in range(x0, x1 + 1): px(x, y, ch)
@@ -82,7 +83,7 @@ def frame(orb_y=26, orb_r=2, staff_dy=0, flare=0, sparks=0):
     rect(15, 11, 18, 13, 'y'); px(16, 12, 'A'); px(17, 12, 'a'); px(15, 11, 'Y'); px(16, 11, 'c' if flare else 'A')            # the jewel
     row(1, 16, 20, 'k'); px(21, 1, 'k'); px(22, 0, 'k'); px(21, 0, 'K')                                                        # the tip, bent
     # ---- the orb, floating over the open hand
-    ox, oy = 4, orb_y
+    ox, oy = 4, orb_y if orb_y is not None else -99
     for y in range(oy - orb_r - 1, oy + orb_r + 2):
         for x in range(ox - orb_r - 1, ox + orb_r + 2):
             d = ((x - ox) ** 2 + (y - oy) ** 2) ** .5
@@ -97,10 +98,10 @@ def frame(orb_y=26, orb_r=2, staff_dy=0, flare=0, sparks=0):
                 near = [g[y + b][x + a] for a, b in ((1, 0), (-1, 0), (0, 1), (0, -1)) if 0 <= x + a < W and 0 <= y + b < H and g[y + b][x + a] != '.']
                 out[y][x] = 'w' if all(n in glow for n in near) else 'o'
     return [''.join(r) for r in out]
-# hail (staff lifted, twice), stand, breathe (the orb bobs), cast (the orb rises and swells)
-frames = [frame(26, 2, -3, 0, 1), frame(25, 2, -5, 1, 2), frame(26, 2, 0, 0, 0), frame(25, 2, 0, 0, 1), frame(22, 3, 0, 0, 1), frame(19, 3, 0, 1, 2)]
+# standing; staff lifted; staff high; staff high with its stone flaring; standing with the stone flaring
+frames = [frame(0, 0), frame(-3, 0), frame(-5, 0), frame(-5, 1), frame(0, 1)]
 used = set(''.join(''.join(f) for f in frames)) - {'.'}
-json.dump({'cols': {k: v for k, v in COL.items() if k in used}, 'frames': frames}, open('keeper.json', 'w'))
+json.dump({'cols': {k: v for k, v in COL.items() if k in used or k in 'aAcew'}, 'frames': frames, 'hand': [4 + OX, 26 + OY], 'stone': [31 + OX, 5 + OY], 'head': [16 + OX, 19 + OY]}, open('keeper.json', 'w'))
 sc = 7; im = Image.new('RGB', (len(frames) * (W * sc + 10) + 10, H * sc + 20), (10, 14, 60))
 for i, f in enumerate(frames):
     for y, r in enumerate(f):
