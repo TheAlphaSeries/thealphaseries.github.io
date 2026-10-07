@@ -12,7 +12,11 @@ let QUESTS = [];         /* things set out to do, with objectives, loaded from p
 let PLACES = [];         /* map pins, loaded from posts.json */
 let BESTIARY = [];       /* the creatures, loaded from posts.json */
 let sorted = [];         /* the entries, newest first, loaded from posts.json */
-let loadNote = "Loading...";   /* shown in the log while there is nothing to list */
+let loadNote = "Loading...";
+/* Parts of the site put on the shelf: built, kept, and switched off. To bring one back, set it to false here. The
+   Equipment screen (site/05-popout.js, showEquipment) is shelved: its menu command, its button on Status and its
+   Help text stay away, while the pieces entered in the editor are kept. */
+const SHELVED = { equipment: true };   /* shown in the log while there is nothing to list */
 const HELP = `## Touch or mouse
 
 Select an entry to open it. Select Back, or tap outside the window, to close it.
@@ -39,10 +43,6 @@ The Quests tab is the full log: what is in hand, and what has been fulfilled. Ea
 ## A quest fulfilled
 
 A finished quest opens with its report: a grade, the experience it paid, everyone who was there and what it earned them, and the keeper's account of how it went. Companions have a level of their own; it rises with every quest they see through. Choose Share to make a card of the report, or of any companion, to send to a friend.
-
-## Equipment
-
-What the keeper carries, in three kits: Angling, Likenesses and Dress. Each piece says what it confers; the kit adds them up.
 
 ## The annals
 

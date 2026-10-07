@@ -432,7 +432,7 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
 
 /* phone view: the command window becomes a bar fixed to the bottom of the screen */
 @media (max-width: 720px) {
-  body { padding-bottom: 256px; }   /* room for the menu fixed to the bottom of a phone screen (five rows) */
+  body { padding-bottom: 212px; }   /* room for the menu fixed to the bottom of a phone screen (four rows; make it 256px if a thirteenth command is added) */
   .beasts { grid-template-columns: minmax(0, 1fr); }
   .sheet { grid-template-columns: minmax(0, 1fr); }
   .beastlist { max-height: 34vh; }

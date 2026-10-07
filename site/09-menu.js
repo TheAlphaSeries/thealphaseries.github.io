@@ -8,6 +8,7 @@ $("#m-photos").addEventListener("click", () => showPhotos(true));
 $("#m-map").addEventListener("click", () => showMap(true));
 $("#m-status").addEventListener("click", () => showStatus(true));
 $("#m-gear").addEventListener("click", () => showEquipment(true));
+if (SHELVED.equipment) $("#m-gear").remove();   /* on the shelf for now */
 $("#m-quests").addEventListener("click", () => showQuestLog(true));
 $("#m-chron").addEventListener("click", () => showChronicle(true));
 $("#m-about").addEventListener("click", () => showPage("about", "m-about", "About", ABOUT));
