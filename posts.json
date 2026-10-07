@@ -1954,6 +1954,10 @@
       "reward": "A bag that closes",
       "exp": null,
       "completed": "",
+      "grade": "",
+      "commended": "",
+      "album": "",
+      "report": "",
       "roles": [
         {
           "name": "Owner of the Bag",
@@ -2012,6 +2016,10 @@
       "reward": "Fat trout, numb hands, and the right to speak of it",
       "exp": null,
       "completed": "",
+      "grade": "",
+      "commended": "",
+      "album": "",
+      "report": "",
       "roles": [
         {
           "name": "Master of the Rod",
@@ -2080,6 +2088,10 @@
       "reward": "A darker complexion, and sand in everything owned",
       "exp": null,
       "completed": "",
+      "grade": "",
+      "commended": "",
+      "album": "",
+      "report": "",
       "roles": [
         {
           "name": "Pilgrim",
@@ -2143,6 +2155,10 @@
       "reward": "The finest photograph yet made of the San Francisco skyline",
       "exp": null,
       "completed": "",
+      "grade": "",
+      "commended": "",
+      "album": "",
+      "report": "",
       "roles": [
         {
           "name": "Mystic",
