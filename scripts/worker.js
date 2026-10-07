@@ -75,8 +75,8 @@ async function api(request, env, path) {
   if (!db) return json({ error: "The ledger is not connected." }, 503);
 
   if (path === "/api/party" && method === "GET") {
-    const { results } = await db.prepare("SELECT quest, name, role, created FROM applications WHERE status = 'accepted' ORDER BY created").all();
-    const party = {}; for (const r of results) (party[r.quest] = party[r.quest] || []).push({ name: r.name, role: r.role || "", at: r.created ? new Date(r.created).toISOString().slice(0, 10) : "" });   /* at: the day the petition was made, for the chronicle */
+    const { results } = await db.prepare("SELECT quest, name, role, created, seed FROM applications WHERE status = 'accepted' ORDER BY created").all();
+    const party = {}; for (const r of results) (party[r.quest] = party[r.quest] || []).push({ name: r.name, role: r.role || "", at: r.created ? new Date(r.created).toISOString().slice(0, 10) : "", seed: r.seed || 0 });   /* seed: the number their figure is drawn from; the e-mail address is never sent out */   /* at: the day the petition was made, for the chronicle */
     return json({ party }, 200, { "cache-control": "public, max-age=30" });
   }
 
@@ -84,7 +84,9 @@ async function api(request, env, path) {
     const b = await body(request); if (!b) return json({ error: "That petition could not be read." }, 400);
     if (clean(b.website, 10)) return json({ ok: true });   // a field people never see; only a machine fills it in
     const quest = clean(b.quest, 80), name = clean(b.name, 40), note = clean(b.note, 200), asked = clean(b.role, 60);
+    const email = clean(b.email, 120).toLowerCase();
     if (!name || !/^[a-z0-9][a-z0-9-]*$/.test(quest)) return json({ error: "A petition needs a name." }, 400);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ error: "A petition needs an address at which you may be reached." }, 400);
     const open = await openQuests(request, env);
     if (!Object.prototype.hasOwnProperty.call(open, quest)) return json({ error: "That quest is not taking companions." }, 400);
     const role = asked ? open[quest].find((r) => r.toLowerCase() === asked.toLowerCase()) : "";
@@ -93,9 +95,14 @@ async function api(request, env, path) {
     const now = Date.now();
     const busy = await db.prepare("SELECT (SELECT COUNT(*) FROM applications WHERE status = 'pending') AS waiting, (SELECT COUNT(*) FROM applications WHERE created > ?) AS lately").bind(now - 3600000).first();
     if (busy.waiting >= 150 || busy.lately >= 40) return json({ error: "The keeper's desk is buried. Try again in a while." }, 429);
-    const twin = await db.prepare("SELECT id FROM applications WHERE quest = ? AND lower(name) = lower(?)").bind(quest, name).first();
-    if (!twin) await db.prepare("INSERT INTO applications (quest, name, note, role, status, created) VALUES (?, ?, ?, ?, 'pending', ?)").bind(quest, name, note, role || "", now).run();
-    return json({ ok: true });
+    /* The figure. Each address is given a random number the first time it signs, and keeps it: the same address
+       always gets the same figure, whatever name it signs under. The number is only handed back when it is new,
+       so nobody can type in someone else's address to find out which companion they are. */
+    const known = await db.prepare("SELECT seed FROM applications WHERE email = ? AND seed != 0 LIMIT 1").bind(email).first();
+    const seed = known ? known.seed : crypto.getRandomValues(new Uint32Array(1))[0] % 2147483646 + 1;
+    const twin = await db.prepare("SELECT id FROM applications WHERE quest = ? AND email = ?").bind(quest, email).first();   /* one petition per address per quest */
+    if (!twin) await db.prepare("INSERT INTO applications (quest, name, note, role, status, created, email, seed) VALUES (?, ?, ?, ?, 'pending', ?, ?, ?)").bind(quest, name, note, role || "", now, email, seed).run();
+    return json(known ? { ok: true, returning: true } : { ok: true, seed });
   }
 
   if (path === "/api/keeper/state" && method === "GET") return json({ ready: !!(await setting(db, "pass")) });
@@ -117,7 +124,7 @@ async function api(request, env, path) {
     if (await locked(db, request)) return json({ error: "Too many wrong tries. Wait a quarter of an hour." }, 429);
     if (!(await isKeeper(request, db))) return json({ error: "Wrong passphrase." }, 401);
     if (path === "/api/keeper/list" && method === "GET") {
-      const { results } = await db.prepare("SELECT id, quest, name, note, role, status, created FROM applications ORDER BY status DESC, created DESC LIMIT 500").all();
+      const { results } = await db.prepare("SELECT id, quest, name, note, role, status, created, email FROM applications ORDER BY status DESC, created DESC LIMIT 500").all();
       return json({ petitions: results });
     }
     if (path === "/api/keeper/decide" && method === "POST") {

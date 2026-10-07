@@ -577,7 +577,7 @@ Nearly everything here pays experience: an entry written, a species caught (rare
 
 ## Quests
 
-The Quests tab is the full log: what is in hand, and what has been fulfilled. Each quest has a difficulty and pays experience when it is finished; harder ones and Great Works pay more. Open a quest to see who travels with it. Some quests have named posts to fill: choose Apply beside an open one. Otherwise choose Petition to join. Either way you only give a name. No account is needed, and only what you write is kept. The keeper accepts or declines in his own time. Those accepted are entered under The Company at the foot of the Quest Log, each with a figure and a page of their own.
+The Quests tab is the full log: what is in hand, and what has been fulfilled. Each quest has a difficulty and pays experience when it is finished; harder ones and Great Works pay more. Open a quest to see who travels with it. Some quests have named posts to fill: choose Apply beside an open one. Otherwise choose Petition to join. Either way you give a name of your choosing and an e-mail address. No account is needed, only what you write is kept, and the address is seen by the keeper alone. Each newcomer is drawn a figure by lot; sign again with the same address and the figure stays the same. The keeper accepts or declines in his own time. Those accepted are entered under The Company at the foot of the Quest Log, each with a figure and a page of their own.
 
 ## Chronicle
 
@@ -1241,14 +1241,15 @@ function showPost(p, from) {   /* from: the row it was opened from, when that is
 let questFrom = null;   /* the quest's button on the home screen, to put the cursor back on afterwards */
 /* The company of a quest: the friends accepted onto it, and a way to ask to join. Petitions go to a small
    server program (scripts/worker.js) and wait there until Chris accepts or denies them at /keeper.html.
-   No account is needed; only the name and note typed here are kept. */
+   No account is needed; only the name, e-mail address and note typed here are kept. The address is never sent
+   back to this page: what comes back for each companion is a number (their "seed"), from which their figure is drawn. */
 let PARTY = {}, partyOpen = false;   /* accepted names per quest, and whether the server answered at all */
 const petitioned = () => { try { const v = JSON.parse(store.get("petitioned") || "[]"); return Array.isArray(v) ? v.map(text) : []; } catch (e) { return []; } };
 function loadParty() {
   return fetch("/api/party", { cache: "no-cache" }).then((r) => (r.ok ? r.json() : null)).then((d) => {
     if (!d || !d.party || typeof d.party !== "object") return;
     PARTY = {}; partyOpen = true;
-    for (const k of Object.keys(d.party)) if (Array.isArray(d.party[k])) PARTY[k] = d.party[k].map((m) => ({ name: text(m && m.name).trim().slice(0, 40), role: text(m && m.role).trim().slice(0, 60), at: day(text(m && m.at)) ? text(m.at).slice(0, 10) : "" })).filter((m) => m.name).slice(0, 60);
+    for (const k of Object.keys(d.party)) if (Array.isArray(d.party[k])) PARTY[k] = d.party[k].map((m) => ({ name: text(m && m.name).trim().slice(0, 40), role: text(m && m.role).trim().slice(0, 60), at: day(text(m && m.at)) ? text(m.at).slice(0, 10) : "", seed: m && Number.isInteger(m.seed) && m.seed > 0 ? m.seed : 0 })).filter((m) => m.name).slice(0, 60);
     if (reader.hidden && !main.contains(document.activeElement)) { if (view === "quests") showQuestLog(false); if (view === "chron") showChronicle(false); if (view === "files") showFiles(false); if (view === "status") showStatus(false); }   /* redraw what is up, now that the companies are known */
   }).catch(() => {});
 }
@@ -1267,8 +1268,8 @@ function roster(q) {
 function companions() {
   const by = new Map();
   for (const q of QUESTS) for (const m of (owns(PARTY, q.file) ? PARTY[q.file] : [])) {
-    const k = m.name.toLowerCase(); if (!by.has(k)) by.set(k, { name: m.name, posts: [] });
-    by.get(k).posts.push({ quest: q, role: m.role, at: m.at });
+    const k = m.seed ? "#" + m.seed : m.name.toLowerCase(); if (!by.has(k)) by.set(k, { name: m.name, seed: m.seed, names: new Set(), posts: [] });   /* the same figure is the same companion, whatever name they signed */
+    by.get(k).names.add(m.name.toLowerCase()); by.get(k).posts.push({ quest: q, role: m.role, at: m.at });
   }
   return [...by.values()].map((c) => {
     const n = c.posts.length, done = c.posts.filter((x) => x.quest.status === "completed").length;
@@ -1283,15 +1284,17 @@ const CLOAKS = [["#a8323c", "#6e1c26", "#d4606a"], ["#2a8c8c", "#175a5c", "#5cc0
 const CARRIES = [["scroll", /survey|map|chart|witness|post|scribe|letter/], ["pack", /haul|pack|bag|porter|coach|mend/], ["oar", /boat|oar|ferry|sail/], ["rod", /rod|net|angl|fish/],
                  ["lantern", /lamp|lantern|light/], ["torch", /fire|cook|torch|flame/], ["staff", /guide|warden|pilgrim|mystic|charm|green/]];
 function nameHash(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
-function drawCompanion(canvas, name, role) {
-  const W = 18, H = 22, g = Array.from({ length: H }, () => new Array(W).fill("")), h = nameHash(name.toLowerCase());
+function drawCompanion(canvas, name, role, seed) {   /* seed: the number given to them when they first signed on; without one, the name stands in */
+  const W = 18, H = 22, g = Array.from({ length: H }, () => new Array(W).fill("")), h = seed > 0 ? Math.imul(seed, 2654435761) >>> 0 : nameHash(name.toLowerCase());
   const [base, shade, light] = CLOAKS[h % CLOAKS.length], trim = CLOAKS[(h >>> 3) % CLOAKS.length][2], hat = (h >>> 6) % 4;
   let carry = (CARRIES.find(([, re]) => re.test((role || "").toLowerCase())) || [CARRIES[(h >>> 9) % CARRIES.length][0]])[0];
   const px = (x, y, c) => { if (x >= 0 && x < W && y >= 0 && y < H) g[y][x] = c; }, row = (y, a, b, c) => { for (let x = a; x <= b; x++) px(x, y, c); };
-  const WOOD = "#8a5a2c", WOOD2 = "#5c3a1a", DARK = "#15131c", EYE = "#e8e6ff", BOOT = "#241a14";
+  const WOOD = "#8a5a2c", WOOD2 = "#5c3a1a", DARK = "#15131c", EYE = ["#e8e6ff", "#ffd257", "#8fd6ff", "#7fd68a"][(h >>> 12) % 4], BOOT = "#241a14", hem = (h >>> 14) % 3;
   if (carry === "pack") { for (let y = 8; y <= 14; y++) row(y, 2, 4, y === 8 || y === 14 ? WOOD2 : WOOD); for (let y = 8; y <= 14; y++) row(y, 12, 14, y === 8 || y === 14 ? WOOD2 : WOOD); px(13, 10, "#c8a060"); px(3, 10, "#c8a060"); row(7, 3, 13, "#d8d0bc"); row(6, 5, 11, "#b8b0a0"); }   /* a bedroll and a loaded frame behind the shoulders */
   for (let y = 8; y <= 19; y++) { const w = y < 10 ? 3 : y < 14 ? 4 : 5; row(y, 8 - w, 8 + w, base); px(8 - w, y, light); px(8 + w, y, shade); if (y > 9) px(8 + w - 1, y, shade); }   /* the cloak, widening to the hem */
   for (let y = 10; y <= 19; y++) px(8, y, trim); row(19, 3, 13, shade); px(8, 19, trim); px(5, 13, light); px(5, 16, light);
+  if (hem === 1) row(17, 4, 12, trim);                                                   /* a band round the hem */
+  if (hem === 2) for (let x = 4; x <= 12; x += 2) px(x, 18, trim);                       /* or a row of studs */
   row(20, 6, 7, BOOT); row(20, 9, 10, BOOT);
   row(1, 6, 10, base); for (let y = 2; y <= 7; y++) { row(y, 5, 11, base); px(5, y, light); px(11, y, shade); } row(7, 6, 10, shade);   /* the hood */
   for (let y = 3; y <= 6; y++) row(y, 6, 10, DARK); px(7, 4, EYE); px(9, 4, EYE);                                                        /* a face in shadow: two eyes and no more */
@@ -1317,7 +1320,7 @@ function showCompany() {
   if (!all.length) { main.append(el("p", "sub", "None yet has thrown in with the keeper. The posts above stand open.")); return; }
   const wrap = el("div", "fellows");
   all.forEach((c, i) => {
-    const b = opt(null, () => showCompanion(c, b), "fellow"), pic = el("canvas", "fellowpic"); pic.setAttribute("aria-hidden", "true"); drawCompanion(pic, c.name, c.posts[0].role);
+    const b = opt(null, () => showCompanion(c, b), "fellow"), pic = el("canvas", "fellowpic"); pic.setAttribute("aria-hidden", "true"); drawCompanion(pic, c.name, c.posts[0].role, c.seed);
     b.append(pic, el("span", "name", c.name), el("span", "ftitle", c.title), el("span", "fcount", count(c.posts.length, "venture")));
     b.style.setProperty("--i", Math.min(i, 6)); wrap.append(b);
   });
@@ -1327,7 +1330,7 @@ function showCompany() {
 function showCompanion(c, from) {
   current = null; questFrom = from && from.isConnected ? from : null; setHash("");
   rwin.textContent = "";
-  const head = el("div", "filehead"), meta = el("p", "meta"), pic = el("canvas", "fellowpic big"); pic.setAttribute("aria-hidden", "true"); drawCompanion(pic, c.name, c.posts[0].role);
+  const head = el("div", "filehead"), meta = el("p", "meta"), pic = el("canvas", "fellowpic big"); pic.setAttribute("aria-hidden", "true"); drawCompanion(pic, c.name, c.posts[0].role, c.seed);
   meta.append(el("span", null, "Companion")); head.append(meta, el("h2", null, c.name));
   const sheet = el("dl", "facts qstats"), row = (k, v) => { const dd = el("dd"); dd.append(v); sheet.append(el("dt", null, k), dd); };
   row("Title", c.title); row("Ventures joined", String(c.posts.length)); row("Seen through", String(c.done));
@@ -1348,7 +1351,7 @@ function showCompanion(c, from) {
 }
 /* a companion's name as something to choose: it opens their page */
 function fellowLink(name) {
-  const c = companions().find((x) => x.name.toLowerCase() === name.toLowerCase()); if (!c) return el("span", null, name);
+  const c = companions().find((x) => x.names.has(name.toLowerCase())); if (!c) return el("span", null, name);
   const b = el("button", "plink", name); b.type = "button"; b.addEventListener("click", () => showCompanion(c, questFrom)); return b;
 }
 function company(q) {
@@ -1359,25 +1362,31 @@ function company(q) {
   const box = el("div", "petition"), asked = petitioned().includes(q.file);
   const form = (want) => {   /* the petition form; want: the post asked for, if the visitor chose one */
     box.textContent = "";
-    const f = el("form"), name = el("input"), note = el("input"), trap = el("input"), note2 = el("p", "sub partynote"), send = opt("Send petition"), l1 = el("label", null, "The name you travel under"), l2 = el("label", null, "A word in your favour (optional)");
+    const f = el("form"), name = el("input"), note = el("input"), trap = el("input"), note2 = el("p", "sub partynote"), send = opt("Send petition"), mail = el("input"), l3 = el("label", null, "Where word may reach you (an e-mail address, seen by the keeper alone)"), l1 = el("label", null, "The name you travel under"), l2 = el("label", null, "A word in your favour (optional)");
     const free = posts.filter((p) => !p.holder), pick = el("select"), l0 = el("label", null, "The post you seek");
     free.forEach((p) => { const o = el("option", null, p.name); o.value = p.name; pick.append(o); });
     const none = el("option", null, "No particular post"); none.value = ""; pick.append(none); pick.value = want || (free[0] ? free[0].name : ""); pick.id = "prole"; l0.htmlFor = "prole";
     name.type = "text"; name.maxLength = 40; name.required = true; name.autocomplete = "off"; name.id = "pname"; l1.htmlFor = "pname";
+    mail.type = "email"; mail.maxLength = 120; mail.required = true; mail.autocomplete = "email"; mail.id = "pmail"; l3.htmlFor = "pmail";
     note.type = "text"; note.maxLength = 200; note.autocomplete = "off"; note.id = "pnote"; l2.htmlFor = "pnote";
     trap.type = "text"; trap.name = "website"; trap.tabIndex = -1; trap.autocomplete = "off"; trap.className = "trap"; trap.setAttribute("aria-hidden", "true");   /* people never see this; only a machine fills it in */
-    send.type = "submit"; note2.setAttribute("role", "status"); note2.textContent = "Only what you write here is kept. The keeper decides at his leisure.";
+    send.type = "submit"; note2.setAttribute("role", "status"); note2.textContent = "Only what you write here is kept, and your address is never shown. Sign with the same address and your figure stays the same.";
     if (free.length) f.append(l0, pick);
-    f.append(l1, name, l2, note, trap, send, note2); box.append(f); name.focus();
+    f.append(l1, name, l3, mail, l2, note, trap, send, note2); box.append(f); name.focus();
     f.addEventListener("submit", (e) => {
-      e.preventDefault(); if (!name.value.trim() || send.disabled) return;
+      e.preventDefault(); if (!name.value.trim() || !mail.value.trim() || send.disabled) return;
       send.disabled = true; note2.textContent = "Sending...";
-      fetch("/api/apply", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ quest: q.file, name: name.value, note: note.value, role: free.length ? pick.value : "", website: trap.value }) })
+      fetch("/api/apply", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ quest: q.file, name: name.value, email: mail.value, note: note.value, role: free.length ? pick.value : "", website: trap.value }) })
         .then((r) => r.json().catch(() => ({})).then((d) => ({ ok: r.ok, d })))
         .then(({ ok, d }) => {
           if (!ok) { send.disabled = false; note2.textContent = text(d.error) || "The petition could not be carried. Try again."; return; }
           store.set("petitioned", JSON.stringify(petitioned().concat(q.file).slice(-40)));
-          box.textContent = ""; box.append(el("p", "sub partynote", "Your petition has been carried to the keeper. He will consider it at his leisure, which is considerable."));
+          box.textContent = "";
+          if (Number.isInteger(d.seed) && d.seed > 0) store.set("figure", String(d.seed));   /* a new figure was drawn: remember it on this device, to show it again */
+          const mine = parseInt(store.get("figure"), 10);
+          if (mine > 0) { const pic = el("canvas", "fellowpic big"); pic.setAttribute("aria-hidden", "true"); drawCompanion(pic, name.value, pick.value, mine); box.append(pic, el("p", "sub partynote figurenote", d.returning ? "The keeper knows you of old. Your figure is as it was." : "A figure has been drawn for you by lot. It is yours for as long as you sign with the same address.")); }
+          else if (d.returning) box.append(el("p", "sub partynote", "The keeper knows you of old. Your figure is as it was, and will be shown when you are accepted."));
+          box.append(el("p", "sub partynote", "Your petition has been carried to the keeper. He will consider it at his leisure, which is considerable."));
           rwin.querySelectorAll(".posts .opt").forEach((b) => b.remove());
         }).catch(() => { send.disabled = false; note2.textContent = "The petition could not be carried. Try again."; });
     });

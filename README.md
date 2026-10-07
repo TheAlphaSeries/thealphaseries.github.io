@@ -45,8 +45,10 @@ quests have no dates, and their names and objectives do not name real places. Th
 middle of the neighbourhood, not an address.
 
 The page stores nothing about visitors, with one exception they choose themselves: a friend can petition to join a
-quest by typing a name and a short note. Only those two things, the quest and the time are kept. No e-mail, address
-or cookie is kept, and nobody has an account. Petitions wait unseen until accepted or denied at `/keeper.html`
+quest by typing a name of their choosing, an e-mail address and a short note. Only those three things, the quest, the
+time and a random number (from which their pixel figure is drawn) are kept. The e-mail address is seen only at
+`/keeper.html` and is never shown on the site or sent to visitors; the same address always gets the same figure.
+No cookie is kept, and nobody has an account. Petitions wait unseen until accepted or denied at `/keeper.html`
 (passphrase only); a denied petition is deleted. The program behind this is `scripts/worker.js`, and the data is in
 a small Cloudflare database named `halflife-quests`.
 
