@@ -62,17 +62,14 @@ def frame(staff_dy=0, flare=0, orb_y=None, orb_r=2, sparks=0):
     rect(sx, top - 4, sx + 1, top - 2, 'A'); px(sx, top - 4, 'c'); px(sx + 1, top - 2, 'a')
     if flare: px(sx, top - 3, 'c'); px(sx + 1, top - 4, 'c'); px(sx - 4, top - 3, 'e'); px(sx + 5, top - 3, 'e'); px(sx, top - 7, 'e'); px(sx + 1, top - 7, 'e'); px(sx - 3, top - 6, 'e'); px(sx + 4, top - 6, 'e')
     hy = 30 + staff_dy // 2; rect(30, hy, 32, hy + 1, 's'); px(33, hy, 's'); px(30, hy + 1, 'd'); px(32, hy, 'l')          # the hand on the staff
-    # ---- neck and head
-    rect(15, 23, 18, 24, 'd'); px(15, 25, 'd'); px(18, 25, 'd'); row(25, 16, 17, 's')
-    rect(11, 16, 22, 21, 's'); row(22, 12, 21, 's'); row(23, 13, 20, 's'); px(13, 23, 'd'); px(20, 23, 'd')
-    for y in range(18, 22): px(11, y, 'd')
-    px(22, 19, 'l'); px(21, 21, 'l'); px(10, 18, 's'); px(10, 19, 'd'); px(23, 18, 's'); px(23, 19, 'd')                      # ears
-    px(16, 20, 'd'); px(17, 20, 'd'); px(17, 19, 'l')                                                                         # nose
-    row(22, 15, 18, 'm'); px(19, 21, 'm')                                                                                     # a mouth with one corner up
-    px(16, 23, 'k'); px(17, 23, 'k'); px(16, 24, 'k')                                                                         # a tuft of beard
-    # ---- sunglasses
-    row(17, 10, 23, 'g'); row(18, 10, 23, 'g'); row(19, 11, 15, 'g'); row(19, 18, 22, 'g'); px(16, 18, 'r'); px(17, 18, 'r'); px(10, 17, 'r'); px(23, 17, 'r')
-    px(12, 17, 'G'); px(13, 17, 'G'); px(12, 18, 'r'); px(19, 17, 'G'); px(20, 18, 'r')
+    # ---- the cowl: a deep hood drawn close under the hat, the face lost in its shadow but for a glint off the sunglasses
+    for y, x0, x1 in ((16, 10, 23), (17, 9, 24), (18, 9, 24), (19, 9, 24), (20, 9, 24), (21, 10, 23), (22, 10, 23), (23, 11, 22), (24, 12, 21), (25, 13, 20)): row(y, x0, x1, 'k')
+    for y in range(17, 21): px(9, y, 'K'); px(24, y, 'u')
+    px(10, 16, 'K'); px(10, 21, 'K'); px(10, 22, 'K'); px(11, 23, 'K'); px(12, 24, 'K'); px(23, 21, 'u'); px(22, 23, 'u')
+    for y, x0, x1 in ((17, 11, 22), (18, 11, 22), (19, 11, 22), (20, 12, 21), (21, 12, 21), (22, 13, 20), (23, 14, 19)): row(y, x0, x1, 'g')   # the dark inside
+    px(11, 17, 'u'); px(22, 17, 'u'); px(12, 22, 'u'); px(21, 22, 'u'); row(24, 14, 19, 'u')
+    row(18, 12, 15, 'r'); row(18, 18, 21, 'r'); px(13, 18, 'G'); px(19, 18, 'G'); px(14, 18, 'X'); px(20, 18, 'X')                # all that shows: the rims of the sunglasses, catching the light
+    px(16, 25, 'y'); px(17, 25, 'y'); px(16, 26, 'Y')                                                                              # the clasp at the throat
     # ---- the hat: a wide brim and three tiers, leaning a little, with a jewel
     row(16, 6, 27, 'k'); row(15, 5, 28, 'k'); row(14, 7, 26, 'k'); row(16, 6, 27, 'u'); px(5, 15, 'K'); px(6, 14, 'K'); row(14, 8, 14, 'K')
     for i, (x0, x1, y0, y1) in enumerate(((10, 23, 10, 13), (12, 22, 6, 9), (14, 21, 2, 5))):
