@@ -7,6 +7,7 @@ $("#m-plants").addEventListener("click", () => showPlants(plantsKind, true));
 $("#m-photos").addEventListener("click", () => showPhotos(true));
 $("#m-map").addEventListener("click", () => showMap(true));
 $("#m-status").addEventListener("click", () => showStatus(true));
+$("#m-gear").addEventListener("click", () => showEquipment(true));
 $("#m-quests").addEventListener("click", () => showQuestLog(true));
 $("#m-chron").addEventListener("click", () => showChronicle(true));
 $("#m-about").addEventListener("click", () => showPage("about", "m-about", "About", ABOUT));
@@ -29,7 +30,7 @@ document.addEventListener("keydown", (e) => {
   }
   const reading = !reader.hidden;
   if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) && e.key !== "Escape") return;   /* typing in a box: the arrow keys belong to the text */
-  if (e.key === "Escape") { if (reading) closePost(); else if (view === "album") showPhotos(true); else if (view === "equip") showStatus(true); else if (view !== "files") showFiles(true); return; }
+  if (e.key === "Escape") { if (reading) closePost(); else if (view === "album") showPhotos(true); else if (view === "equip") showFiles(true); else if (view !== "files") showFiles(true); return; }
   const dir = { ArrowDown: 1, ArrowUp: -1 }[e.key];
   const side = e.key === "ArrowLeft" || e.key === "ArrowRight";
   if (!dir && !side) return;

@@ -40,6 +40,10 @@ The Quests tab is the full log: what is in hand, and what has been fulfilled. Ea
 
 A finished quest opens with its report: a grade, the experience it paid, everyone who was there and what it earned them, and the keeper's account of how it went. Companions have a level of their own; it rises with every quest they see through. Choose Share to make a card of the report, or of any companion, to send to a friend.
 
+## Equipment
+
+What the keeper carries, in three kits: Angling, Likenesses and Dress. Each piece says what it confers; the kit adds them up.
+
 ## The annals
 
 A companion's page carries their annals: an account of what they have actually done, written afresh from the record each time it is opened, so it grows as they do.

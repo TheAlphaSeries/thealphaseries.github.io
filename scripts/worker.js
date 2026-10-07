@@ -190,6 +190,9 @@ export default {
     if (path.startsWith("/api/")) {
       try { return await api(request, env, path); } catch (e) { return json({ error: "Something went wrong." }, 500); }
     }
-    return env.ASSETS.fetch(request);
+    const r = await env.ASSETS.fetch(request), type = r.headers.get("content-type") || "";
+    if (!/text\/html|javascript|text\/css|json/i.test(type)) return r;
+    const h = new Headers(r.headers); h.set("cache-control", "no-cache");   /* the page and its scripts change often: a browser may keep a copy, but must ask whether it is still current before using it */
+    return new Response(r.body, { status: r.status, statusText: r.statusText, headers: h });
   }
 };

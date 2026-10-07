@@ -61,7 +61,7 @@ function linkedPost() {   /* the entry named after # in the address, if there is
       (a.stop == null ? 1e9 : a.stop) - (b.stop == null ? 1e9 : b.stop) || a.name.localeCompare(b.name));
     const st = data.status && typeof data.status === "object" ? data.status : {};
     STATUS = { name: text(st.name).trim(), class: text(st.class).trim(), home: text(st.home).trim(), body: text(st.body) };
-    EQUIPMENT = (Array.isArray(st.equipment) ? st.equipment : []).filter((x) => x && typeof x === "object" && text(x.name).trim()).slice(0, 24).map((x) => ({ slot: text(x.slot).trim() || "Carried", name: text(x.name).trim(), maker: text(x.maker).trim(), bonus: text(x.bonus).trim(), about: text(x.about) }));
+    EQUIPMENT = (Array.isArray(st.equipment) ? st.equipment : []).filter((x) => x && typeof x === "object" && text(x.name).trim()).slice(0, 24).map((x) => ({ kit: owns(KITS, text(x.kit)) ? text(x.kit) : "dress", slot: text(x.slot).trim() || "Carried", name: text(x.name).trim(), maker: text(x.maker).trim(), bonus: text(x.bonus).trim(), about: text(x.about) }));
     PLANTS = (Array.isArray(data.plants) ? data.plants : []).filter((p) => p && typeof p === "object").map((p) => ({
       name: text(p.name).trim() || "Unnamed plant", botanical: text(p.botanical), kind: text(p.kind) === "bonsai" ? "bonsai" : "house", sprite: text(p.sprite) || "plant", file: text(p.file).replace(/^\d+-/, ""),
       status: text(p.status) === "perished" ? "perished" : "living", count: Math.max(1, Math.min(999, Math.round(amount(p.count) || 1))),

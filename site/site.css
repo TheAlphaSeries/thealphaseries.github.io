@@ -427,11 +427,12 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
 .mpic { height: 104px; width: auto; display: block; } .mgap { display: grid; place-items: center; width: 64px; height: 96px; border: 2px dashed rgba(255, 255, 255, .4); border-radius: 8px; color: var(--off); font-family: var(--display); font-size: 18px; }
 .mname { font-size: 14.5px; line-height: 1.2; overflow-wrap: anywhere; max-width: 100%; } .mpost { font-size: 13px; line-height: 1.2; color: #ffd257; overflow-wrap: anywhere; max-width: 100%; } .mplace.open { animation: none; } .mplace.open .mname { color: var(--off); }
 @keyframes tramp { 50% { transform: translateY(-3px); } }
-.gear { grid-template-columns: 18px 11ch minmax(0, 1fr); } .gear .num { color: #ffd257; }
+.gear { grid-template-columns: 18px 28px 9ch minmax(0, 1fr); align-items: center; } .gear .num { color: #ffd257; font-size: 14px; } .gearmini { width: 26px; height: 26px; image-rendering: pixelated; }
+.gearpic { display: block; width: 156px; height: 156px; margin: 0 auto 10px; image-rendering: pixelated; }
 
 /* phone view: the command window becomes a bar fixed to the bottom of the screen */
 @media (max-width: 720px) {
-  body { padding-bottom: 212px; }   /* room for the menu fixed to the bottom of a phone screen (four rows) */
+  body { padding-bottom: 256px; }   /* room for the menu fixed to the bottom of a phone screen (five rows) */
   .beasts { grid-template-columns: minmax(0, 1fr); }
   .sheet { grid-template-columns: minmax(0, 1fr); }
   .beastlist { max-height: 34vh; }

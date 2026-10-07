@@ -252,6 +252,27 @@ const ITEMS = [
 conjure.callings = CALLINGS.map((c) => c[0]);
 conjure.items = ITEMS.map((i) => [i[0], i[1]]);
 conjure.itemName = (id) => (ITEMS.find((i) => i[0] === id) || ["", ""])[1];
+/* ---- Gear icons: small pictures for the Equipment screen, picked by the slot's name ---- */
+const GEAR = {
+  rod:     [{ a: "#8a5a2c", b: "#c8a060", c: "#e8e6ff", d: "#3a3a4a" }, ["..........a", ".........a.", "........a..", ".......a...", "......a....", ".....a.....", "....a......", "...bb......", "..bddb.....", "..bddb.....", "...bb......"]],
+  reel:    [{ a: "#3a3a4a", b: "#8a8a94", c: "#c8d0dc", d: "#8a5a2c" }, ["...aaaaa...", "..abbbbba..", ".abcccccba.", ".abcbbbcba.", ".abcbabcba.", ".abcbbbcba.", ".abcccccba.", "..abbbbba..", "...aaaaa.dd", ".........d.", "........dd."]],
+  lure:    [{ a: "#5c8a3a", b: "#8ab83a", c: "#c83a4a", d: "#3a3a4a" }, ["..d........", "..d........", "..aab......", "...aab.....", "....aab....", ".....aab...", "......aab..", ".......aab.", "........aa.", ".........a.", "........cc."]],
+  line:    [{ a: "#e8e6ff", b: "#8a8a94", c: "#c83a4a" }, ["....bbb....", "...baaab...", "..ba...ab..", "..ba...ab..", "..ba...ab..", "...baaab...", "....bbb....", ".....a.....", ".....a.....", "....ccc....", "....ccc...."]],
+  camera:  [{ a: "#1c1c22", b: "#3e3e4a", c: "#8fd6ff", d: "#c8d0dc", e: "#c83a3a" }, ["...bb......", "..bbbb.d...", "aaaaaaaaaaa", "abbbbbbbbba", "abb.ccc.bba", "abbcccccbba", "abbccdccbba", "abbcccccbba", "abb.ccc.bba", "abbbbbbbbea", "aaaaaaaaaaa"]],
+  lens:    [{ a: "#1c1c22", b: "#3e3e4a", c: "#8fd6ff", d: "#5a9ad8", e: "#c8d0dc" }, ["...aaaaa...", "..abbbbba..", ".abcccccba.", ".abcedccba.", ".abcddccba.", ".abcccccba.", ".abbbbbbba.", ".abbbbbbba.", ".abbbbbbba.", "..abbbbba..", "...aaaaa..."]],
+  film:    [{ a: "#3a3a4a", b: "#e8e4d4", c: "#8a8a94", d: "#b8b0a0" }, ["aaaaaaaaaaa", "ab.b.b.b.ba", "abbbbbbbbba", "abccccccdba", "abccccccdba", "abcccddddba", "abddddddbba", "abbbbbbbbba", "ab.b.b.b.ba", "aaaaaaaaaaa", "..........."]],
+  cap:     [{ a: "#101016", b: "#24242e", c: "#383844" }, ["...........", "....ccc....", "..cbbbbbb..", ".cbbbbbbbb.", ".bbbbbbbbb.", "abbbbbbbbba", "abbbbbbbbba", "abbbbbbbbba", "aaaaaaaaaaa", "...........", "..........."]],
+  eyes:    [{ a: "#040405", b: "#22222a", c: "#565664" }, ["...........", "...........", "...........", "bbbbbbbbbbb", "baaaabbaaab", "bacaabbacab", "baaaabbaaab", ".baab..baab", "..bb....bb.", "...........", "..........."]],
+  tee:     [{ a: "#17171c", b: "#26262e", c: "#0b0b0e" }, ["...........", "aaa.....aaa", "abbaaaaabba", "abbbbbbbbba", "aabbbbbbbaa", "..bbbcbbb..", "..bbbbbbb..", "..bbbcbbb..", "..bbbbbbb..", "..aaaaaaa..", "..........."]],
+  legs:    [{ a: "#0f0f14", b: "#22222c", c: "#07070a" }, ["..aaaaaaa..", "..abbcbba..", "..abbcbba..", "..abbabba..", "..abb.bba..", "..abb.bba..", "..abb.bba..", ".abbb.bbba.", ".abbb.bbba.", ".aaaa.aaaa.", "..........."]],
+  feet:    [{ a: "#08080a", b: "#3e3e4a", c: "#1c1c22" }, ["...aaaa....", "...abba....", "...abba....", "...abba....", "...abba....", "...abbaa...", "...abbbba..", "..aabbbbba.", ".abbbbbbba.", ".acccccccc.", "..........."]],
+  pack:    [{ a: "#7a5a34", b: "#b8b0a0", c: "#c8a060" }, ["...bbbbb...", "..bbbbbbb..", ".aaaaaaaaa.", ".aaaaaaaaa.", ".aacaaacaa.", ".aaaaaaaaa.", ".aaaaaaaaa.", ".aaaaaaaaa.", ".aaaaaaaaa.", "..aaaaaaa..", "..........."]] };
+conjure.gearIcon = (slot, kit) => { const s = String(slot || "").toLowerCase(), k = String(kit || ""); return /rod/.test(s) ? "rod" : /reel/.test(s) ? "reel" : /lure|bait|fly/.test(s) ? "lure" : /line|hook|leader/.test(s) ? "line" : /camera/.test(s) || (k === "likeness" && /body/.test(s)) ? "camera" : /lens/.test(s) ? "lens" : /film|recipe|sim/.test(s) ? "film" : /head|cap|hat/.test(s) ? "cap" : /eyes|glass/.test(s) ? "eyes" : /body|tee|shirt|torso/.test(s) ? "tee" : /legs|jeans|trouser/.test(s) ? "legs" : /feet|boot|shoe/.test(s) ? "feet" : "pack"; };
+conjure.paintGear = (canvas, key) => {
+  const it = GEAR[key] || GEAR.pack, n = 13; canvas.width = n * UP; canvas.height = n * UP;
+  const cells = Array.from({ length: n }, (_, y) => Array.from({ length: n }, (_, x) => { const ch = (it[1][y - 1] || "")[x - 1], col = it[0][ch]; return col ? { c: col, p: ch, flat: false } : null; }));
+  canvas.getContext("2d").putImageData(new ImageData(finishBig(cells, 255), n * UP, n * UP), 0, 0);
+};
 conjure.paintItem = (canvas, id) => {
   const it = ITEMS.find((i) => i[0] === id), n = 11; canvas.width = n * UP; canvas.height = n * UP; if (!it) return;   /* the little picture, with a square of room all round, drawn large and smoothed like the figures */
   const cells = Array.from({ length: n }, (_, y) => Array.from({ length: n }, (_, x) => { const ch = (it[3][y - 1] || "")[x - 1], col = it[2][ch]; return col ? { c: col, p: ch, flat: false } : null; }));

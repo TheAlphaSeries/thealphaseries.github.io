@@ -267,24 +267,35 @@ function march(q) {
 }
 /* ---- Equipment: what the keeper wears and carries, set out slot by slot as on an old equipment screen. The list
    is written in the editor (Status page). ---- */
-let EQUIPMENT = [];
-function showEquipment(focusFirst) {
-  openScreen("equip", "m-status");
+let EQUIPMENT = [], gearKit = "angling";   /* what the keeper wears and carries, and which kit the screen is showing */
+const KITS = { angling: ["Angling", "Rods, reels and lures, for waters where the fish have other plans."], likeness: ["Likenesses", "The camera and its eyes, carried into places where they are unwelcome."], dress: ["Dress", "What is worn, in black, by one who has not been asked why."] };
+/* "Reach +3, Patience +2" and the like, added up across a kit: { Reach: 3, Patience: 2 } */
+function kitTotals(items) { const t = {}; items.forEach((it) => { for (const m of String(it.bonus).matchAll(/([A-Za-z][A-Za-z ]*?)\s*([+-]\d+)/g)) { const k = m[1].trim(); t[k] = (t[k] || 0) + parseInt(m[2], 10); } }); return t; }
+function showEquipment(focusFirst, kit) {
+  if (owns(KITS, kit)) gearKit = kit; else if (!EQUIPMENT.some((it) => it.kit === gearKit)) gearKit = (EQUIPMENT[0] || {}).kit || "dress";
+  openScreen("equip", "m-gear");
   main.append(el("p", "label", "Equipment"));
-  if (!EQUIPMENT.length) { const nav = el("div", "row group"); nav.append(opt("Back", () => showStatus(true))); main.append(el("p", "sub", "Nothing is entered as worn or carried."), nav); return; }
-  const wrap = el("div", "beasts equip"), list = el("div", "beastlist"), card = el("div", "beastcard"), doll = el("canvas", "portrait");
-  doll.width = SPRITE_FRAMES[0][0].length * BIG; doll.height = SPRITE_FRAMES[0].length * BIG; doll.setAttribute("aria-hidden", "true");
+  const intro = el("div", "post intro"); intro.append(el("p", null, "What the keeper carries, by kit. Each piece is entered with what it confers; the keeper's reckoning of these figures is his own, and has not been audited.")); main.append(intro);
+  if (!EQUIPMENT.length) { main.append(el("p", "sub", loadNote === "Loading..." ? loadNote : "Nothing is entered as worn or carried."), backRow()); return; }
+  const tabs = el("div", "chips");
+  Object.keys(KITS).forEach((k) => { const n = EQUIPMENT.filter((it) => it.kit === k).length; if (!n) return; const b = el("button", "chip", KITS[k][0] + "  " + n); b.type = "button"; b.setAttribute("aria-pressed", String(k === gearKit)); b.addEventListener("click", () => { showEquipment(false, k); const now = [...main.querySelectorAll(".chip")].find((c) => c.getAttribute("aria-pressed") === "true"); if (now) now.focus({ preventScroll: true }); }); tabs.append(b); });
+  main.append(tabs);
+  const set = EQUIPMENT.filter((it) => it.kit === gearKit), totals = kitTotals(set), sum = Object.keys(totals).map((k) => k + " " + (totals[k] >= 0 ? "+" : "") + totals[k]).join(",  ");
+  main.append(statBlock([["The kit", KITS[gearKit][1]], ["Pieces", String(set.length)], ["Confers, in all", sum || "Nothing the keeper will put a figure to"]]));
+  const wrap = el("div", "beasts equip"), list = el("div", "beastlist"), card = el("div", "beastcard");
   const show = (it, btn) => {
-    list.querySelectorAll(".opt").forEach((o) => o.setAttribute("aria-pressed", String(o === btn))); card.textContent = "";
+    list.querySelectorAll(".opt").forEach((o) => o.setAttribute("aria-pressed", String(o === btn))); card.textContent = ""; stopPortrait();
+    if (gearKit === "dress") { const doll = el("canvas", "portrait"); doll.width = SPRITE_FRAMES[0][0].length * BIG; doll.height = SPRITE_FRAMES[0].length * BIG; doll.setAttribute("aria-hidden", "true"); card.append(doll); stopPortrait = figure(doll, "ease"); }   /* the keeper himself models the dress */
+    else if (typeof conjure === "function" && conjure.paintGear) { const pic = el("canvas", "gearpic"); pic.setAttribute("aria-hidden", "true"); conjure.paintGear(pic, conjure.gearIcon(it.slot, it.kit)); card.append(pic); }
     const facts = el("dl", "facts"), fact = (k, v) => { if (v) facts.append(el("dt", null, k), el("dd", null, v)); };
     fact("Slot", it.slot); fact("Maker", it.maker); fact("Confers", it.bonus);
-    card.append(doll, el("h2", null, it.name), facts); if (it.about) { const lore = el("div", "post lore"); renderBody(it.about, lore); card.append(lore); }
+    card.append(el("h2", null, it.name), facts); if (it.about) { const lore = el("div", "post lore"); renderBody(it.about, lore); card.append(lore); }
     card.classList.remove("pop"); void card.offsetWidth; card.classList.add("pop");
   };
-  EQUIPMENT.forEach((it, i) => { const pick = () => { if (btn.getAttribute("aria-pressed") !== "true") show(it, btn); }, btn = opt(null, pick, "beast gear"); btn.addEventListener("focus", pick);
-    btn.append(el("span", "num", it.slot), el("span", "name", it.name)); btn.style.setProperty("--i", Math.min(i, 8)); list.append(btn); });
-  const nav = el("div", "row group"); nav.append(opt("Back", () => showStatus(true)));
-  wrap.append(list, card); main.append(wrap, nav); show(EQUIPMENT[0], list.querySelector(".opt")); stopPortrait(); stopPortrait = figure(doll, "ease");
+  set.forEach((it, i) => { const pick = () => { if (btn.getAttribute("aria-pressed") !== "true") show(it, btn); }, btn = opt(null, pick, "beast gear"); btn.addEventListener("focus", pick);
+    const ic = el("canvas", "gearmini"); ic.setAttribute("aria-hidden", "true"); if (typeof conjure === "function" && conjure.paintGear) conjure.paintGear(ic, conjure.gearIcon(it.slot, it.kit));
+    btn.append(ic, el("span", "num", it.slot), el("span", "name", it.name)); btn.style.setProperty("--i", Math.min(i, 8)); list.append(btn); });
+  wrap.append(list, card); main.append(wrap, backRow()); show(set[0], list.querySelector(".opt"));
   if (focusFirst) list.querySelector(".opt").focus({ preventScroll: true });
 }
 /* ---- A quest fulfilled ----

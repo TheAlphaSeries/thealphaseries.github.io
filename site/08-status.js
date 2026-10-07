@@ -65,7 +65,7 @@ function showStatus(focusFirst) {
   main.append(el("p", "label", "Status"), wrap);
   if (STATUS.body) { const words = el("div", "post lore"); renderBody(STATUS.body, words); main.append(words); }
   main.append(honourBlock());
-  { const nav = backRow(); if (EQUIPMENT.length) nav.append(opt("Equipment", () => showEquipment(true))); main.append(nav); }
+  { const nav = backRow(); if (EQUIPMENT.length) nav.append(opt("Equipment", () => showEquipment(true, "dress"))); main.append(nav); }
   if (focusFirst) main.querySelector(".opt").focus({ preventScroll: true });
 }
 

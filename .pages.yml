@@ -568,8 +568,19 @@ content:
         type: object
         list: true
         fields:
+          - name: kit
+            label: Kit
+            type: select
+            options:
+              values:
+                - name: angling
+                  label: Angling (rods, reels, lures)
+                - name: likeness
+                  label: Likenesses (camera, lenses, film)
+                - name: dress
+                  label: Dress (what is worn)
           - name: slot
-            label: Slot (e.g. Head, Eyes, Body, Legs, Feet, Right hand, Left hand)
+            label: Slot (e.g. Rod, Reel, Lure - or Body, Lens, Film - or Head, Eyes, Body, Legs, Feet)
             type: string
           - name: name
             label: What it is called
