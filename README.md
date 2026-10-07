@@ -13,13 +13,14 @@ Saving there creates or changes a file in one of the folders below. The site upd
 2. `scripts/build-index.mjs` gathers every file into `posts.json`, and `scripts/make-thumbs.sh` makes smaller copies of new photos.
    Both run by themselves (see `.github/workflows/build-index.yml`).
 3. Cloudflare publishes the result to halflife.studio (`wrangler.jsonc`).
-4. `index.html` is the whole site. It loads `posts.json` and draws everything from it.
+4. `index.html` and the scripts in `site/` are the whole site. They load `posts.json` and draw everything from it.
 
 ## What's here
 
 | | |
 |---|---|
-| `index.html` | The whole site: look, layout, music, behaviour. It starts with a comment explaining how it works and a list of its sections. |
+| `index.html` | The skeleton of the screen: the windows, the menu, the title screen. |
+| `site/` | The look (`site.css`) and everything the page does, one script per part. `site/README.md` explains how it all fits. |
 | `posts/` | Log entries, one file each. |
 | `bestiary/` | One file per fish, caught or not yet caught. `pages/bestiary.md` is the blurb at the top. |
 | `albums/` | Photo albums. |
