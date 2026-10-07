@@ -403,6 +403,27 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
 .moment .mstar { width: 22px; height: 22px; background: #ffd257; clip-path: polygon(50% 0, 62% 36%, 100% 38%, 70% 60%, 80% 100%, 50% 76%, 20% 100%, 30% 60%, 0 38%, 38% 36%); filter: drop-shadow(1px 1px 0 rgba(0, 0, 0, .7)); animation: momentspin 1.6s ease-in-out infinite; }
 @keyframes momentin { from { transform: translateY(-140%); opacity: 0; } } @keyframes momentspin { 50% { transform: scale(1.25) rotate(18deg); } }
 
+/* a fulfilled quest's report */
+.qreport { margin: 4px 0 6px; }
+.qbanner { margin: 0 0 14px; font-family: var(--display); font-size: clamp(15px, 4.4vw, 22px); line-height: 1.6; letter-spacing: .08em; color: #ffd257; text-align: center; }
+.qresult { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 22px; align-items: center; padding: 14px 16px; border: 3px solid var(--border); border-radius: 9px; box-shadow: inset 0 0 0 2px var(--border-shade); }
+.qgrade { display: grid; justify-items: center; gap: 4px; min-width: 96px; text-align: center; } .qgrade .letter { font-family: var(--display); font-size: 56px; line-height: 1.1; } .qgrade .gword { font-size: 14.5px; line-height: 1.25; color: var(--dim); max-width: 12ch; }
+.qgrade.gS .letter { color: #ffd257; } .qgrade.gA .letter { color: #7fd68a; } .qgrade.gB .letter { color: #8fd6ff; } .qgrade.gC .letter { color: #e0a8ff; } .qgrade.gD .letter { color: #c98a6a; }
+.qwords { display: grid; gap: 8px; min-width: 0; } .qexpnum { font-family: var(--display); font-size: 15px; line-height: 1.6; color: #7fd68a; font-variant-numeric: tabular-nums; } .qwords .xpbar { display: block; width: 100%; } .qmeta { color: var(--dim); font-size: 15.5px; line-height: 1.4; overflow-wrap: anywhere; }
+.rollhead { margin-top: 20px; }
+.roll { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 6px; }
+.roll li { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; gap: 0 12px; align-items: center; padding: 6px 10px; border: 2px solid rgba(255, 255, 255, .3); border-radius: 6px; }
+.roll li.you { border-color: #ffd257; } .rollpic { width: 48px; height: 60px; object-fit: contain; }
+.rwords { display: grid; gap: 1px; min-width: 0; } .rname { font-size: 18px; overflow-wrap: anywhere; } .rpost { color: var(--dim); font-size: 15px; } .ryou { margin-left: 10px; padding: 0 6px; border: 2px solid #ffd257; border-radius: 4px; color: #ffd257; font-size: 13px; }
+.rearn { display: grid; justify-items: end; gap: 1px; color: #7fd68a; font-variant-numeric: tabular-nums; white-space: nowrap; } .rextra { color: #ffd257; font-size: 15px; }
+.sharenote { align-self: center; color: var(--dim); font-size: 15px; } .fellow .flevel { font-family: var(--display); font-size: 9px; line-height: 1.8; color: #7fd68a; }
+/* the first showing plays out: the banner lands, the result opens, the grade is stamped, then each of the company in turn */
+.qreport.fresh .qbanner { animation: qland .7s var(--spring) backwards; } .qreport.fresh .qresult { animation: qrise .5s ease-out .45s backwards; }
+.qreport.fresh .qgrade .letter { animation: qstamp .5s var(--spring) 2.1s backwards; } .qreport.fresh .qgrade .gword { animation: qrise .4s ease-out 2.4s backwards; }
+.qreport.fresh .rollhead, .qreport.fresh .roll li { animation: qrise .4s ease-out backwards; animation-delay: calc(2.6s + var(--n, 0) * .14s); }
+.qreport.fresh .roll li:nth-child(2) { --n: 1; } .qreport.fresh .roll li:nth-child(3) { --n: 2; } .qreport.fresh .roll li:nth-child(4) { --n: 3; } .qreport.fresh .roll li:nth-child(n+5) { --n: 4; }
+@keyframes qland { from { transform: translateY(-60px) scale(1.5); opacity: 0; } } @keyframes qrise { from { transform: translateY(10px); opacity: 0; } } @keyframes qstamp { from { transform: scale(3.2) rotate(-14deg); opacity: 0; } }
+
 /* phone view: the command window becomes a bar fixed to the bottom of the screen */
 @media (max-width: 720px) {
   body { padding-bottom: 212px; }   /* room for the menu fixed to the bottom of a phone screen (four rows) */
@@ -435,7 +456,7 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
 @media (prefers-reduced-motion: reduce) {
   .opt:focus-visible::before, .file.chosen, .beastcard.pop, #readerwin.pop, .stage.go > .win, #main > *, #main .files > *, #main .group, #titlebar .site, #intro .win, #intro .start::before { animation: none; }
   #intro, .opt, #sprite, .fishbtn, #minimap { transition: none; }
-  .moment, .moment .mstar { animation: none; }
+  .moment, .moment .mstar, .qreport.fresh * { animation: none; }
 }
 </style>
 
@@ -585,6 +606,10 @@ Nearly everything here pays experience: an entry written, a species caught (rare
 
 The Quests tab is the full log: what is in hand, and what has been fulfilled. Each quest has a difficulty and pays experience when it is finished; harder ones and Great Works pay more. Open a quest to see who travels with it. Some quests have named posts to fill: choose Apply beside an open one. Otherwise choose Petition to join. Either way you give a name of your choosing and an e-mail address. No account is needed, only what you write is kept, and the address is seen by the keeper alone. Each newcomer chooses a calling and a curiosity to set out with, and is then drawn a figure by lot, with a past to match. They may draw again as often as they please before sending; once sent it is theirs, and signing again with the same address keeps it. The keeper accepts or declines in his own time. Those accepted are entered under The Company at the foot of the Quest Log, each with a figure and a page of their own.
 
+## A quest fulfilled
+
+A finished quest opens with its report: a grade, the experience it paid, everyone who was there and what it earned them, and the keeper's account of how it went. Companions have a level of their own; it rises with every quest they see through. Choose Share to make a card of the report, or of any companion, to send to a friend.
+
 ## Chronicle
 
 The Chronicle is everything recorded here, in the order it happened, newest first. Choose a row to go to the thing itself.
@@ -710,7 +735,7 @@ function questRow(q, i) {
   const got = q.objectives.filter((o) => o.done).length, b = opt(null, () => showQuest(q, b), "quest" + (q.status === "completed" ? " fulfilled" : "")), bar = el("span", "qbar");
   const ro = roster(q), names = (owns(PARTY, q.file) ? PARTY[q.file] : []).map((m) => m.name);
   q.objectives.slice(0, 24).forEach((o) => bar.append(el("i", o.done ? "on" : null)));
-  b.append(el("span", "name", q.title), el("span", "when", q.status === "completed" ? "Fulfilled" + (q.completed ? " " + day(q.completed) : "") : q.when), questTags(q), bar, el("span", "qcount", q.objectives.length ? got + "/" + q.objectives.length : ""));
+  b.append(el("span", "name", q.title), el("span", "when", q.status === "completed" ? "Fulfilled" + (q.completed ? " " + day(q.completed) : "") + "   Grade " + questGrade(q) : q.when), questTags(q), bar, el("span", "qcount", q.objectives.length ? got + "/" + q.objectives.length : ""));
   if (q.reward) b.append(el("span", "qparty", "Spoils: " + q.reward));
   if (names.length) b.append(el("span", "qparty", "Company of " + (names.length + 1) + ": the keeper, " + names.join(", ")));
   else if (partyOpen && q.status !== "completed" && !ro.posts.length) b.append(el("span", "qparty", "Seeking companions"));
@@ -1280,6 +1305,8 @@ function companions() {
     c.done = done; c.bond = Math.min(5, n + done * 2);
     c.title = done >= 3 ? "Veteran of the Company" : done >= 1 ? "Proven Companion" : n >= 3 ? "Old Hand of the Company" : n === 2 ? "Twice-Sworn Companion" : "Fellow of the Road";
     c.since = c.posts.map((x) => x.at).filter(day).sort()[0] || "";
+    c.stars = c.posts.filter((x) => x.quest.status === "completed" && commendedOn(x.quest, c)).length;   /* a companion has experience and a level of their own: for signing on, for each quest seen through, for being commended */
+    c.xp = n * COMPANION_PAY.joined + c.posts.reduce((t, x) => t + (x.quest.status === "completed" ? questExp(x.quest) : 0), 0) + c.stars * COMPANION_PAY.commended; c.level = Math.floor(Math.sqrt(c.xp / 10)) + 1;
     return c;
   });
 }
@@ -1303,7 +1330,7 @@ function showCompany() {
   const wrap = el("div", "fellows");
   all.forEach((c, i) => {
     const b = opt(null, () => showCompanion(c, b), "fellow"), pic = el("canvas", "fellowpic"); pic.setAttribute("aria-hidden", "true"); drawCompanion(pic, c.name, c.seed, c.calling); const w = what(c.name, c.seed, c.calling);
-    b.append(pic, el("span", "name", c.name), el("span", "fkind", w ? w.title : ""), el("span", "ftitle", c.title), el("span", "fcount", count(c.posts.length, "venture")));
+    b.append(pic, el("span", "name", c.name), el("span", "fkind", w ? w.title : ""), el("span", "flevel", "Level " + c.level), el("span", "ftitle", c.title), el("span", "fcount", count(c.posts.length, "venture")));
     b.style.setProperty("--i", Math.min(i, 6)); wrap.append(b);
   });
   main.append(wrap);
@@ -1317,17 +1344,19 @@ function showCompanion(c, from) {
   const sheet = el("dl", "facts qstats"), row = (k, v) => { const dd = el("dd"); dd.append(v); sheet.append(el("dt", null, k), dd); };
   const w = what(c.name, c.seed, c.calling); if (w) { row("Kind", w.kind); row("Calling", w.calling); }
   if (w && conjure.itemName(c.item)) { const it = el("span", "carries"), ic = el("canvas", "itempic"); ic.setAttribute("aria-hidden", "true"); conjure.paintItem(ic, c.item); it.append(ic, conjure.itemName(c.item)); row("Carries", it); }
-  row("Title", c.title); row("Ventures joined", String(c.posts.length)); row("Seen through", String(c.done));
+  row("Level", c.level + "   (" + c.xp + " experience)"); row("Title", c.title); row("Ventures joined", String(c.posts.length)); row("Seen through", String(c.done)); if (c.stars) row("Commended", count(c.stars, "time"));
   const bond = el("span", "hard"); bond.append(pips(c.bond), c.bond + " / 5"); row("Bond", bond);
   if (c.since) row("Of the company since", day(c.since));
   const posts = el("ul", "posts");
   c.posts.forEach((x) => {
     const li = el("li", x.quest.status === "completed" ? "held" : "vacant"), words = el("span", "pwords");
     words.append(el("span", "pname", x.role || "Of the company"), el("span", "pabout", x.quest.title));
-    li.append(words, el("span", "pholder", x.quest.status === "completed" ? "Fulfilled" : "In hand")); posts.append(li);
+    li.append(words, el("span", "pholder", x.quest.status === "completed" ? "Fulfilled, grade " + questGrade(x.quest) + (commendedOn(x.quest, c) ? "  -  commended" : "") : "In hand")); posts.append(li);
   });
   const tally = el("p", "goalhead"); tally.append(el("span", null, "Posts held"), el("span", "lmcount", String(c.posts.length)));
   const nav = el("div", "row group"); nav.append(opt("Back", closePost));
+  if (typeof conjure === "function") { const note = el("span", "sharenote"); note.setAttribute("role", "status");
+    nav.append(opt("Share card", () => shareCard(companionCard({ name: c.name, seed: c.seed, calling: c.calling, item: c.item, title: c.title, level: c.level, bond: c.bond, lines: c.posts.map((x) => (x.role || "Of the company") + ", " + x.quest.title) }), "half-life-" + (c.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "companion") + ".png", c.name + " of the keeper's company", note)), note); }
   const past = el("div", "post lore pastlore"), tale = pastOf(c.name, c.seed, c.calling, c.item); if (tale) past.append(el("p", null, tale));
   rwin.append(head, pic, sheet); if (tale) rwin.append(past); rwin.append(tally, posts, nav);
   reader.hidden = false; document.body.style.overflow = "hidden"; syncLayers();
@@ -1385,7 +1414,9 @@ function company(q) {
           const mine = Number.isInteger(kept[0]) && kept[0] > 0 ? kept[0] : 0, myTrade = text(kept[1]), myThing = text(kept[2]);
           if (mine > 0) { const pic = el("canvas", "fellowpic big"); pic.setAttribute("aria-hidden", "true"); drawCompanion(pic, name.value, mine, myTrade); const w = what(name.value, mine, myTrade), carried = w ? conjure.itemName(myThing) : "";
             box.append(pic, el("p", "sub partynote figurenote", d.returning ? "The keeper knows you of old. The figure you first drew stands; the new lot is returned to the bag." : "The lot is drawn" + (w ? ": you are a " + w.title + (carried ? ", carrying " + carried.replace(/^An? /, (m) => m.toLowerCase()) : "") : "") + ". The figure is yours for as long as you sign with the same address."));
-            const tale = pastOf(name.value.trim(), mine, myTrade, myThing); if (tale) box.append(el("p", "lotpast", tale)); }
+            const tale = pastOf(name.value.trim(), mine, myTrade, myThing); if (tale) box.append(el("p", "lotpast", tale));
+            const mineName = name.value.trim(), note = el("span", "sharenote"), share = el("div", "row"); note.setAttribute("role", "status");
+            share.append(opt("Share your lot", () => shareCard(companionCard({ name: mineName, seed: mine, calling: myTrade, item: myThing, title: "Petitioner to the keeper's company", lines: ["Petitioning to join " + q.title + (pick.value ? " as " + pick.value : "")] }), "half-life-my-lot.png", mineName + " has drawn a lot", note)), note); box.append(share); }
           else if (d.returning) box.append(el("p", "sub partynote", "The keeper knows you of old. The figure you first drew stands, and the new lot is returned to the bag."));
           box.append(el("p", "sub partynote", "Your petition has been carried to the keeper. He will consider it at his leisure, which is considerable."));
           rwin.querySelectorAll(".posts .opt").forEach((b) => b.remove());
@@ -1409,14 +1440,142 @@ function company(q) {
   if (asked) { box.append(el("p", "sub partynote", "Your petition lies on the keeper's desk.")); return; }
   box.append(opt(posts.length ? "Petition without a post" : "Petition to join", () => form("")));
 }
+/* ---- A quest fulfilled ----
+   When a quest is marked Completed it gets a report at the top of its page, laid out the way games do it: first the
+   celebration (a banner, and a fanfare if the music is on), then the results plainly (a grade, the experience
+   counted up, the objectives), then everyone who was there with what it earned them, then the keeper's account
+   of how it went. The first time a visitor opens it, it plays out in that order; any tap or key skips to the end.
+   After that it is simply there to read. The grade is the keeper's (set in the editor) or, left empty, worked
+   out from how many objectives were ticked. */
+const GRADES = { S: "Beyond Reproach", A: "Handsomely Done", B: "Done", C: "Done, After a Fashion", D: "Survived" };
+function questGrade(q) {
+  if (owns(GRADES, q.grade)) return q.grade;
+  const n = q.objectives.length, part = n ? q.objectives.filter((o) => o.done).length / n : .8;
+  return part >= 1 ? "S" : part >= .8 ? "A" : part >= .6 ? "B" : part >= .4 ? "C" : "D";
+}
+const commendedOn = (q, c) => !!q.commended && c.names.has(q.commended.toLowerCase());   /* did this companion stand out on this quest? */
+const COMPANION_PAY = { joined: 15, commended: 25 };   /* what a companion earns for signing on, and for standing out; a fulfilled quest pays them what it pays the keeper */
+const myLot = () => { try { const v = JSON.parse(store.get("figure") || "[]"); return Array.isArray(v) && Number.isInteger(v[0]) ? v[0] : Number.isInteger(v) ? v : 0; } catch (e) { return 0; } };   /* the figure this visitor drew, if they signed on from this device */
+const reportsSeen = () => { try { const v = JSON.parse(store.get("reports") || "[]"); return Array.isArray(v) ? v.map(text) : []; } catch (e) { return []; } };
+function questReport(q) {
+  const box = el("div", "qreport"), grade = questGrade(q), exp = questExp(q), fresh = !reduceMotion && !reportsSeen().includes(q.file), got = q.objectives.filter((o) => o.done).length;
+  const stamp = el("div", "qgrade g" + grade), num = el("span", "qexpnum", "+" + (fresh ? 0 : exp) + " EXP"), bar = el("span", "xpbar"), fill = el("i"), top = el("div", "qresult"), words = el("div", "qwords");
+  stamp.append(el("span", "letter", grade), el("span", "gword", GRADES[grade])); stamp.setAttribute("aria-label", "Grade " + grade + ", " + GRADES[grade]);
+  fill.style.width = fresh ? "0%" : "100%"; bar.append(fill);
+  words.append(num, bar, el("span", "qmeta", [q.completed ? "Fulfilled " + day(q.completed) : "", q.objectives.length ? got + " of " + q.objectives.length + " objectives" : "", q.reward ? "Spoils: " + q.reward : ""].filter(Boolean).join("   ·   ")));
+  top.append(stamp, words); box.append(el("p", "qbanner", "Quest Fulfilled"), top);
+  /* everyone who was there, and what it earned them */
+  const roll = el("ul", "roll"), mine = myLot(), there = companions().filter((c) => c.posts.some((x) => x.quest === q));
+  const line = (pic, name, post, earned, extra, you) => { const li = el("li", you ? "you" : null), w = el("span", "rwords"), e = el("span", "rearn"); w.append(name, el("span", "rpost", post)); e.append(el("span", null, earned)); if (extra) e.append(el("span", "rextra", extra)); li.append(pic, w, e); roll.append(li); };
+  const kp = el("canvas", "rollpic"); kp.width = 45; kp.height = 58; kp.setAttribute("aria-hidden", "true"); { const k = kp.getContext("2d"), f = figurePic(FIGURE.stand); k.drawImage(f, 0, 0, f.width, f.height, 0, 0, 45, 58); }
+  line(kp, el("span", "rname", STATUS.name || "The keeper"), "The keeper", "+" + exp + " EXP", "", false);
+  there.forEach((c) => {
+    const pic = el("canvas", "rollpic"); pic.setAttribute("aria-hidden", "true"); drawCompanion(pic, c.name, c.seed, c.calling);
+    const post = c.posts.find((x) => x.quest === q), star = commendedOn(q, c), you = !!mine && c.seed === mine, nm = el("span", "rname"); nm.append(fellowLink(c.name)); if (you) nm.append(el("span", "ryou", "You"));
+    line(pic, nm, post.role || "Of the company", "+" + (exp + (star ? COMPANION_PAY.commended : 0)) + " EXP", star ? "Commended" : "Bond +2", you);
+  });
+  box.append(el("p", "goalhead rollhead", "Those who saw it through"), roll);
+  if (q.report) { const tell = el("div", "post"); renderBody(q.report, tell); box.append(el("p", "goalhead", "How it went"), tell); }
+  const acts = el("div", "row"), album = q.album && ALBUMS.find((a) => a.title.toLowerCase() === q.album.toLowerCase() || a.file === q.album);
+  if (album) acts.append(opt("The album", () => { closePost(); showAlbum(album); }));
+  if (typeof conjure === "function") { const note = el("span", "sharenote"); note.setAttribute("role", "status"); acts.append(opt("Share the report", () => shareCard(reportCard(q, there), "half-life-" + q.file + ".png", q.title + ": quest fulfilled", note)), note); }
+  if (acts.firstChild) box.append(acts);
+  if (fresh) {   /* the first showing: it plays out, and any tap or key ends it early */
+    box.classList.add("fresh"); let done = false; const t0 = performance.now();
+    const finish = () => { if (done) return; done = true; box.classList.remove("fresh"); num.textContent = "+" + exp + " EXP"; fill.style.width = "100%"; store.set("reports", JSON.stringify(reportsSeen().concat(q.file).slice(-200))); document.removeEventListener("keydown", finish, true); box.removeEventListener("pointerdown", finish); };
+    const tick = (now) => { if (done) return; if (!box.isConnected) return finish(); const p = Math.min(1, Math.max(0, (now - t0 - 900) / 1300)), e = 1 - Math.pow(1 - p, 3); num.textContent = "+" + Math.round(exp * e) + " EXP"; fill.style.width = e * 100 + "%"; if (now - t0 > 3600) finish(); else requestAnimationFrame(tick); };
+    requestAnimationFrame(tick); fanfare(true); document.addEventListener("keydown", finish, true); box.addEventListener("pointerdown", finish);
+  }
+  return box;
+}
+/* ---- Cards to share ----
+   A picture of a companion (or of a quest's report) made on the spot, in the site's look, for sending to friends or
+   posting. It holds only what the site already shows. On a phone it opens the usual share sheet; elsewhere it is
+   saved as a picture. Nothing is sent anywhere by the site itself. */
+const CARD = { w: 1080, h: 1350, gold: "#ffd257", dim: "#c9d0ff" };
+async function cardBase() {
+  try { await Promise.all(['40px "Press Start 2P"', '30px "DotGothic16"', 'italic 30px "Newsreader"'].map((f) => document.fonts.load(f))); } catch (e) {}
+  const cv = el("canvas"); cv.width = CARD.w; cv.height = CARD.h; const c = cv.getContext("2d");
+  c.fillStyle = "#05071f"; c.fillRect(0, 0, CARD.w, CARD.h);
+  for (let i = 0; i < 140; i++) { const x = (i * 7919) % CARD.w, y = (i * 104729) % CARD.h; c.fillStyle = "rgba(255,255,255," + (.25 + (i % 5) * .12) + ")"; c.fillRect(x, y, i % 4 ? 3 : 5, i % 4 ? 3 : 5); }   /* the drifting specks, stood still */
+  const g = c.createLinearGradient(0, 40, 0, CARD.h - 40); g.addColorStop(0, "#2a3da6"); g.addColorStop(1, "#080d48");
+  const round = (x, y, w, h, r) => { c.beginPath(); if (c.roundRect) c.roundRect(x, y, w, h, r); else c.rect(x, y, w, h); };   /* older browsers get square corners */
+  c.fillStyle = g; round(40, 40, CARD.w - 80, CARD.h - 80, 26); c.fill();
+  c.lineWidth = 10; c.strokeStyle = "#f6f2ff"; c.stroke(); c.lineWidth = 4; c.strokeStyle = "#8f98c8"; round(52, 52, CARD.w - 104, CARD.h - 104, 18); c.stroke();
+  c.textBaseline = "top"; c.shadowColor = "rgba(0,0,0,.7)"; c.shadowOffsetX = 3; c.shadowOffsetY = 3;
+  c.fillStyle = "#fff"; c.font = '34px "Press Start 2P", monospace'; c.fillText("HALF LIFE", 96, 100);
+  c.fillStyle = CARD.dim; c.font = '32px "DotGothic16", monospace'; c.textAlign = "right"; c.fillText("halflife.studio", CARD.w - 96, 102); c.textAlign = "left";
+  c.shadowOffsetX = c.shadowOffsetY = 0; c.fillStyle = "rgba(255,255,255,.3)"; c.fillRect(96, 160, CARD.w - 192, 3); c.fillRect(96, CARD.h - 170, CARD.w - 192, 3); c.shadowOffsetX = c.shadowOffsetY = 3;
+  return { cv, c };
+}
+/* write text wrapped to a width; gives back where the next line would start. max: the most lines to write (the last is cut short with "...") */
+function cardText(c, words, x, y, width, lead, max) {
+  const list = String(words).split(/\s+/); let lineNow = "", n = 0;
+  for (let i = 0; i < list.length; i++) {
+    const tryIt = lineNow ? lineNow + " " + list[i] : list[i];
+    if (c.measureText(tryIt).width <= width || !lineNow) { lineNow = tryIt; continue; }
+    if (++n === max) { while (lineNow && c.measureText(lineNow + "...").width > width) lineNow = lineNow.slice(0, -1); c.fillText(lineNow + "...", x, y); return y + lead; }
+    c.fillText(lineNow, x, y); y += lead; lineNow = list[i];
+  }
+  if (lineNow) { c.fillText(lineNow, x, y); y += lead; } return y;
+}
+function cardFigure(c, name, seed, calling, x, y, scale) { const t = el("canvas"); drawCompanion(t, name, seed, calling); if (!t.width) return; c.imageSmoothingEnabled = false; c.drawImage(t, x, y, t.width * scale, t.height * scale); }
+/* who: { name, seed, calling, item, title, level, bond, lines: [short lines about them] } */
+async function companionCard(who) {
+  const { cv, c } = await cardBase(), w = what(who.name, who.seed, who.calling), X = 600, W = 384;
+  cardFigure(c, who.name, who.seed, who.calling, 96, 200, 4.6);
+  let size = 40; c.font = size + 'px "Press Start 2P", monospace'; while (size > 20 && c.measureText(who.name).width > W) { size -= 2; c.font = size + 'px "Press Start 2P", monospace'; }
+  c.fillStyle = "#fff"; let y = cardText(c, who.name, X, 220, W, size * 1.5, 2) + 14;
+  c.fillStyle = CARD.gold; c.font = '36px "DotGothic16", monospace'; y = cardText(c, w ? w.title : "", X, y, W, 44, 2) + 6;
+  c.fillStyle = CARD.dim; c.font = '30px "DotGothic16", monospace'; if (who.title) y = cardText(c, who.title, X, y, W, 38, 2); y += 18;
+  if (who.level) { c.fillStyle = "#fff"; c.font = '22px "Press Start 2P", monospace'; c.fillText("LEVEL " + who.level, X, y); y += 46;
+    c.fillStyle = CARD.dim; c.font = '26px "DotGothic16", monospace'; c.fillText("Bond", X, y + 2); for (let i = 0; i < 5; i++) { c.fillStyle = i < who.bond ? CARD.gold : "rgba(255,255,255,.25)"; c.fillRect(X + 90 + i * 34, y + 4, 24, 24); } y += 56; }
+  const item = w ? conjure.itemName(who.item) : "";
+  if (item) { const t = el("canvas"); conjure.paintItem(t, who.item); c.imageSmoothingEnabled = false; c.drawImage(t, X - 8, y, 110, 110); c.fillStyle = CARD.dim; c.font = '26px "DotGothic16", monospace'; cardText(c, item, X + 112, y + 12, W - 112, 32, 3); }
+  y = 790; c.fillStyle = "#fff"; c.font = '28px "DotGothic16", monospace';
+  (who.lines || []).slice(0, 3).forEach((l) => { c.fillStyle = CARD.gold; c.fillRect(100, y + 10, 12, 12); c.fillStyle = "#fff"; y = cardText(c, l, 128, y, CARD.w - 228, 36, 2) + 4; });
+  const tale = pastOf(who.name, who.seed, who.calling, who.item);
+  if (tale) { c.fillStyle = CARD.dim; c.font = 'italic 31px "Newsreader", Georgia, serif'; cardText(c, tale, 100, y + 18, CARD.w - 200, 42, Math.max(2, Math.floor((CARD.h - 190 - y - 18) / 42))); }
+  c.fillStyle = CARD.dim; c.font = '26px "DotGothic16", monospace'; c.fillText("Lot No. " + lot(who.name, who.seed), 96, CARD.h - 140);
+  c.textAlign = "right"; c.fillStyle = "#fff"; c.fillText("Draw your own lot: halflife.studio", CARD.w - 96, CARD.h - 140); c.textAlign = "left";
+  return cv;
+}
+async function reportCard(q, there) {
+  const { cv, c } = await cardBase(), grade = questGrade(q);
+  c.fillStyle = CARD.gold; c.font = '26px "Press Start 2P", monospace'; c.fillText("QUEST FULFILLED", 96, 206);
+  c.fillStyle = "#fff"; let size = 44; c.font = size + 'px "Press Start 2P", monospace'; let y = cardText(c, q.title, 96, 262, CARD.w - 192, 66, 3) + 20;
+  c.fillStyle = { S: "#ffd257", A: "#7fd68a", B: "#8fd6ff", C: "#e0a8ff", D: "#c98a6a" }[grade]; c.font = '170px "Press Start 2P", monospace'; c.fillText(grade, 96, y + 6);
+  c.fillStyle = "#fff"; c.font = '36px "DotGothic16", monospace'; c.fillText(GRADES[grade], 300, y + 24);
+  c.fillStyle = "#7fd68a"; c.font = '30px "Press Start 2P", monospace'; c.fillText("+" + questExp(q) + " EXP", 300, y + 84);
+  c.fillStyle = CARD.dim; c.font = '28px "DotGothic16", monospace'; c.fillText([q.completed ? day(q.completed) : "", QUEST_KINDS[q.kind][0], HARDNESS[q.difficulty]].filter(Boolean).join("  ·  "), 300, y + 136);
+  y += 230; if (q.reward) { c.fillStyle = "#fff"; c.font = '30px "DotGothic16", monospace'; y = cardText(c, "Spoils: " + q.reward, 96, y, CARD.w - 192, 40, 2) + 10; }
+  const kp = figurePic(FIGURE.stand), show = there.slice(0, 4), each = (CARD.w - 192) / (show.length + 1), fy = Math.max(y + 20, 800);
+  c.imageSmoothingEnabled = false; c.drawImage(kp, 96 + (each - kp.width * 1.4) / 2, fy + 4, kp.width * 1.4, kp.height * 1.4);
+  c.font = '22px "DotGothic16", monospace'; c.textAlign = "center"; c.fillStyle = "#fff"; c.fillText(STATUS.name || "The keeper", 96 + each / 2, fy + 340);
+  show.forEach((m, i) => { const x = 96 + each * (i + 1); cardFigure(c, m.name, m.seed, m.calling, x + (each - 96 * 2.6) / 2, fy + 10, 2.6); c.fillStyle = commendedOn(q, m) ? CARD.gold : "#fff"; c.fillText(m.name.length > 16 ? m.name.slice(0, 15) + "." : m.name, x + each / 2, fy + 340); });
+  c.textAlign = "left"; c.fillStyle = CARD.dim; c.font = '26px "DotGothic16", monospace'; if (there.length > 4) c.fillText("and " + (there.length - 4) + " more", 96, fy + 376);
+  c.fillText("The whole account:", 96, CARD.h - 140); c.textAlign = "right"; c.fillStyle = "#fff"; c.fillText("halflife.studio", CARD.w - 96, CARD.h - 140); c.textAlign = "left";
+  return cv;
+}
+/* hand the finished card to the device's share sheet, or save it as a picture where there is none. note: where to say what happened */
+async function shareCard(making, fileName, title, note) {
+  const say = (t) => { if (note) note.textContent = t; };
+  try {
+    say("Drawing the card..."); const cv = await making, blob = await new Promise((done) => cv.toBlob(done, "image/png")); if (!blob) throw new Error("no picture");
+    const file = new File([blob], fileName, { type: "image/png" }), data = { files: [file], title, text: title + " - halflife.studio" };
+    if (navigator.canShare && navigator.canShare(data)) { await navigator.share(data); say(""); return; }
+    const a = el("a"), url = URL.createObjectURL(blob); a.href = url; a.download = fileName; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000); say("Saved as a picture.");
+  } catch (e) { say(e && e.name === "AbortError" ? "" : "The card could not be made."); }
+}
 function showQuest(q, from) {
   if (!(from && from.isConnected) && view !== "files" && view !== "quests") showFiles();
   current = null; questFrom = from && from.isConnected ? from : null; setHash("");
   rwin.textContent = "";
   const head = el("div", "filehead"), meta = el("p", "meta"), goals = el("ul", "goals"), got = q.objectives.filter((o) => o.done).length;
-  meta.append(el("span", null, "Quest")); if (q.when) meta.append(el("span", "when", q.when));
+  meta.append(el("span", null, "Quest")); if (q.status === "completed") meta.append(el("span", "when", "Fulfilled")); else if (q.when) meta.append(el("span", "when", q.when));
   head.append(meta, el("h2", null, q.title));
   rwin.append(head);
+  if (q.status === "completed") rwin.append(questReport(q), el("p", "goalhead", "The undertaking"));
   if (q.body) { const story = el("div", "post"); renderBody(q.body, story); rwin.append(story); }
   q.objectives.forEach((o) => { const li = el("li", o.done ? "done" : null); li.append(el("span", "tick"), el("span", null, o.text)); li.setAttribute("aria-label", o.text + (o.done ? ": done" : ": not yet")); goals.append(li); });
   const sheet = el("dl", "facts qstats"), row = (k, v) => { const dd = el("dd"); dd.append(v); sheet.append(el("dt", null, k), dd); };
@@ -1442,6 +1601,7 @@ function closePost() {
   reader.hidden = true; document.body.style.overflow = ""; setHash(""); syncLayers();
   const back = questFrom && questFrom.isConnected ? questFrom : current ? [...main.querySelectorAll(".file")].find((b) => b.dataset.file === current.file) : null;
   current = null; questFrom = null; if (back) back.focus();
+  playMoments();
 }
 reader.addEventListener("click", (e) => { if (e.target === reader) closePost(); });
 
@@ -2426,15 +2586,16 @@ function fanfare(big) {   /* a few bright notes over the music; silent unless th
 }
 function nextMoment() {
   clearTimeout(momentTimer); momentBox.textContent = "";
+  if (!reader.hidden) return;   /* something is open to read: the remaining banners wait (closePost starts them again) */
   const m = momentQueue.shift(); if (!m) return;
   const card = el("button", "moment win"), words = el("span", "mwords"); card.type = "button"; card.setAttribute("aria-label", m.kind + ": " + m.title + ". Dismiss");
   if (m.medal) { const pic = el("canvas", "medal"); pic.setAttribute("aria-hidden", "true"); drawMedal(pic, m.medal, false); card.append(pic); } else card.append(el("span", "mstar"));
   words.append(el("span", "mkind", m.kind), el("span", "mtitle", m.title)); if (m.sub) words.append(el("span", "msub", m.sub));
-  card.append(words); card.addEventListener("click", nextMoment);
+  card.append(words); card.addEventListener("click", () => { if (m.go && reader.hidden) { clearTimeout(momentTimer); momentBox.textContent = ""; m.go(); } else nextMoment(); });   /* choosing a banner that leads somewhere goes there; the rest wait until the window is closed again */
   momentBox.append(card); fanfare(m.big);
   momentTimer = setTimeout(nextMoment, 4600);
 }
-function playMoments() { if (momentQueue.length && !momentBox.firstChild && introBox.classList.contains("done")) momentTimer = setTimeout(nextMoment, 1500); }
+function playMoments() { if (momentQueue.length && !momentBox.firstChild && introBox.classList.contains("done")) { clearTimeout(momentTimer); momentTimer = setTimeout(nextMoment, 1500); } }
 function moments() {   /* runs once, after everything has loaded */
   if (momentsDone || loadNote.indexOf("Could not") === 0) return; momentsDone = true;
   const t = tally(), ranks = standingsNow(), won = honours().filter((h) => h.won);
@@ -2449,7 +2610,7 @@ function moments() {   /* runs once, after everything has loaded */
       const at = (name) => ladder.findIndex((r) => r[1] === name);
       if (oldRanks[i] && at(ranks[i]) > at(oldRanks[i]) && at(oldRanks[i]) >= 0) found.push({ kind: "New standing", title: ranks[i], sub: label, big: true });
     });
-    done.forEach((q) => { if (!had("quests", q.file)) found.push({ kind: "Quest fulfilled", title: q.title, sub: "+" + questExp(q) + " experience", big: true }); });
+    done.forEach((q) => { if (!had("quests", q.file)) found.push({ kind: "Quest fulfilled", title: q.title, sub: "Grade " + questGrade(q) + "   +" + questExp(q) + " experience   (open the report)", big: true, go: () => showQuest(q) }); });
     won.forEach((h) => { if (!had("honours", h.id)) found.push({ kind: "Honour won", title: h.name, sub: h.how, medal: h }); });
     fish.forEach((n) => { if (!had("fish", n)) found.push({ kind: "New species", title: n, sub: "Entered in the Bestiary" }); });
     sorted.forEach((p) => { if (!had("entries", p.file)) found.push({ kind: "New in the log", title: p.title, sub: day(p.date) }); });
@@ -2539,7 +2700,7 @@ function linkedPost() {   /* the entry named after # in the address, if there is
     PLANT_INTRO = { bonsai: text(intro.bonsai), house: text(intro.house) };
     QUESTS = (Array.isArray(data.quests) ? data.quests : []).filter((q) => q && typeof q === "object" && text(q.title).trim()).map((q) => ({
       file: text(q.file), title: text(q.title).trim(), status: text(q.status) === "completed" ? "completed" : "active",
-      difficulty: Math.min(5, Math.max(1, Math.round(amount(q.difficulty) || 2))), kind: owns(QUEST_KINDS, text(q.kind)) ? text(q.kind) : "side", reward: text(q.reward).trim(),
+      difficulty: Math.min(5, Math.max(1, Math.round(amount(q.difficulty) || 2))), kind: owns(QUEST_KINDS, text(q.kind)) ? text(q.kind) : "side", reward: text(q.reward).trim(), grade: text(q.grade), commended: text(q.commended).trim().slice(0, 40), album: text(q.album).trim(), report: text(q.report),
       roles: (Array.isArray(q.roles) ? q.roles : []).filter((r) => r && typeof r === "object" && text(r.name).trim()).slice(0, 12).map((r) => ({ name: text(r.name).trim().slice(0, 60), about: text(r.about).trim(), held: text(r.held).trim().slice(0, 40) })),
       exp: typeof q.exp === "number" && Number.isFinite(q.exp) ? Math.min(9999, Math.max(0, Math.round(q.exp))) : null, completed: /^\d{4}-\d{2}-\d{2}/.test(text(q.completed)) ? text(q.completed).slice(0, 10) : "", order: typeof q.order === "number" && Number.isFinite(q.order) ? q.order : 1e9, when: text(q.when), place: text(q.place), body: text(q.body),
       objectives: (Array.isArray(q.objectives) ? q.objectives : []).filter((o) => o && typeof o === "object" && text(o.text).trim()).map((o) => ({ text: text(o.text).trim(), done: o.done === true })) }))

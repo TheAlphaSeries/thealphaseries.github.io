@@ -367,6 +367,32 @@ content:
         type: date
         options:
           format: yyyy-MM-dd
+      - name: grade
+        label: How well it went (optional - leave empty and the page grades it by objectives ticked)
+        type: select
+        options:
+          values:
+            - name: S
+              label: S - Beyond reproach
+            - name: A
+              label: A - Handsomely done
+            - name: B
+              label: B - Done
+            - name: C
+              label: C - Done, after a fashion
+            - name: D
+              label: D - Survived
+      - name: commended
+        label: Companion commended (optional - the name of one who stood out, exactly as they signed)
+        type: string
+      - name: album
+        label: Album of the quest (optional - the album's name, to link the two)
+        type: string
+      - name: report
+        label: How it went (the report shown once the quest is Completed - photos welcome)
+        type: rich-text
+        options:
+          format: markdown
       - name: roles
         label: Posts in the company (optional - friends can ask for one by name)
         type: object

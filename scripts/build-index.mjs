@@ -49,8 +49,9 @@ function parse(text) {
     }
     const block = /^[>|][+-]?$/.test(value);                // a long value wrapped over several indented lines
     const parts = block ? [] : [value];
-    while (i + 1 < lines.length && /^\s+\S/.test(lines[i + 1])) parts.push(lines[++i].trim());
-    meta[k[1]] = block ? parts.join(value.startsWith("|") ? "\n" : " ") : unquote(parts.join(" "));
+    const more = (j) => { while (j < lines.length && !lines[j].trim()) j++; return j < lines.length && /^\s+\S/.test(lines[j]); };   // is there more of this value after a blank line?
+    while (i + 1 < lines.length && (/^\s+\S/.test(lines[i + 1]) || (block && !lines[i + 1].trim() && more(i + 1)))) parts.push(lines[++i].trim());   // a long text keeps its blank lines (they part its paragraphs)
+    meta[k[1]] = block ? (value.startsWith("|") ? parts.join("\n") : parts.join(" ").replace(/ {2,}/g, "\n\n")) : unquote(parts.join(" "));
   }
   return { meta, body: m[2].trim() };
 }
@@ -129,6 +130,8 @@ if (existsSync("quests")) {
       // the game side of a quest: how hard, what sort, what it pays. The day it was finished is in the past, so it may be shown.
       difficulty: Number.isFinite(parseInt(meta.difficulty, 10)) ? parseInt(meta.difficulty, 10) : null, kind: str(meta.kind).trim().toLowerCase(), reward: str(meta.reward).trim(),
       exp: Number.isFinite(parseInt(meta.exp, 10)) ? parseInt(meta.exp, 10) : null, completed: /^\d{4}-\d{2}-\d{2}/.test(str(meta.completed)) ? str(meta.completed).slice(0, 10) : "",
+      // once it is finished: how well it went, who stood out, the album of it, and the report of how it went
+      grade: /^[SABCD]$/.test(str(meta.grade).trim().toUpperCase()) ? str(meta.grade).trim().toUpperCase() : "", commended: str(meta.commended).trim(), album: str(meta.album).trim(), report: str(meta.report).trim(),
       // posts in the company that a friend can ask for by name; "held" marks one already taken (by Chris, say)
       roles: (Array.isArray(meta.roles) ? meta.roles : []).filter((r) => r && typeof r === "object" && String(r.name || "").trim())
         .map((r) => ({ name: String(r.name).trim(), about: String(r.about || "").trim(), held: String(r.held || "").trim() })),

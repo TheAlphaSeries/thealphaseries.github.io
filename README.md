@@ -62,4 +62,8 @@ In the visitor's own browser, and nowhere else, the page keeps two small notes: 
 what the page last showed them (the level, and which quests, medals, fish and entries were already there), so that it
 can announce what is new on their next visit. Neither note is sent anywhere.
 
+A visitor can make a picture card of a companion or of a finished quest's report to send to friends. The card is drawn
+in their own browser from what the site already shows and handed to their device's share sheet (or saved as a
+picture); the site itself sends it nowhere.
+
 The page that used to live in this repository (Polymath Robotics Terminal) is kept on the `polymath-terminal-backup` branch.
