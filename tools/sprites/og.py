@@ -13,9 +13,9 @@ def doubled(g):   # round off the stair-steps, as the page does
             out[y*2+1][x*2] = C if (D == C and D != B and C != A) else P; out[y*2+1][x*2+1] = D if (B == D and B != A and D != C) else P
     return out
 big = doubled(doubled(rows)); fh, fw = len(big), len(big[0]); sc = 2   # 45x58 -> 180x232 -> drawn at 2x = 360x464
-im = Image.new('RGB', (W, H), (5, 7, 31)); d = ImageDraw.Draw(im)
+im = Image.new('RGB', (W, H), (12, 6, 8)); d = ImageDraw.Draw(im)
 import random; rnd = random.Random(4)
-for _ in range(140): x, y = rnd.randrange(W), rnd.randrange(H); d.rectangle([x, y, x + rnd.choice((2, 2, 3)), y + rnd.choice((2, 2, 3))], fill=(255, 255, 255) if rnd.random() < .6 else (160, 170, 210))
+for _ in range(140): x, y = rnd.randrange(W), rnd.randrange(H); d.rectangle([x, y, x + rnd.choice((2, 2, 3)), y + rnd.choice((2, 2, 3))], fill=(246, 234, 210) if rnd.random() < .6 else (196, 168, 138))
 # the old sun, low on the right, with its dark places and a rust along the bottom
 for r, a in ((230, .10), (190, .16), (160, .25)):
     glow = Image.new('RGBA', (W, H), (0, 0, 0, 0)); ImageDraw.Draw(glow).ellipse([980 - r, 300 - r, 980 + r, 300 + r], fill=(190, 50, 30, int(255 * a))); im.paste(Image.alpha_composite(im.convert('RGBA'), glow).convert('RGB'))
@@ -47,5 +47,5 @@ word("HALF LIFE", 560, 186, 11, (10, 10, 20)); word("HALF LIFE", 554, 180, 11, (
 d.rectangle([554, 286, 554 + 9 * 6 * 11 - 11, 290], fill=(255, 210, 87))
 from PIL import ImageFont
 f = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf', 30); f2 = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf', 24)
-d.text((556, 318), "Still receiving...", font=f, fill=(201, 208, 255))
+d.text((556, 318), "Still receiving...", font=f, fill=(230, 211, 176))
 im.save('../../og.png', optimize=True); print(im.size)

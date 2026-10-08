@@ -21,14 +21,14 @@ Saving there creates or changes a file in one of the folders below. The site upd
 |---|---|
 | `index.html` | The skeleton of the screen: the windows, the menu, the title screen. |
 | `site/` | The look (`site.css`) and everything the page does, one script per part. `site/README.md` explains how it all fits. |
-| `posts/` | Log entries, one file each. |
+| `posts/` | Log entries (the Writings screen), one file each. |
 | `bestiary/` | One file per fish, caught or not yet caught. `pages/bestiary.md` is the blurb at the top. |
 | `albums/` | Photo albums. |
 | `places/` | Map pins. A pin can carry a write-up and a list of landmarks. |
 | `plants/` | The Herbarium: one file per plant, bonsai or house plant, living or perished. `pages/bonsai.md` and `pages/houseplants.md` are the notices at the top of each collection. |
 | `quests/` | The quest log. No dates or real place names: the site is public. |
-| `pages/about.md` | The About text. |
-| `pages/status.md` | The name, class and blurb on the Status screen. Its numbers are counted by the site. |
+| `pages/about.md` | The About text (the Preface screen). |
+| `pages/status.md` | The name, class and blurb on the Status screen (shown as Condition). Its numbers are counted by the site. |
 | `photos/` | Photos as uploaded. `thumbs/` and `large/` are smaller copies made automatically; do not edit those. |
 | `posts.json` | The list the site loads. Rebuilt automatically; do not edit by hand. |
 | `figures.js` | The figure maker: draws a companion (a kind of creature, a calling, colours, details) from one number, lists the starting curiosities, writes each companion's short background, and writes their annals from their record. Add a line to its lists to add a creature, a calling, a curiosity or a turn of phrase. |
@@ -74,3 +74,7 @@ in their own browser from what the site already shows and handed to their device
 picture); the site itself sends it nowhere.
 
 The page that used to live in this repository (Polymath Robotics Terminal) is kept on the `polymath-terminal-backup` branch.
+
+## The Dying Earth look
+
+The site is dressed after Jack Vance's books: an old red sun, oxblood windows framed in tarnished gold, vellum text, an umber chart. The colours sit at the top of `site/site.css`. Menu names follow the books too; behind each is a plain screen: Writings (the log), Likenesses (photos), Charts (map), Condition (status), Emporium (shop), Preface (about), Counsel (help). The names are in `index.html` and the screen headings in each `site/` script.

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Half Life</title>
 <meta name="description" content="Half Life. Photographs, a log, a bestiary of fish and a map of where it all happened. By Chris.">
-<meta name="theme-color" content="#02040f">
+<meta name="theme-color" content="#0c0608">
 <meta property="og:title" content="Half Life">
 <meta property="og:description" content="Photographs, a log, a bestiary of fish and a map of where it all happened. By Chris.">
 <meta property="og:site_name" content="Half Life">
@@ -43,30 +43,30 @@ img { max-width: 100%; }
 
   <nav class="win" id="menu" aria-label="Commands">
     <button class="opt menutoggle" type="button" id="menutoggle" aria-expanded="false"><span>Menu</span><span class="where" id="menuwhere"></span></button>
-    <button class="opt" type="button" id="m-files">Log</button>
+    <button class="opt" type="button" id="m-files">Writings</button>
     <button class="opt" type="button" id="m-quests">Quests</button>
     <button class="opt" type="button" id="m-chron">Chronicle</button>
     <button class="opt" type="button" id="m-bestiary">Bestiary</button>
     <button class="opt" type="button" id="m-plants">Herbarium</button>
-    <button class="opt" type="button" id="m-photos">Photos</button>
-    <button class="opt" type="button" id="m-map">Map</button>
-    <button class="opt" type="button" id="m-status">Status</button>
+    <button class="opt" type="button" id="m-photos">Likenesses</button>
+    <button class="opt" type="button" id="m-map">Charts</button>
+    <button class="opt" type="button" id="m-status">Condition</button>
     <button class="opt" type="button" id="m-gear">Equipment</button>
-    <button class="opt locked" type="button" id="m-prints" disabled>Shop</button>
-    <button class="opt" type="button" id="m-about">About</button>
-    <button class="opt" type="button" id="m-how">Help</button>
+    <button class="opt locked" type="button" id="m-prints" disabled>Emporium</button>
+    <button class="opt" type="button" id="m-about">Preface</button>
+    <button class="opt" type="button" id="m-how">Counsel</button>
     <button class="opt" type="button" id="m-music" aria-pressed="true">Music Off</button>
   </nav>
 
   <dl class="win" id="status">
     <dt>Level</dt><dd id="lvl">-</dd>
-    <dt>Entries</dt><dd id="count">0</dd>
-    <dt>Saved</dt><dd id="latest">-</dd>
-    <dt>Complete</dt><dd id="pct">-</dd>
-    <dt>Time</dt><dd id="clock">--:--:--</dd>
+    <dt>Writings</dt><dd id="count">0</dd>
+    <dt>Inscribed</dt><dd id="latest">-</dd>
+    <dt>Fulfilled</dt><dd id="pct">-</dd>
+    <dt>Hour</dt><dd id="clock">--:--:--</dd>
   </dl>
 
-  <button class="win" id="minimap" type="button" aria-label="Open the map"><canvas aria-hidden="true"></canvas><span>Map</span></button>
+  <button class="win" id="minimap" type="button" aria-label="Open the charts"><canvas aria-hidden="true"></canvas><span>Charts</span></button>
 </div>
 
 <div id="reader" hidden><article class="win" id="readerwin" tabindex="-1" role="dialog" aria-modal="true" aria-label="Log entry"></article></div>

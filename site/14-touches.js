@@ -15,9 +15,9 @@
    kept as a short list in their own browser, like the other notes; a first
    visit marks nothing as new.
    ========================================================================== */
-const HELPS = { "m-files": "The log: what was written, newest first.", "m-quests": "Undertakings in hand, those fulfilled, and the company.", "m-chron": "Everything recorded, in the order it befell.",
-  "m-bestiary": "Fish caught, and fish still at large.", "m-plants": "The plants: the living and the perished.", "m-photos": "Likenesses, by album.", "m-map": "Where it all happened.",
-  "m-status": "The keeper: level, standings, honours.", "m-gear": "What the keeper carries: rods, lenses, black.", "m-prints": "The shop is shut.", "m-about": "What this is.", "m-how": "How to get about.", "m-music": "Music and sounds, on or off." };
+const HELPS = { "m-files": "The writings: what was set down, newest first.", "m-quests": "Undertakings in hand, those fulfilled, and the company.", "m-chron": "Everything recorded, in the order it befell.",
+  "m-bestiary": "Fish caught, and fish still at large.", "m-plants": "The plants: the living and the perished.", "m-photos": "Likenesses, by album.", "m-map": "Charts of where it all befell.",
+  "m-status": "The keeper's condition: level, standings, honours.", "m-gear": "What the keeper carries: rods, lenses, black.", "m-prints": "The emporium is shuttered until a later age.", "m-about": "A preface: what this is.", "m-how": "Counsel on getting about.", "m-music": "Music and sounds, on or off." };
 const helpLine = $("#helpline");
 function sayHelp(id) { helpLine.textContent = owns(HELPS, id) ? HELPS[id] : ""; }
 menu.addEventListener("focusin", (e) => { const b = e.target.closest && e.target.closest(".opt"); if (b) sayHelp(b.id); });

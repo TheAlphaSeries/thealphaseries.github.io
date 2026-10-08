@@ -136,7 +136,7 @@ function showBestiary(focusFirst, pick) {
     }
     card.append(el("h2", null, ghost && !known ? "???" : b.name), facts);
     const pin = pinFor(b.location);
-    if (pin) { const row = el("div", "row"); row.append(opt("Show on map", () => showMap(true, pin.file))); card.append(row); }
+    if (pin) { const row = el("div", "row"); row.append(opt("Show on the charts", () => showMap(true, pin.file))); card.append(row); }
     if (b.lore) { const lore = el("div", "post lore"); renderBody(b.lore, lore); card.append(lore); }
     card.classList.remove("pop"); void card.offsetWidth; card.classList.add("pop");
     if (!ghost && isNew("fish", b.name)) { markKnown("fish", b.name); const t = btn.querySelector(".newtag"); if (t) setTimeout(() => t.remove(), 1600); }   /* looked at: no longer new */
@@ -149,7 +149,7 @@ function showBestiary(focusFirst, pick) {
   if (beastSort === "rarity") rows.sort((x, y) => order.indexOf(y[0].rarity) - order.indexOf(x[0].rarity) || x[1] - y[1]);
   if (beastSort === "name") rows.sort((x, y) => named(y[0]) - named(x[0]) || (named(x[0]) ? x[0].name.localeCompare(y[0].name) : x[1] - y[1]));   /* those still unnamed go last */
   const chips = el("div", "chips"), chip = (label, on, go) => { const c = el("button", "chip", label); c.type = "button"; c.setAttribute("aria-pressed", String(on)); c.addEventListener("click", () => { go(); showBestiary(false); const now = [...main.querySelectorAll(".chip")].find((x) => x.textContent === label); if (now) now.focus({ preventScroll: true }); }); chips.append(c); };
-  [["all", "All  " + BESTIARY.length], ["caught", "Caught  " + caught.length], ["wanted", "At large  " + wanted]].forEach(([k, label]) => chip(label, beastShow === k, () => { beastShow = k; }));
+  [["all", "All  " + BESTIARY.length], ["caught", "Taken  " + caught.length], ["wanted", "At large  " + wanted]].forEach(([k, label]) => chip(label, beastShow === k, () => { beastShow = k; }));
   chips.append(el("span", "chipgap"));
   [["number", "By number"], ["rarity", "By rarity"], ["name", "By name"]].forEach(([k, label]) => chip(label, beastSort === k, () => { beastSort = k; }));
   if (caught.length) { const go = el("div", "row"); go.append(opt("Cast a line", () => showFishing(go.firstChild))); main.append(go); }   /* the fishing game */

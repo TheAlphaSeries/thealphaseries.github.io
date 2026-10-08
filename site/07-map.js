@@ -13,12 +13,12 @@
    with its own coordinates also appears on the map as a small box.
    ========================================================================== */
 const KINDS = {   /* label, colour, and a 7x7 picture for the pin */
-  home: ["Home", "#ffffff", ["...#...", "..###..", ".#####.", "#######", ".#####.", ".##.##.", ".##.##."]],
+  home: ["Abode", "#ffffff", ["...#...", "..###..", ".#####.", "#######", ".#####.", ".##.##.", ".##.##."]],
   region: ["Regions", "#ff8a5c", ["##.....", "######.", "#######", "######.", "##.....", "##.....", "##....."]],
-  fishing: ["Fishing", "#6fb7ff", [".......", "#..###.", "#######", "#######", "#######", "#..###.", "......."]],
+  fishing: ["Waters", "#6fb7ff", [".......", "#..###.", "#######", "#######", "#######", "#..###.", "......."]],
   landmark: ["Landmarks", "#ffd257", [".#####.", ".#####.", ".#####.", ".#.....", ".#.....", ".#.....", "###...."]],
-  hike: ["Hikes", "#7fd68a", ["...#...", "..###..", "..###..", ".#####.", ".#####.", "#######", "#######"]],
-  trip: ["Trips", "#c79bff", ["...#...", "..###..", "#######", ".#####.", ".#####.", "##...##", "#.....#"]]
+  hike: ["Wanderings", "#7fd68a", ["...#...", "..###..", "..###..", ".#####.", ".#####.", "#######", "#######"]],
+  trip: ["Journeys", "#c79bff", ["...#...", "..###..", "#######", ".#####.", ".#####.", "##...##", "#.....#"]]
 };
 const merc = (lat, lng) => [(lng + 180) / 360, (1 - Math.log(Math.tan(Math.PI / 4 + Math.max(-85, Math.min(85, lat)) * Math.PI / 360)) / Math.PI) / 2];
 let landPath = null, landWait = null;
@@ -53,7 +53,7 @@ function loadLand() {
   }).catch(() => { landWait = null; });   /* no coastline: the map still works, as pins on open sea */
   return landWait;
 }
-const SEA = [5, 7, 10], SEA_DOT = [20, 28, 42], LAND_A = [42, 47, 55], LAND_B = [54, 60, 69], COAST = [214, 214, 224], COAST_DIM = [140, 140, 152], HOME_A = [92, 80, 44], HOME_B = [112, 98, 54];
+const SEA = [7, 10, 12], SEA_DOT = [22, 40, 40], LAND_A = [52, 36, 28], LAND_B = [64, 45, 33], COAST = [226, 200, 150], COAST_DIM = [150, 124, 92], HOME_A = [112, 74, 30], HOME_B = [134, 92, 40];   /* an old chart: dark water, umber land, a vellum coast */
 /* canvas: where to draw. cell: how many screen pixels each map dot covers. small: the simple version for the minimap. */
 function makeMap(canvas, cell, small) {
   const c = canvas.getContext("2d", { willReadFrequently: true });
@@ -191,7 +191,7 @@ function landmarkPic(icon, lit, halo) {   /* lit: in colour (been there); otherw
   if (halo) { x.fillStyle = halo; rows.forEach((row, y) => { for (let i = 0; i < row.length; i++) if (on(i, y)) x.fillRect(i, y, 3, 3); }); }
   rows.forEach((row, y) => { for (let i = 0; i < row.length; i++) {
     if (!on(i, y)) continue;
-    x.fillStyle = lit ? (LANDMARK.pal[row[i]] || "#fff") : (on(i - 1, y) && on(i + 1, y) && on(i, y - 1) && on(i, y + 1)) ? "#14161f" : "#8c92a8";
+    x.fillStyle = lit ? (LANDMARK.pal[row[i]] || "#fff") : (on(i - 1, y) && on(i + 1, y) && on(i, y - 1) && on(i, y + 1)) ? "#1c1310" : "#8f7f6e";
     x.fillRect(i + pad, y + pad, 1, 1);
   } });
   return c;
@@ -285,8 +285,8 @@ function showMap(focusFirst, chooseFile) {
       const row = el("div", "row caughthere"), tag = el("span", "sub", label); tag.style.margin = "0"; row.append(tag);
       items.forEach(([name, go]) => row.append(opt(name, go))); card.append(row);
     };
-    linked("Photos:", ALBUMS.filter((a) => pinFor(a.place) === p).map((a) => [a.title, () => showAlbum(a)]));
-    linked("Log:", sorted.filter((e) => pinFor(e.place) === p).map((e) => [e.title, () => showPost(e)]));
+    linked("Likenesses:", ALBUMS.filter((a) => pinFor(a.place) === p).map((a) => [a.title, () => showAlbum(a)]));
+    linked("Writings:", sorted.filter((e) => pinFor(e.place) === p).map((e) => [e.title, () => showPost(e)]));
     linked("Caught here:", fishAt(p).map(([b, i]) => [b.name, () => showBestiary(true, i)]));
     if (p.photo) { const row = el("div", "row"); const b = opt("View photo", () => zoom(p.photo, p.name, b)); row.append(b); card.append(row); }
     card.classList.remove("pop"); void card.offsetWidth; card.classList.add("pop");
@@ -375,7 +375,7 @@ function showMap(focusFirst, chooseFile) {
   const mt = mapTally(), regs = el("span", "regions");
   mt.regions.forEach((r) => { const line = el("span", "region" + (r.seen === r.all ? " mastered" : "")); line.append(el("span", "rname", r.name), meter(r.seen, r.all, r.seen + "/" + r.all + (r.seen === r.all ? "  Mastered" : ""))); regs.append(line); });
   /* the map comes first; its stat block sits between the map and the list of places */
-  main.append(el("p", "label", "Map"), chips, box, statBlock([["Standing", standing(EXPLORER_RANKS, mt.seen, mt.marks)], ["Landmarks", mt.marks ? meter(mt.seen, mt.marks) : ""], ["Regions", mt.regions.length ? regs : ""],
+  main.append(el("p", "label", "Charts"), chips, box, statBlock([["Standing", standing(EXPLORER_RANKS, mt.seen, mt.marks)], ["Landmarks", mt.marks ? meter(mt.seen, mt.marks) : ""], ["Regions", mt.regions.length ? regs : ""],
     ["Experience", mt.earned + " earned  (" + count(mt.places, "place") + ", " + count(mt.trips, "journey") + ")"]]), wrap, backRow());
   refresh(); map.fit(map.v.pins, .01);
   const homePin = PLACES.find((p) => p.kind === "home" && p.lat != null && !mapOff.has("home"));   /* with nothing else asked for, the map opens on home */

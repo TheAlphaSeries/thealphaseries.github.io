@@ -10,6 +10,8 @@ function openScreen(name, menuId) {
   { const on = $("#" + menuId); $("#menuwhere").textContent = on ? on.textContent : ""; }   /* the folded phone menu names the screen that is up */
   if (typeof sayHelp === "function" && !menu.contains(document.activeElement)) sayHelp(menuId);   /* the bar at the top says where you are */
 }
+/* 12 as XII: the writings are numbered as folios */
+const roman = (n) => { let out = ""; for (const [v, r] of [[1000, "M"], [900, "CM"], [500, "D"], [400, "CD"], [100, "C"], [90, "XC"], [50, "L"], [40, "XL"], [10, "X"], [9, "IX"], [5, "V"], [4, "IV"], [1, "I"]]) while (n >= v) { out += r; n -= v; } return out; };
 /* the "Back" option at the foot of a screen: returns to the home screen */
 function backRow() { const nav = el("div", "row group"); nav.append(opt("Back", () => showFiles(true))); return nav; }
 
@@ -25,7 +27,7 @@ function showFiles(focusFirst) {
       setTimeout(() => { b.classList.remove("chosen"); if (b.isConnected && reader.hidden) showPost(p); }, 250);
     }, "file"); b.dataset.file = p.file;
     const nm = el("span", "name", p.title); if (isNew("entries", p.file)) nm.append(newTag());
-    b.append(el("span", "slot", "File " + String(sorted.length - i).padStart(2, "0")), nm, el("span", "date", day(p.date)), el("span", "saveline", saveLine(p) + (p.place ? "   ·   " + p.place : "")));   /* laid out like a save slot: its number, its name, and how things stood */
+    b.append(el("span", "slot", "Folio " + roman(sorted.length - i)), nm, el("span", "date", day(p.date)), el("span", "saveline", saveLine(p) + (p.place ? "   ·   " + p.place : "")));   /* laid out like a save slot: its number, its name, and how things stood */
     b.style.setProperty("--i", i);
     list.append(b);
   });
@@ -133,7 +135,7 @@ function showPage(name, menuId, label, text) {
    gathered from the dates already given elsewhere. A thing with no date is
    left out. The home screen shows the latest few under "Lately".
    ========================================================================== */
-const CHRON = { entry: "Log", fish: "Catch", place: "Road", quest: "Quest", plant: "Green", album: "Likeness", company: "Company" };   /* the tag shown beside each kind of happening */
+const CHRON = { entry: "Writ", fish: "Catch", place: "Road", quest: "Quest", plant: "Green", album: "Likeness", company: "Company" };   /* the tag shown beside each kind of happening */
 function chronicle() {
   const out = [], add = (date, kind, words, go, exp) => { if (day(date)) out.push({ date: date.slice(0, 10), kind, words, go, exp: exp || 0 }); };
   sorted.forEach((p) => add(p.date, "entry", "Wrote " + p.title, (from) => showPost(p, from), PAY.entry));

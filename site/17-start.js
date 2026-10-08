@@ -96,7 +96,7 @@ function linkedPost() {   /* the entry named after # in the address, if there is
   if (view === "photos" || view === "album") showPhotos(started);
   if (view === "map") showMap(started);
   drawMini(); loadLand().then(drawMini); loadParty().then(moments); loadRemarks();
-  if (view === "about") showPage("about", "m-about", "About", ABOUT);
+  if (view === "about") showPage("about", "m-about", "Preface", ABOUT);
   if (pendingPost && started) { showPost(pendingPost); pendingPost = null; }
 })();
 window.addEventListener("hashchange", () => {   /* following a link to another entry while the page is open */

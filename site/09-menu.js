@@ -18,8 +18,8 @@ $("#m-gear").addEventListener("click", () => showEquipment(true));
 if (SHELVED.equipment) $("#m-gear").remove();   /* on the shelf for now */
 $("#m-quests").addEventListener("click", () => showQuestLog(true));
 $("#m-chron").addEventListener("click", () => showChronicle(true));
-$("#m-about").addEventListener("click", () => showPage("about", "m-about", "About", ABOUT));
-$("#m-how").addEventListener("click", () => showPage("help", "m-how", "Help", HELP));
+$("#m-about").addEventListener("click", () => showPage("about", "m-about", "Preface", ABOUT));
+$("#m-how").addEventListener("click", () => showPage("help", "m-how", "Counsel", HELP));
 
 /* One place handles every key: Up/Down move the cursor, Left/Right switch window, Enter confirms (the
    browser does that itself), Esc goes back. What a key does depends on what is on top: the title

@@ -41,7 +41,7 @@ zoomBox.addEventListener("touchend", (e) => {
 /* the Photos screen: every album's cover. focusFile: the album to put the cursor back on */
 function showPhotos(focusFile) {
   openScreen("photos", "m-photos");
-  main.append(el("p", "label", "Photos"));
+  main.append(el("p", "label", "Likenesses"));
   if (!ALBUMS.length) { main.append(el("p", "sub", loadNote === "Loading..." ? loadNote : "No albums yet."), backRow()); return; }
   const wrap = el("div", "albums");
   ALBUMS.forEach((a, i) => {
@@ -59,7 +59,7 @@ function showAlbum(a) {
   openScreen("album", "m-photos");
   const head = el("div", "albumhead"), meta = el("p", "meta");
   [day(a.date), a.place, count(a.photos.length, "photo")].filter(Boolean).forEach((t) => meta.append(el("span", null, t)));
-  head.append(el("p", "label", "Photos"), el("h2", null, a.title), meta);
+  head.append(el("p", "label", "Likenesses"), el("h2", null, a.title), meta);
   main.append(head);
   if (a.body) { const words = el("div", "post"); renderBody(a.body, words); main.append(words); }
   const said = (src) => { const c = a.captions.find((k) => k.photo === src); return c ? c.caption : ""; };   /* the caption written for a photo, if any */
@@ -75,7 +75,7 @@ function showAlbum(a) {
   if (!a.photos.length) main.append(el("p", "sub", "No photos in this album yet."));
   const nav = el("div", "row group"); nav.append(opt("Back", () => showPhotos(a.file)));
   const pin = pinFor(a.place);
-  if (pin) nav.append(opt("Show on map", () => showMap(true, pin.file)));
+  if (pin) nav.append(opt("Show on the charts", () => showMap(true, pin.file)));
   main.append(grid, nav);
   nav.querySelector(".opt").focus({ preventScroll: true });
 }

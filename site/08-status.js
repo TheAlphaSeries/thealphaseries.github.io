@@ -62,7 +62,7 @@ function showStatus(focusFirst) {
   done.rows.forEach(([k, part, whole]) => { const line = el("span", "region"); line.append(el("span", "rname", k), meter(part, whole)); tot.append(line); });
   right.append(facts, el("p", "label sheethead", "Completion   " + done.all + "%"), tot, el("p", "label sheethead", "Standings"), ranks, el("p", "label sheethead", "Experience"), book);
   wrap.append(who, right);
-  main.append(el("p", "label", "Status"), wrap);
+  main.append(el("p", "label", "Condition"), wrap);
   if (STATUS.body) { const words = el("div", "post lore"); renderBody(STATUS.body, words); main.append(words); }
   main.append(honourBlock());
   { const nav = backRow(); if (EQUIPMENT.length && !SHELVED.equipment) nav.append(opt("Equipment", () => showEquipment(true, "dress"))); main.append(nav); }

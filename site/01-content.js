@@ -5,7 +5,7 @@
 let ABOUT = "";          /* the About text, loaded from posts.json */
 let BESTIARY_INTRO = "";   /* the short blurb at the top of the Bestiary, loaded from posts.json */
 let ALBUMS = [];         /* photo albums, newest first, loaded from posts.json */
-let STATUS = { name: "", class: "", home: "", body: "" };   /* the character on the Status screen, loaded from posts.json */
+let STATUS = { name: "", class: "", home: "", body: "" };   /* the character on the Condition screen, loaded from posts.json */
 let PLANTS = [];         /* the herbarium: bonsai and house plants, loaded from posts.json */
 let PLANT_INTRO = { bonsai: "", house: "" };   /* the notice at the top of each collection */
 let QUESTS = [];         /* things set out to do, with objectives, loaded from posts.json */
@@ -34,11 +34,11 @@ Drag to move. Pinch, or use + and -, to zoom. Point at a pin or a name to see th
 
 ## Experience
 
-Nearly everything here pays experience: an entry written, a species caught (rarer pays more), a plant kept alive, a landmark seen, a place reached, a quest fulfilled. It adds up to the level, and the Status screen shows exactly where every point came from. Each collection also keeps its own standing, a rank earned by doing that one thing; the top rank of a collection is reached by finishing it.
+Nearly everything here pays experience: an entry written, a species caught (rarer pays more), a plant kept alive, a landmark seen, a place reached, a quest fulfilled. It adds up to the level, and the Condition screen shows exactly where every point came from. Each collection also keeps its own standing, a rank earned by doing that one thing; the top rank of a collection is reached by finishing it.
 
 ## Quests
 
-The Quests tab is the full log: what is in hand, and what has been fulfilled. Each quest has a difficulty and pays experience when it is finished; harder ones and Great Works pay more. Open a quest to see who travels with it. Some quests have named posts to fill: choose Apply beside an open one. Otherwise choose Petition to join. Either way you give a name of your choosing and an e-mail address. No account is needed, only what you write is kept, and the address is seen by the keeper alone. Each newcomer chooses a calling and a curiosity to set out with, and is then drawn a figure by lot, with a past to match. They may draw again as often as they please before sending; once sent it is theirs, and signing again with the same address keeps it. The keeper accepts or declines in his own time. Those accepted are entered under The Company at the foot of the Quest Log, each with a figure and a page of their own.
+The Quests screen is the full account: what is in hand, and what has been fulfilled. Each quest has a difficulty and pays experience when it is finished; harder ones and Great Works pay more. Open a quest to see who travels with it. Some quests have named posts to fill: choose Apply beside an open one. Otherwise choose Petition to join. Either way you give a name of your choosing and an e-mail address. No account is needed, only what you write is kept, and the address is seen by the keeper alone. Each newcomer chooses a calling and a curiosity to set out with, and is then drawn a figure by lot, with a past to match. They may draw again as often as they please before sending; once sent it is theirs, and signing again with the same address keeps it. The keeper accepts or declines in his own time. Those accepted are entered under The Company at the foot of the Quest Log, each with a figure and a page of their own.
 
 ## A quest fulfilled
 
@@ -54,11 +54,11 @@ Choose Cast a line in the Bestiary to fish from the keeper's pier. Press (a tap,
 
 ## Like an old game
 
-The bar at the top says what the highlighted command does. Anything you have not opened yet is marked NEW, with a dot on its command; if an entry is waiting, the title screen offers Continue. A gamepad works: the pad or stick moves, A confirms, B goes back. On the Status screen, choose the keeper's portrait to hear from him. The Bestiary can be narrowed to the caught or the at-large, and put in order of number, rarity or name.
+The bar at the top says what the highlighted command does. Anything you have not opened yet is marked NEW, with a dot on its command; if an entry is waiting, the title screen offers Continue. A gamepad works: the pad or stick moves, A confirms, B goes back. On the Condition screen, choose the keeper's portrait to hear from him. The Bestiary can be narrowed to the taken or the at-large, and put in order of number, rarity or name.
 
-## The log
+## The writings
 
-Each entry is kept like a save file: its number, and how things stood when it was written. Those of the company may leave a remark under an entry; the keeper reads each before it is shown. Now and then someone passes on the road as you read. Under the entries is the day's saying, which changes at midnight in San Francisco.
+Each entry is kept like a save file: numbered as a folio, with how things stood when it was written. Those of the company may leave a remark under an entry; the keeper reads each before it is shown. Now and then someone passes on the road as you read. Under the entries is the day's saying, which changes at midnight in San Francisco.
 
 ## The sky
 
@@ -70,7 +70,7 @@ The Chronicle is everything recorded here, in the order it happened, newest firs
 
 ## Honours
 
-Medals for particular feats are shown on the Status screen: in colour once won, a dark locked shape until then. They pay no experience.
+Medals for particular feats are shown on the Condition screen: in colour once won, a dark locked shape until then. They pay no experience.
 
 ## What is new
 
