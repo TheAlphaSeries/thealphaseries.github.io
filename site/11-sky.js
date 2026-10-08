@@ -51,6 +51,5 @@ function drawSky(step) {
   if (fog > 0) for (let i = 0; i < 4; i++) { const y = H * (.3 + i * .17), drift = ((skyBeat * (.15 + i * .05) + i * 400) % (W * 2)) - W * .5, g = sx.createLinearGradient(0, y - 70, 0, y + 70);
     g.addColorStop(0, "rgba(200,204,220,0)"); g.addColorStop(.5, "rgba(200,204,220," + .1 * fog + ")"); g.addColorStop(1, "rgba(200,204,220,0)"); sx.fillStyle = g; sx.fillRect(drift - W * .6, y - 70, W * 1.2, 140); }
   /* the title screen has its own solid backing, so the sun is painted onto that as well */
-  if (!introBox.classList.contains("done")) introBox.style.backgroundImage = sun.t == null ? "" : "radial-gradient(circle at " + (6 + 88 * sun.t).toFixed(1) + "% " + (86 - 62 * Math.sin(Math.PI * sun.t)).toFixed(1) + "%, rgba(232,104,58," + (.75 * dim).toFixed(2) + ") 0, rgba(176,46,32," + (.7 * dim).toFixed(2) + ") 5%, rgba(112,22,24," + (.5 * dim).toFixed(2) + ") 7.5%, rgba(190,50,30,.12) 9%, transparent 24%)" + (glowOf > 0 ? ", linear-gradient(transparent 40%, rgba(150,52,20," + (.3 * glowOf).toFixed(2) + "))" : "");
 }
 window.addEventListener("resize", sizeSky);

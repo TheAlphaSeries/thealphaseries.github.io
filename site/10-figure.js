@@ -93,14 +93,13 @@ function figure(canvas, mode, enter) {
 }
 /* ---- How he arrives on the title screen ----
    One of these is drawn by lot each visit (never the one from the visit before):
-     rise      springs up from behind the title box
-     peek      shows the top of his hood, ducks, then comes up
-     stroll    walks in along the top of the box
+     rise      comes up out of the dark below
+     stroll    walks in from the left edge of the screen
      descend   floats down from above
      appear    arrives a speck at a time, out of nothing
      orb       the orb comes up alone, and he forms beside it
    Add ?arrive=stroll (or another name) to the address to see a particular one. */
-const spriteBox = $("#sprite"), ARRIVALS = ["rise", "peek", "stroll", "descend", "appear", "orb"];
+const spriteBox = $("#sprite"), ARRIVALS = ["rise", "stroll", "descend", "appear", "orb"];
 let stopWave = () => {}, stopPortrait = () => {};
 function startSprite() {
   const c = spriteBox.getContext("2d"), move = (transform, transition, opacity) => { spriteBox.style.transition = transition || ""; spriteBox.style.transform = transform || ""; spriteBox.style.opacity = opacity == null ? "" : opacity; };
@@ -113,10 +112,9 @@ function startSprite() {
     const up = () => { move(); spriteBox.classList.add("up"); };
     let enter = () => false;
     if (how === "rise") { up(); enter = (n, look) => { look.shown = 1; return n < 12; }; }
-    if (how === "peek") { move("translateY(76%)"); enter = (n, look) => { look.shown = 1; if (n === 16) move("translateY(102%)"); if (n === 24) up(); return n < 36; }; }
-    if (how === "stroll") { move("translate(" + -(spriteBox.offsetLeft - 6) + "px, 20%)", "none", "0"); void spriteBox.offsetWidth; move("translate(0, 20%)", "transform 3s linear, opacity .5s", "1"); enter = (n, look) => { look.shown = 1; look.step = n < 38; if (n === 40) up(); return n < 40; }; }
-    if (how === "descend") { move("translateY(-60%)", "none", "0"); void spriteBox.offsetWidth; move("translateY(20%)", "transform 2.8s cubic-bezier(.2, .7, .3, 1), opacity .9s", "1"); enter = (n, look) => { look.shown = 1; if (n === 38) up(); return n < 38; }; }
-    if (how === "appear") { move("translateY(20%)", "none"); enter = (n, look) => { look.shown = Math.min(1, n / 18); if (n === 20) up(); return n < 20; }; }
+    if (how === "stroll") { const r = spriteBox.getBoundingClientRect(); move("translateX(" + -(r.left + r.width) + "px)", "none", "1"); void spriteBox.offsetWidth; move("translateX(0)", "transform 3s linear", "1"); enter = (n, look) => { look.shown = 1; look.step = n < 38; if (n === 40) up(); return n < 40; }; }
+    if (how === "descend") { move("translateY(-70%)", "none", "0"); void spriteBox.offsetWidth; move("translateY(0)", "transform 2.8s cubic-bezier(.2, .7, .3, 1), opacity .9s", "1"); enter = (n, look) => { look.shown = 1; if (n === 38) up(); return n < 38; }; }
+    if (how === "appear") { move("none", "none", "1"); enter = (n, look) => { look.shown = Math.min(1, n / 18); if (n === 20) up(); return n < 20; }; }
     if (how === "orb") { up(); enter = (n, look) => { look.orbOnly = n < 20; look.shown = Math.max(0, Math.min(1, (n - 20) / 16)); return n < 38; }; }
     stopWave = figure(spriteBox, "greet", enter);
   }, 1300);

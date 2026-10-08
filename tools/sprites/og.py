@@ -47,5 +47,5 @@ word("HALF LIFE", 560, 186, 11, (10, 10, 20)); word("HALF LIFE", 554, 180, 11, (
 d.rectangle([554, 286, 554 + 9 * 6 * 11 - 11, 290], fill=(255, 210, 87))
 from PIL import ImageFont
 f = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf', 30); f2 = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf', 24)
-d.text((556, 318), "Still receiving.", font=f, fill=(201, 208, 255)); d.text((556, 368), "A log, a bestiary, a map, a company.", font=f2, fill=(170, 178, 230)); d.text((556, 404), "halflife.studio", font=f2, fill=(255, 210, 87))
+d.text((556, 318), "Still receiving...", font=f, fill=(201, 208, 255))
 im.save('../../og.png', optimize=True); print(im.size)
