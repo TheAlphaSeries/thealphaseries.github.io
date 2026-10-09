@@ -356,7 +356,7 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
 .fellows { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(150px, 100%), 1fr)); gap: 8px; }
 .fellow { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 2px; padding: 12px 8px 10px; text-align: center; border: 2px solid var(--border-shade); border-radius: 7px; overflow-wrap: anywhere; }
 .fellow::before { display: none; } .fellow:hover, .fellow:focus-visible { transform: translateY(-2px); border-color: var(--border); }
-.fellowpic { display: block; width: 96px; height: 120px; image-rendering: pixelated; margin-bottom: 6px; } .fellowpic.big { width: 192px; height: 240px; margin: 6px auto 4px; }
+.fellowpic { display: block; width: 128px; height: 160px; image-rendering: pixelated; margin-bottom: 6px; } .fellowpic.big { width: 192px; height: 240px; margin: 6px auto 4px; }
 .lotbox { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; margin: 4px 0 14px; } .lotbox .fellowpic { margin: 0; } .lotbox .lotname { margin: 2px 0 8px; font-family: var(--display); font-size: 11px; line-height: 1.7; color: #ffd257; } .lotbox .partynote { margin: 0; }
 .lotpast { margin: 0 0 16px; padding: 10px 12px; border-left: 3px solid rgba(255, 255, 255, .4); font-family: var(--read); font-style: italic; font-size: 17px; line-height: 1.55; max-width: 66ch; color: var(--dim); }
 .pastlore { margin: 18px 0 0; } .pastlore .goalhead { margin: 16px 0 6px; border-top: 0; padding-top: 0; } .carries { display: inline-flex; align-items: center; gap: 10px; } .itempic { width: 44px; height: 44px; image-rendering: pixelated; flex: none; }
@@ -430,7 +430,7 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
 .remarks > .opt { width: auto; margin-top: 8px; } .remarks form { margin-top: 6px; }
 /* someone passing on the road */
 .encounter { position: fixed; left: 50%; top: calc(14px + env(safe-area-inset-top, 0px)); transform: translateX(-50%); z-index: 1; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0 14px; align-items: center; width: min(calc(100% - 24px), 520px); padding: 10px 14px; text-align: left; font: inherit; color: inherit; text-shadow: inherit; cursor: pointer; animation: passby .6s var(--spring) backwards; }
-.encounter .fellowpic { width: 72px; height: 90px; margin: 0; } .ewords { display: grid; gap: 4px; min-width: 0; } .ewho { color: #ffd257; font-size: 15px; line-height: 1.3; } .esays { font-size: 17px; line-height: 1.4; overflow-wrap: anywhere; }
+.encounter .fellowpic { width: 64px; height: 80px; margin: 0; } .ewords { display: grid; gap: 4px; min-width: 0; } .ewho { color: #ffd257; font-size: 15px; line-height: 1.3; } .esays { font-size: 17px; line-height: 1.4; overflow-wrap: anywhere; }
 @keyframes passby { from { transform: translate(-50%, -140%); opacity: 0; } }
 /* the order of march */
 .march { display: flex; gap: 4px 6px; align-items: flex-end; margin: 12px 0 4px; padding: 10px 8px 8px; overflow-x: auto; border-bottom: 3px solid rgba(255, 255, 255, .35); background: linear-gradient(transparent 70%, rgba(0, 0, 0, .22)); }

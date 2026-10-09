@@ -82,7 +82,7 @@ function factsOf(c) {
 function annalsOf(c) { return typeof conjure === "function" && conjure.annals ? conjure.annals(lot(c.name, c.seed), factsOf(c)) : ""; }
 function drawCompanion(canvas, name, seed, calling) {
   const f = what(name, seed, calling); if (!f) return;   /* the figure maker did not load: leave the frame empty */
-  canvas.width = FW; canvas.height = FH; canvas.getContext("2d").putImageData(new ImageData(f.pixels, FW, FH), 0, 0);
+  const w = f.w || FW, h = f.h || FH; canvas.width = w; canvas.height = h; canvas.getContext("2d").putImageData(new ImageData(f.pixels, w, h), 0, 0);
 }
 /* the companions, as a block of tiles at the foot of the Quest Log */
 function showCompany() {

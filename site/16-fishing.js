@@ -19,6 +19,10 @@
    The visitor's creel (what they have caught here) stays on their device.
    ========================================================================== */
 const FGAME = { w: 320, h: 180, water: 112, pier: 68 };
+/* The scene's pictures, from the PixelLab art (in scene/, copied there by tools/sprites/pixellab_icons.py): the far shore, the moving water (four frames side by
+   side), the pier, the float (up, down, pulled under) and the splash (four frames). The sky and the sun are still
+   painted here. Any picture not loaded yet is drawn the old way. */
+const FSCENE = {}; ["lake", "water", "pier", "float", "splash"].forEach((n) => { const im = new Image(); im.onload = () => { FSCENE[n] = im; }; im.src = "scene/" + n + ".png"; });
 const RARE_COL = { common: "#b8c0cc", uncommon: "#7fd68a", rare: "#8fd6ff", epic: "#e0a8ff", legendary: "#ffd257" }, RARE_W = { common: 10, uncommon: 6, rare: 3, epic: 1.5, legendary: .7 };
 let fishing = null;   /* the game in play, if any */
 const creel = () => { try { const v = JSON.parse(store.get("creel") || "{}"); return v && typeof v === "object" ? { n: Math.max(0, v.n | 0), kinds: v.kinds && typeof v.kinds === "object" ? v.kinds : {} } : { n: 0, kinds: {} }; } catch (e) { return { n: 0, kinds: {} }; } };
@@ -116,14 +120,24 @@ function startFishing(cv, say, bag, result, pool) {
     c.fillStyle = "#070a2a"; c.fillRect(-4, -4, W + 8, H + 8);
     c.fillStyle = "#ffffff"; stars.forEach(([x, y, s]) => { c.globalAlpha = .35 + .4 * ((s + Math.floor(g.t * 2)) % 3) / 2; c.fillRect(x, y, 1, 1); }); c.globalAlpha = 1;
     c.fillStyle = "#7a1c1e"; c.beginPath(); c.arc(276, 30, 14, 0, 7); c.fill(); c.fillStyle = "#b02e20"; c.beginPath(); c.arc(273, 27, 11, 0, 7); c.fill(); c.fillStyle = "#4a0c10"; c.fillRect(270, 31, 3, 2); c.fillRect(277, 24, 2, 2);   /* the old sun */
-    const bands = ["#345c84", "#2e527a", "#284870", "#24406a", "#1e3860"]; bands.forEach((col, i) => { c.fillStyle = col; c.fillRect(0, SURF + i * 14, W, 14); }); c.fillStyle = "#1a3058"; c.fillRect(0, SURF + 70, W, H);
-    c.fillStyle = "#b0def0"; for (let x = 0; x < W; x += 6) if ((x / 6 + Math.floor(g.t * 3)) % 4 === 0) c.fillRect(x, SURF, 3, 1);   /* glints along the surface */
-    g.rings.forEach((r) => { c.strokeStyle = "rgba(176,222,240," + r.life * .8 + ")"; c.beginPath(); c.ellipse(r.x, r.y, r.r, r.r * .25, 0, 0, 7); c.stroke(); });
-    c.fillStyle = "#5c3a1a"; c.fillRect(0, SURF - 4, FGAME.pier, 5); c.fillStyle = "#8a5a2c"; for (let x = 2; x < FGAME.pier; x += 9) c.fillRect(x, SURF - 4, 7, 2); c.fillStyle = "#3a2410"; [10, 34, 58].forEach((x) => c.fillRect(x, SURF, 3, 22));   /* the pier */
-    c.imageSmoothingEnabled = false; const fig = g.phase === "landed" ? flared : g.phase === "fight" ? lifted : keeper; c.drawImage(fig, KX, KY, fig.width / BIG, fig.height / BIG);
+    c.imageSmoothingEnabled = false;
+    if (FSCENE.lake) {   /* the far shore and its water, the hills sitting on the waterline; the moving water laid over it, thin enough to let the reflections through */
+      c.drawImage(FSCENE.lake, 0, SURF - 104);
+      if (FSCENE.water) { c.globalAlpha = .6; c.drawImage(FSCENE.water, (Math.floor(g.t * 4) % 4) * 320, 0, 320, 32, 0, SURF, 320, 32); c.globalAlpha = 1; }
+    } else {
+      const bands = ["#345c84", "#2e527a", "#284870", "#24406a", "#1e3860"]; bands.forEach((col, i) => { c.fillStyle = col; c.fillRect(0, SURF + i * 14, W, 14); }); c.fillStyle = "#1a3058"; c.fillRect(0, SURF + 70, W, H);
+      c.fillStyle = "#b0def0"; for (let x = 0; x < W; x += 6) if ((x / 6 + Math.floor(g.t * 3)) % 4 === 0) c.fillRect(x, SURF, 3, 1);   /* glints along the surface */
+    }
+    g.rings.forEach((r) => {
+      if (FSCENE.splash) { const f = Math.min(3, Math.floor((1 - r.life) * 4)); c.drawImage(FSCENE.splash, f * 32, 0, 32, 32, Math.round(r.x) - 16, Math.round(r.y) - 27, 32, 32); return; }
+      c.strokeStyle = "rgba(176,222,240," + r.life * .8 + ")"; c.beginPath(); c.ellipse(r.x, r.y, r.r, r.r * .25, 0, 0, 7); c.stroke();
+    });
+    if (FSCENE.pier) c.drawImage(FSCENE.pier, -45, SURF - 13);   /* the pier, its far end out over the water */
+    else { c.fillStyle = "#5c3a1a"; c.fillRect(0, SURF - 4, FGAME.pier, 5); c.fillStyle = "#8a5a2c"; for (let x = 2; x < FGAME.pier; x += 9) c.fillRect(x, SURF - 4, 7, 2); c.fillStyle = "#3a2410"; [10, 34, 58].forEach((x) => c.fillRect(x, SURF, 3, 22)); } const fig = g.phase === "landed" ? flared : g.phase === "fight" ? lifted : keeper; c.drawImage(fig, KX, KY, fig.width / BIG, fig.height / BIG);
     if (g.phase !== "ready") {   /* the line and the float */
       c.strokeStyle = "#e8e6ff"; c.lineWidth = 1; c.beginPath(); c.moveTo(TIP[0], TIP[1]); const mid = [(TIP[0] + g.bob[0]) / 2, Math.max(TIP[1], g.bob[1]) + (g.phase === "fight" ? -6 : 10)]; c.quadraticCurveTo(mid[0], mid[1], g.bob[0], g.bob[1]); c.stroke();
-      c.fillStyle = "#c83a3a"; c.fillRect(Math.round(g.bob[0]) - 2, Math.round(g.bob[1]) - 4, 4, 3); c.fillStyle = "#f4f4fa"; c.fillRect(Math.round(g.bob[0]) - 2, Math.round(g.bob[1]) - 1, 4, 3);
+      if (FSCENE.float) { const f = g.phase === "fight" || g.flash > 0 ? 2 : Math.floor(g.t * 2.5) % 2; c.drawImage(FSCENE.float, f * 16, 0, 16, 16, Math.round(g.bob[0]) - 8, Math.round(g.bob[1]) - 11, 16, 16); }   /* bobbing, or pulled under once something has it */
+      else { c.fillStyle = "#c83a3a"; c.fillRect(Math.round(g.bob[0]) - 2, Math.round(g.bob[1]) - 4, 4, 3); c.fillStyle = "#f4f4fa"; c.fillRect(Math.round(g.bob[0]) - 2, Math.round(g.bob[1]) - 1, 4, 3); }
     }
     if (g.phase === "ready") { const x = TIP[0] + 8, y = TIP[1] - 24; c.fillStyle = "#0a0a14"; c.fillRect(x - 1, y - 1, 62, 8); c.fillStyle = "#24406a"; c.fillRect(x, y, 60, 6); c.fillStyle = g.meter > .85 ? "#ffd257" : "#7fd68a"; c.fillRect(x, y, Math.round(60 * g.meter), 6); c.fillStyle = "#fff"; c.fillRect(x + Math.round(60 * g.meter) - 1, y - 2, 2, 10); }
     if (g.flash > 0) { c.fillStyle = Math.floor(g.flash * 12) % 2 ? "#ffd257" : "#fff"; c.font = "bold 18px monospace"; c.fillText("!", g.bob[0] - 4, g.bob[1] - 14); }

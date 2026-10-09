@@ -136,7 +136,10 @@ function doubled(rows) {
   }
   return out;
 }
+const MEDAL_ORDER = ["fish", "map", "plant", "quest", "company", "log", "level"];   /* the medals' order in icons.png (after the 24 landmarks), each in bronze, silver, gold */
 function drawMedal(canvas, h, locked) {   /* 64 x 76: a ribbon, a round medal lit from the upper left, and the family's device struck into it */
+  { const f = MEDAL_ORDER.indexOf(h.family), art = f >= 0 ? iconPic(24 + f * 3 + Math.min(3, Math.max(1, h.grade || 1)) - 1, !locked, 2) : null;   /* the PixelLab medal, twice its size */
+    if (art) { canvas.width = 64; canvas.height = 76; canvas.getContext("2d").drawImage(art, 0, 8); return; } }
   const W = 64, H = 76, [face, light, shade, ink] = MEDAL_METAL[h.grade] || MEDAL_METAL[1], fam = MEDAL_FAMILY[h.family] || MEDAL_FAMILY.level;
   canvas.width = W; canvas.height = H; const c = canvas.getContext("2d"), cx = 32, cy = 49, r = 24;
   if (locked) {   /* not yet won: a dark shape with a pale edge */

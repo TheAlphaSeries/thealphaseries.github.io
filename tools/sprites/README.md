@@ -1,5 +1,15 @@
 # The pictures in the Bestiary and the Herbarium
 
+**Now drawn in PixelLab.** Since October 2026 the site's pictures come from the PixelLab art in `art/raw` (see `art/GUIDE.md`, `art/raw/NOTES.md` and `art/raw/FIXES.md`). Three scripts here turn that art into what the site loads:
+
+- `pixellab_sheet.py` writes `sprites.png` and `sprites.json` (the fish and plants), replacing what `run.py` used to make. Don't run `run.py` unless you mean to go back to the drawn pictures.
+- `pixellab_keeper.py` writes `keeper.png`, the six drawings of the keeper used by `site/10-figure.js`.
+- `pixellab_icons.py` writes `icons.png` (landmarks, medals, curiosities), `companions.png` (five figures per calling) and copies the fishing scene into `scene/`.
+
+After changing anything in `art/raw`, run the matching script from the top of the repository and commit what it writes. `art/` itself is not published (see `.assetsignore`).
+
+The rest of this file describes the older drawn pictures, kept as a fallback.
+
 These files draw every creature and plant on the site. They are not part of the website and are not published with it; what the website reads is `sprites.png` (the pictures, on one sheet) and `sprites.json` (where each one is on it) at the top of the repository, which these scripts write.
 
 ## What is here

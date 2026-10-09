@@ -327,5 +327,30 @@ conjure.annals = function (seed, F) {
   if (posts.length) out.push(pick(["At level " + F.level + ", with a bond of " + F.bond + " of five, " + N + " is reckoned " + (F.title ? "a " + F.title : "of the company") + ". The keeper's reckoning is not generous, so it may be taken as meant.", "All of which leaves " + N + " at level " + F.level + " and a bond of " + F.bond + " in five: " + (F.title ? "a " + F.title : "of the company") + ", in the keeper's phrase, and he chooses his phrases with care and his companions with less."]));
   return out.join(" ");
 };
+/* ---- The PixelLab figures ----
+   The companions are now drawn from companions.png, made from the PixelLab art by tools/sprites/pixellab_icons.py:
+   five figures for every calling, each a different kind of creature (ART_KINDS, in the order they sit in the row).
+   The calling is chosen as before; the seed then deals one of its five, and the kind of creature, the title and the
+   past all follow that figure. The pictures are 64 x 80: the figure, with a little room above it. Until the sheet has
+   loaded, and if it ever fails to, the figures drawn above stand in. The curiosities likewise come from icons.png. */
+const ART_KINDS = {"Wanderer": ["Human", "Elf", "Dwarf", "Mushroom Folk", "Foxfolk"], "Knight": ["Human", "Orc", "Lizardfolk", "Skeleton", "Golem"], "Mage": ["Elf", "Mothfolk", "Imp", "Catfolk", "Shade"], "Rogue": ["Goblin", "Catfolk", "Foxfolk", "Shade", "Human"], "Ranger": ["Elf", "Birdfolk", "Foxfolk", "Rootfolk", "Human"], "Cleric": ["Dwarf", "Human", "Golem", "Mothfolk", "Frogfolk"], "Bard": ["Frogfolk", "Elf", "Birdfolk", "Goblin", "Catfolk"], "Alchemist": ["Goblin", "Slime", "Imp", "Dwarf", "Mushroom Folk"], "Angler": ["Fishfolk", "Frogfolk", "Human", "Lizardfolk", "Birdfolk"], "Lamplighter": ["Ghost", "Mothfolk", "Human", "Skeleton", "Imp"], "Porter": ["Golem", "Orc", "Dwarf", "Mushroom Folk", "Slime"], "Cartographer": ["Birdfolk", "Elf", "Human", "Goblin", "Ghost"], "Cook": ["Orc", "Frogfolk", "Dwarf", "Slime", "Catfolk"], "Boatman": ["Skeleton", "Fishfolk", "Lizardfolk", "Human", "Shade"], "Monk": ["Human", "Rootfolk", "Foxfolk", "Ghost", "Golem"], "Berserker": ["Orc", "Dwarf", "Lizardfolk", "Human", "Catfolk"], "Necromancer": ["Skeleton", "Shade", "Elf", "Goblin", "Ghost"], "Merchant": ["Goblin", "Foxfolk", "Imp", "Dwarf", "Frogfolk"], "Gardener": ["Rootfolk", "Mushroom Folk", "Frogfolk", "Human", "Mothfolk"], "Smith": ["Dwarf", "Golem", "Orc", "Lizardfolk", "Human"], "Paladin": ["Human", "Elf", "Dwarf", "Golem", "Birdfolk"], "Witch": ["Human", "Goblin", "Ghost", "Mothfolk", "Catfolk"], "Duelist": ["Elf", "Catfolk", "Foxfolk", "Human", "Skeleton"], "Hermit": ["Rootfolk", "Mushroom Folk", "Human", "Ghost", "Shade"]};
+const ART_W = 64, ART_H = 80, ITEM_ICONS = ["lamp", "map", "bottle", "coin", "key", "compass", "ring", "whistle", "book", "tooth", "mirror", "egg"], ITEM_AT = 24 + 21;   /* where the curiosities start in icons.png */
+const artSheet = (src) => { const it = { ctx: null }, im = new Image(); im.onload = () => { try { const c = document.createElement("canvas"); c.width = im.naturalWidth; c.height = im.naturalHeight; it.ctx = c.getContext("2d", { willReadFrequently: true }); it.ctx.drawImage(im, 0, 0); } catch (e) { it.ctx = null; } }; im.src = src; return it; };
+const ART_FIGURES = artSheet("companions.png"), ART_ICONS = artSheet("icons.png");
+const drawnFigure = conjure;
+conjure = function (seed, wanted) {
+  const f = drawnFigure(seed, wanted), set = ART_KINDS[f.calling]; if (!set) return f;
+  const n = ((seed >>> 0) * 2654435761 >>> 0) % 5, row = Object.keys(ART_KINDS).indexOf(f.calling), kind = set[n];
+  const out = Object.assign({}, f, { kind, title: kind + " " + f.calling });
+  if (ART_FIGURES.ctx) { try { const px = new Uint8ClampedArray(ART_W * ART_H * 4); px.set(ART_FIGURES.ctx.getImageData(n * 64, row * 64, 64, 64).data, ART_W * (ART_H - 64) * 4); Object.assign(out, { pixels: px, w: ART_W, h: ART_H }); } catch (e) {} }
+  return out;
+};
+Object.keys(drawnFigure).forEach((k) => { conjure[k] = drawnFigure[k]; });
+conjure.icons = () => ART_ICONS.ctx;   /* the icon sheet once loaded, for the landmarks (07-map.js) and medals (08-status.js) */
+const drawnItem = conjure.paintItem;
+conjure.paintItem = (canvas, id) => {   /* the curiosity's PixelLab picture, 32 x 32 with a little room all round */
+  const i = ITEM_ICONS.indexOf(id); if (i < 0 || !ART_ICONS.ctx) return drawnItem(canvas, id);
+  canvas.width = canvas.height = 44; const at = ITEM_AT + i; canvas.getContext("2d").drawImage(ART_ICONS.ctx.canvas, (at % 8) * 32, Math.floor(at / 8) * 32, 32, 32, 6, 6, 32, 32);
+};
 return conjure;
 })();

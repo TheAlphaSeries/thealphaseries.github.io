@@ -52,6 +52,13 @@ is set out at the end of this file.
 | `17-start.js` | Loading and start: fetches everything, tidies it, draws the first screen |
 | `site.css` | The look. Colours and fonts are set once near the top (the lines starting with `--`); each part of the screen has its own block below. |
 
+## The pictures
+
+The fish, plants, keeper, companions, landmarks, medals, curiosities and the fishing scene are PixelLab art, turned into
+`sprites.png`/`sprites.json`, `keeper.png`, `companions.png`, `icons.png` and `scene/` by the scripts in `tools/sprites`
+(see its README). Each part of the page that uses them keeps its older drawn pictures as a fallback while the sheet
+loads, or if it ever fails to.
+
 ## Rules the scripts keep
 
 - Everything on the page is built as elements, never pasted in as raw HTML, so nothing typed into the editor or sent

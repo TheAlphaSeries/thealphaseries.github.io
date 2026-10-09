@@ -125,7 +125,7 @@ function encounter(force) {
   opened++; if (typeof conjure !== "function" || (!force && (opened < 2 || Math.random() > .3))) return;
   const old = reader.querySelector(".encounter"); if (old) old.remove(); clearTimeout(encounterTimer);
   const seed = Math.floor(Math.random() * 2147483646) + 1, f = conjure(seed), box = el("button", "encounter win"), pic = el("canvas", "fellowpic"), words = el("span", "ewords");
-  box.type = "button"; pic.setAttribute("aria-hidden", "true"); pic.width = FW; pic.height = FH; pic.getContext("2d").putImageData(new ImageData(f.pixels, FW, FH), 0, 0);
+  box.type = "button"; pic.setAttribute("aria-hidden", "true"); pic.width = f.w || FW; pic.height = f.h || FH; pic.getContext("2d").putImageData(new ImageData(f.pixels, f.w || FW, f.h || FH), 0, 0);
   const here = current && current.place ? current.place : "", lvl = tally().level, kname = STATUS.name || "the keeper";   /* some strangers know where you are reading about, and of whom */
   const knowing = [here ? "I was at " + here + " once. It was not as described." : "", here ? "They still speak of " + kname + " at " + here + ". Not warmly, but at length." : "", current ? "I have read \u201c" + current.title + "\u201d. I was promised it would be shorter." : "",
     kname + " is level " + lvl + " now, I hear. He was level " + Math.max(1, lvl - 1) + " when I knew him, and no better company.", "The day's saying was \u201c" + sayingOfTheDay().words.split(" ").slice(0, 6).join(" ") + "...\u201d I did not stay for the rest."].filter(Boolean);
