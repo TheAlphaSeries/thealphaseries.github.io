@@ -7,9 +7,15 @@ Running list. Updated 2026-10-09 after the first fix round. Everything below is 
 - `companions/companion-witch-3.png` (Ghost) and `companion-witch-5.png` (Catfolk): the small familiar (crow, owl) still doesn't come through. Two regenerations each tried; PixelLab drops it every time. A hand-drawn familiar on the shoulder is the next option.
 - `landmarks/landmark-pagoda.png`: the new one is tall and clear, but its spire and base touch the top and bottom edges.
 - `landmarks/landmark-museum.png`, `landmark-pillars.png`, `landmark-tree.png`: touch the canvas edge by 0 to 1 px.
-- `plants/plant-howards-dream-dead.png`, `plant-juniper-dead.png`, `plant-redwood-grove-dead.png`: browned by hand and read as dead, but they don't droop much (PixelLab's drooping versions came out worse).
 - `medals/`: emblems are small and a bit soft at 32 px; the fish, leaf and three-figures emblems are the hardest to read. Acceptable, but a hand-drawn emblem set would be sharper.
 - `companions/*-idle.png`: a simple 1 px dip made by hand. A real breathing idle would need PixelLab's skeleton mode, 2 to 4 generations each (240 to 480 for all 120).
+
+## Round 2 (art upgrade)
+
+- Plants: all eight redrawn with PixelLab's Pro model in natural colours (each the best of 16 candidates); wilted versions browned from them by hand.
+- Companions: each is now dyed one of nine colour schemes by its seed (figures.js, ART_DYES), so figures of one calling vary.
+- Fish: shown on a stage with water; fish breach, crabs scuttle, the squid jets, the ray glides (03-bestiary.js, leap()).
+- Title screen: a three-layer landscape (far hills, ruined city, ledge) drifting slowly under the title (title/, art/raw/title).
 
 ## Fixed in round 1
 

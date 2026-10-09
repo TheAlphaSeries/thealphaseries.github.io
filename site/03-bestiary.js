@@ -3,8 +3,8 @@
    A list of fish on the left, the chosen one's card on the right.
    The pictures are all on one sheet, sprites.png, fetched once when the page
    loads (see section 15); sprites.json says where on the sheet each one is.
-   Each is 144 pixels square, in full colour, already drawn in its pose with
-   its splash. There is one picture per species, found by the entry's file name
+   Each is 96 x 64 (sprites.json gives the size), in full colour, and is shown
+   on a small stage with water along the bottom (STAGE). There is one picture per species, found by the entry's file name
    ("001-rainbow-trout" uses "rainbow-trout"); a species with no picture of
    its own falls back to the general picture for its kind (FISH_ALIAS).
    drawFish() copies a picture onto the page. A fish not yet caught is drawn
@@ -26,19 +26,40 @@ function pixelsOf(where) {
 }
 const fishKey = (kind, file) => (owns(FISH, file) ? file : owns(FISH, kind) ? kind : owns(FISH_ALIAS, kind) ? FISH_ALIAS[kind] : FISH_ALIAS.fish);
 const GHOST = [12, 13, 16], GHOST_HALF = [44, 47, 56], GHOST_EDGE = [124, 128, 140];   /* the greys that stand in for a fish not yet caught */
-function drawFish(canvas, kind, ghost, file) {   /* ghost: a shape only, for a fish not caught yet ("half" = a common one, shown a little clearer) */
-  const key = fishKey(kind, file), [W, H] = FISH_SIZE; canvas.width = W; canvas.height = H;
-  const src = owns(FISH, key) ? pixelsOf(FISH[key]) : null, c = canvas.getContext("2d");
-  if (!src) return;   /* the pictures did not load: leave the frame empty */
-  if (!ghost) { c.putImageData(src, 0, 0); return; }
-  const p = src.data, out = c.createImageData(W, H), o = out.data, body = (x, y) => x >= 0 && y >= 0 && x < W && y < H && p[(y * W + x) * 4 + 3] === 255;   /* is this spot part of the creature? */
-  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
-    const i = (y * W + x) * 4; if (!p[i + 3]) continue; let g;
-    if (p[i + 3] !== 255) { const l = Math.round((p[i] * .3 + p[i + 1] * .6 + p[i + 2] * .1) * .52); g = [l, l + 2, l + 10]; }   /* water turns grey, keeping how light or dark it was */
-    else g = (body(x - 1, y) && body(x + 1, y) && body(x, y - 1) && body(x, y + 1)) ? (ghost === "half" ? GHOST_HALF : GHOST) : GHOST_EDGE;
-    o[i] = g[0]; o[i + 1] = g[1]; o[i + 2] = g[2]; o[i + 3] = 255;
+/* Every fish is shown on a little stage: the picture, with a strip of dark water along the bottom (STAGE). */
+const STAGE = { w: 144, h: 108, surf: 78 }, stageX = () => Math.round((STAGE.w - FISH_SIZE[0]) / 2), stageY = () => STAGE.surf - FISH_SIZE[1] + 2;
+function drawWater(c, tick, grey) {   /* the water along the foot of the stage: darker with depth, a lit edge where the surface catches the sun, and ripples drifting */
+  const { w, h, surf } = STAGE, deep = h - surf, mix = (a, b, t) => "rgb(" + a.map((v, k) => Math.round(v + (b[k] - v) * t)).join(",") + ")";
+  const top = grey ? [58, 60, 70] : [92, 34, 40], low = grey ? [18, 19, 24] : [20, 9, 14];
+  for (let y = 0; y < deep; y++) { c.fillStyle = mix(top, low, Math.pow(y / (deep - 1), .7)); c.fillRect(0, surf + y, w, 1); }
+  const glint = grey ? ["#8a8e9a", "#5a5e6a"] : ["#ffd257", "#ce5432"];
+  for (let x = 0; x < w; x++) { const k = (x * 13 + Math.floor(tick / 3) * 7) % 23; if (k < 3) { c.fillStyle = k ? glint[1] : glint[0]; c.fillRect(x, surf, 1, 1); } }   /* the surface catching the light */
+  for (let k = 0; k < 14; k++) {   /* ripples: short near the surface, longer below, each drifting its own way */
+    const row = 2 + Math.floor((k * 7) % (deep - 3)), len = 2 + Math.round(row / deep * 8), dir = k % 2 ? 1 : -1;
+    const x = ((k * 53 + dir * Math.floor(tick / (3 + k % 3))) % (w + len) + w + len) % (w + len) - len;
+    c.fillStyle = grey ? "#4a4d58" : row < deep / 2 ? "#963414" : "#5a2228"; c.fillRect(x, surf + row, len, 1);
   }
-  c.putImageData(out, 0, 0);
+  c.save(); c.globalCompositeOperation = "destination-out";   /* fade the water out at both ends, so it is a stretch of lake and not a block */
+  for (let x = 0; x < 22; x++) { const a = Math.pow(1 - x / 22, 1.6); c.fillStyle = "rgba(0,0,0," + a.toFixed(3) + ")"; c.fillRect(x, surf, 1, deep); c.fillRect(w - 1 - x, surf, 1, deep); }
+  c.restore();
+}
+function drawFish(canvas, kind, ghost, file) {   /* ghost: a shape only, for a fish not caught yet ("half" = a common one, shown a little clearer) */
+  const key = fishKey(kind, file), [W, H] = FISH_SIZE; canvas.width = STAGE.w; canvas.height = STAGE.h;
+  const src = owns(FISH, key) ? pixelsOf(FISH[key]) : null, c = canvas.getContext("2d");
+  drawWater(c, 0, !!ghost);
+  if (!src) return;   /* the pictures did not load: just the water */
+  const pic = el("canvas"); pic.width = W; pic.height = H; const pc = pic.getContext("2d");
+  if (!ghost) pc.putImageData(src, 0, 0);
+  else {
+    const p = src.data, out = pc.createImageData(W, H), o = out.data, body = (x, y) => x >= 0 && y >= 0 && x < W && y < H && p[(y * W + x) * 4 + 3] === 255;   /* is this spot part of the creature? */
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const i = (y * W + x) * 4; if (p[i + 3] !== 255) continue;
+      const g = (body(x - 1, y) && body(x + 1, y) && body(x, y - 1) && body(x, y + 1)) ? (ghost === "half" ? GHOST_HALF : GHOST) : GHOST_EDGE;
+      o[i] = g[0]; o[i + 1] = g[1]; o[i + 2] = g[2]; o[i + 3] = 255;
+    }
+    pc.putImageData(out, 0, 0);
+  }
+  c.drawImage(pic, stageX(), stageY());
 }
 const RARITY = { common: ["Common", 1], uncommon: ["Uncommon", 2], rare: ["Rare", 3], epic: ["Epic", 4], legendary: ["Legendary", 5] };   /* name and how many pips of five */
 function pips(filled, cls) {   /* a row of five small squares, some lit, like a stat in a game menu */
@@ -259,12 +280,8 @@ function showPlants(kind, focusFirst) {
 
 /* ==========================================================================
    4c. MOVING PICTURES
-   The pictures are stored still. The movement is made here, on the page.
-   A caught fish leaps: its picture is split into the creature and the water,
-   the creature rises out of the water to the pose it was drawn in, hangs
-   there, and falls back, while the splash swells and dies away with it. A
-   fish drawn going in head first only wriggles where it is. The plants are
-   left still. Only the picture on show moves, and nothing moves for a
+   The pictures are stored still. The movement is made here, on the page
+   (see leap()). The plants are left still. Only the picture on show moves, and nothing moves for a
    visitor who has asked their device for less motion.
    ========================================================================== */
 let animTimer = null, DIVERS = [];
@@ -273,57 +290,70 @@ function animate(canvas, ms, step) {   /* run step(n) on a steady beat for as lo
   stopAnim(); let n = 0; step(0);
   animTimer = setInterval(() => { if (!canvas.isConnected) return stopAnim(); if (!document.hidden) step(++n); }, ms);
 }
+/* What each creature does on its stage. Fish breach: up out of the water nose first, over, and back in nose down,
+   with a splash where they leave and where they land, and rings after. Crabs, crayfish and lobsters scuttle along the
+   bottom; the squid jets up in pulses; the ray glides, its wings rippling. Under the surface a creature shows dim. */
+const CRAWLERS = ["dungeness-crab", "red-rock-crab", "signal-crayfish", "california-spiny-lobster"], SWIMMERS = { "market-squid": "jet", "bat-ray": "glide" };
 function leap(canvas, kind, file) {
   stopAnim(); if (reduceMotion) return;
   const key = fishKey(kind, file), src = owns(FISH, key) ? pixelsOf(FISH[key]) : null; if (!src) return;
-  const [W, H] = FISH_SIZE, k = W / 96, line = Math.round(H * 88 / 96), crown = line - Math.round(3 * k), p = src.data;   /* line: the row where the water's surface lies. k: how much finer these pictures are than the grid they were planned on */
-  const layer = () => { const c = el("canvas"); c.width = W; c.height = H; return c; }, body = layer(), wetA = layer(), wetB = layer();
-  const bd = new ImageData(W, H), wa = new ImageData(W, H), wb = new ImageData(W, H), B = bd.data;
-  const solid = (x, y) => x >= 0 && x < W && y >= 0 && y < H && p[(y * W + x) * 4 + 3] === 255, wet = (x, y) => x >= 0 && x < W && y >= 0 && y < H && p[(y * W + x) * 4 + 3] === 254;
-  const copy = (to, x, y, fx, fy) => { const i = (y * W + x) * 4, j = (fy * W + fx) * 4; to[i] = p[j]; to[i + 1] = p[j + 1]; to[i + 2] = p[j + 2]; to[i + 3] = 255; };
-  let top = H, bottom = 0, left = W, right = 0, wsum = 0, wn = 0;
-  for (let y = 0; y < H; y++) {
-    for (let x = 0; x < W; x++) {
-      if (wet(x, y)) {
-        copy(wa.data, x, y, x, y); copy(wb.data, x, y, x, y);
-        if ((x * 7 + y * 13) % 5 < 2) { const i = (y * W + x) * 4, f = p[i] > 200 ? .84 : 1.16; for (let n = 0; n < 3; n++) wb.data[i + n] = Math.min(255, p[i + n] * f); }   /* the second water picture: the same splash, glinting elsewhere */
-        if (y >= crown - 2 * k) { wsum += x; wn++; }
-      } else if (solid(x, y)) { copy(B, x, y, x, y); if (y < top) top = y; if (y > bottom) bottom = y; if (x < left) left = x; if (x > right) right = x; }
-    }
-    /* where spray was drawn across the creature, paint the creature back in underneath, so no gap shows when it moves */
-    for (let x = 1; x < W - 1; x++) {
-      if (!wet(x, y) || !solid(x - 1, y)) continue;
-      let e = x; while (e < W && wet(e, y)) e++;
-      if (e < W && solid(e, y) && e - x <= 12 * k) for (let i = x; i < e; i++) copy(B, i, y, i - x < (e - x) / 2 ? x - 1 : e, y);
-      x = e;
-    }
-  }
+  const [W, H] = FISH_SIZE, { w: SW, h: SH, surf } = STAGE, c = canvas.getContext("2d"); c.imageSmoothingEnabled = false;
+  const p = src.data; let top = H, bottom = 0, left = W, right = 0;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (p[(y * W + x) * 4 + 3] === 255) { top = Math.min(top, y); bottom = Math.max(bottom, y); left = Math.min(left, x); right = Math.max(right, x); }
   if (top > bottom) return;
-  for (let x = 0; x < W; x++) {   /* and where the creature goes down into the water, carry it on below the surface */
-    let y = line - 1; while (y >= 0 && !solid(x, y)) y--;
-    if (y >= 0 && y < line - 1 && wet(x, y + 1)) for (let j = y + 1; j < line; j++) copy(B, x, j, x, y);
-  }
-  body.getContext("2d").putImageData(bd, 0, 0); wetA.getContext("2d").putImageData(wa, 0, 0); wetB.getContext("2d").putImageData(wb, 0, 0);
-  const touch = bottom >= line - 5 * k, diver = DIVERS.indexOf(key) >= 0, rise = line - top + 1;
-  const from = touch || !wn ? 0 : Math.max(-34 * k, Math.min(34 * k, wsum / wn - (left + right) / 2));   /* a fish drawn clear of the water starts from where its splash is */
-  const R = 9, A = 11, F = 8, U = 15, c = canvas.getContext("2d"); c.imageSmoothingEnabled = false;
-  const splash = (pic, shift, s) => {
-    if (s > 0.04) c.drawImage(pic, 0, 0, W, crown, Math.round(shift), Math.round(crown * (1 - s)), W, Math.round(crown * s));
-    c.drawImage(pic, 0, crown, W, H - crown, Math.round(shift), crown, W, H - crown);
-  };
-  animate(canvas, 85, (tick) => {
-    const pic = Math.floor(tick / 3) % 2 ? wetB : wetA; let dx = 0, dy = 0, s1 = 1, s2 = 0, show = true;
-    if (diver) dy = [0, 0, 1, 2, 3, 3, 2, 1][Math.floor(tick / 2) % 8] * k;
-    else {
-      const n = tick % (R + A + F + U);
-      if (n < R) { const q = (n + 1) / R, e = 1 - q; dy = rise * e * e; dx = from * e; s1 = Math.min(1, .3 + .95 * q); }
-      else if (n < R + A) { const q = (n - R) / A; s1 = touch ? 1 : 1 - .55 * q; }
-      else if (n < R + A + F) { const q = (n - R - A + 1) / F; dy = rise * q * q; dx = -from * .35 * q; s1 = touch ? 1 + .18 * q : .45 * (1 - q); s2 = touch ? 0 : Math.max(0, (q - .45) * 2); }
-      else { const q = (n - R - A - F + 1) / U; show = false; s1 = touch ? Math.max(0, 1.18 * (1 - q * 1.7)) : 0; s2 = touch ? 0 : Math.max(0, 1.1 * (1 - q * 1.7)); }
+  const fw = right - left + 1, fh = bottom - top + 1, body = el("canvas"); body.width = fw; body.height = fh;
+  { const full = el("canvas"); full.width = W; full.height = H; full.getContext("2d").putImageData(src, 0, 0); body.getContext("2d").drawImage(full, left, top, fw, fh, 0, 0, fw, fh); }
+  const dim = el("canvas"); dim.width = fw; dim.height = fh; { const d = dim.getContext("2d"); d.drawImage(body, 0, 0); d.globalCompositeOperation = "source-atop"; d.fillStyle = "rgba(30,10,16,.72)"; d.fillRect(0, 0, fw, fh); }
+  const restX = stageX() + left, restY = stageY() + top;   /* where the still picture has it */
+  const drops = [], rings = [];
+  const spray = (x, n, big) => { for (let i = 0; i < n; i++) drops.push({ x: x + (Math.random() - .5) * 8, y: surf, vx: (Math.random() - .5) * (big ? 2.4 : 1.4), vy: -(1.2 + Math.random() * (big ? 2.6 : 1.6)), life: 1 }); rings.push({ x, r: 2, life: 1 }); };
+  const put = (x, y, a, under) => {   /* draw the creature with its middle at x, y, turned by a; whatever is below the surface shows dim */
+    for (const [img, clip] of [[body, [0, 0, SW, surf]], [dim, [0, surf, SW, SH - surf]]]) {
+      if (!under && img === dim && y - fh / 2 > surf + fh) continue;
+      c.save(); c.beginPath(); c.rect(...clip); c.clip(); c.translate(Math.round(x), Math.round(y)); c.rotate(a); c.drawImage(img, -Math.round(fw / 2), -Math.round(fh / 2)); c.restore();
     }
-    c.clearRect(0, 0, W, H);
-    if (show) { c.save(); c.beginPath(); c.rect(0, 0, W, line); c.clip(); c.drawImage(body, Math.round(dx), Math.round(dy)); c.restore(); }
-    splash(pic, 0, s1);
-    if (s2 > 0.04) splash(pic, -from * 1.35, s2);
-  });
+  };
+  const extras = () => {
+    for (const r of rings) { r.r += .9; r.life -= .035; if (r.life > 0) { c.strokeStyle = "rgba(206,84,50," + (r.life * .7).toFixed(2) + ")"; c.lineWidth = 1; c.beginPath(); c.ellipse(r.x, surf + 1, r.r, r.r * .22, 0, 0, 7); c.stroke(); } }
+    for (const d of drops) { d.x += d.vx; d.y += d.vy; d.vy += .22; d.life -= .03; if (d.y < surf && d.life > 0) { c.fillStyle = d.life > .5 ? "#ffd257" : "#ce5432"; c.fillRect(Math.round(d.x), Math.round(d.y), 2, 2); } }
+    for (let i = drops.length - 1; i >= 0; i--) if (drops[i].y >= surf || drops[i].life <= 0) drops.splice(i, 1);
+    for (let i = rings.length - 1; i >= 0; i--) if (rings[i].life <= 0) rings.splice(i, 1);
+  };
+  const how = CRAWLERS.includes(key) ? "crawl" : SWIMMERS[key] || "breach";
+  if (how === "breach") {
+    const climb = Math.max(20, surf - fh / 2 - 3), turn = Math.min(.62, .34 + 18 / fw);   /* how high it gets, and how far it tips (a long fish tips less) */
+    let start = 0, sx = 0, gap = 14, wasUp = false;
+    animate(canvas, 50, (tick) => {
+      c.clearRect(0, 0, SW, SH); drawWater(c, tick, false);
+      const n = tick - start, LEAP = 26;
+      if (n === 0) { sx = SW / 2 + (Math.random() - .5) * 18; gap = 10 + Math.floor(Math.random() * 18); }
+      if (n < LEAP) {
+        const u = n / (LEAP - 1), x = sx - 22 + 44 * u, y = surf + fh * .55 - (climb + fh * .55) * 4 * u * (1 - u), a = -turn + 2 * turn * u, up = y - fh * .3 < surf;
+        if (up && !wasUp) spray(x - 6, 10, fw > 60); if (!up && wasUp) spray(x + 6, 14, fw > 60); wasUp = up;
+        put(x, y, a, true);
+      } else if (n >= LEAP + gap) { start = tick + 1; wasUp = false; }
+      extras();
+    });
+  } else if (how === "crawl") {   /* along the bottom, side to side, stopping now and then */
+    animate(canvas, 70, (tick) => {
+      c.clearRect(0, 0, SW, SH); drawWater(c, tick, false);
+      const cycle = tick % 80, go = cycle < 30 ? cycle / 30 : cycle < 40 ? 1 : cycle < 70 ? 1 - (cycle - 40) / 30 : 0, x = restX + fw / 2 - 16 + 32 * go;
+      put(x, surf + 6 - fh / 2 + (cycle < 70 && cycle % 40 < 30 ? tick % 2 : 0), 0, true);
+    });
+  } else if (how === "jet") {   /* the squid, all under water: a quick push up, then drifting down */
+    animate(canvas, 60, (tick) => {
+      c.clearRect(0, 0, SW, SH); c.fillStyle = "#1e0e14"; c.fillRect(0, 0, SW, SH); drawWater(c, tick, false);
+      const t = tick % 40, push = t < 6 ? t / 6 : 1 - (t - 6) / 34, y = surf - 18 - push * 26;
+      c.save(); c.globalAlpha = .9; put(restX + fw / 2, y, -.12, false); c.restore();
+      if (t === 1) for (let i = 0; i < 6; i++) drops.push({ x: restX + 4, y: y + 4, vx: -.8 - Math.random(), vy: Math.random() - .3, life: .8 });
+      extras();
+    });
+  } else {   /* the ray, gliding just under and over the surface, wings beating slow */
+    animate(canvas, 60, (tick) => {
+      c.clearRect(0, 0, SW, SH); drawWater(c, tick, false);
+      const y = surf - 22 + Math.sin(tick / 9) * 10, flap = 1 - .18 * (.5 + .5 * Math.sin(tick / 3)), x = restX + fw / 2 + Math.sin(tick / 23) * 10;
+      c.save(); c.translate(0, y * (1 - flap)); c.scale(1, flap); put(x, y, Math.sin(tick / 9) * .08, true); c.restore();
+      extras();
+    });
+  }
 }

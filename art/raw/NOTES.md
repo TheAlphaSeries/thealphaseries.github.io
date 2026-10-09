@@ -24,3 +24,7 @@
 - 120 figures, `companion-<calling>-<1..5>.png`, 64 x 64, three-quarter view (south-east), made in PixelLab's premium mode with the keeper as the style reference.
 - `companion-<calling>-<n>-idle.png`: 2 frames of 64 x 64 side by side (128 x 64). Frame 1 is the still; in frame 2 the upper body dips 1 px while the feet stay planted. Made by hand from the still, because PixelLab's idle template redrew the figures and dropped their gear. Long items that cross the waist (staffs, poles) get a 1 px kink in frame 2, which isn't noticeable at speed.
 - No walk cycles yet (optional in the guide). All 8 directions exist in PixelLab if they're ever wanted.
+
+## Title screen
+
+- `title/far.png`, `title/city.png`, `title/ledge.png` (from `art/raw/title`): three 672 x 256 layers on transparency, stacked at the foot of the title screen (`#vista` in index.html), each drifting slowly. The hills layer is trimmed of PixelLab's outline and raised so its ridge shows behind the city.

@@ -342,9 +342,27 @@ conjure = function (seed, wanted) {
   const f = drawnFigure(seed, wanted), set = ART_KINDS[f.calling]; if (!set) return f;
   const n = ((seed >>> 0) * 2654435761 >>> 0) % 5, row = Object.keys(ART_KINDS).indexOf(f.calling), kind = set[n];
   const out = Object.assign({}, f, { kind, title: kind + " " + f.calling });
-  if (ART_FIGURES.ctx) { try { const px = new Uint8ClampedArray(ART_W * ART_H * 4); px.set(ART_FIGURES.ctx.getImageData(n * 64, row * 64, 64, 64).data, ART_W * (ART_H - 64) * 4); Object.assign(out, { pixels: px, w: ART_W, h: ART_H }); } catch (e) {} }
+  if (ART_FIGURES.ctx) { try { const px = new Uint8ClampedArray(ART_W * ART_H * 4); px.set(ART_FIGURES.ctx.getImageData(n * 64, row * 64, 64, 64).data, ART_W * (ART_H - 64) * 4); dye(px, ART_DYES[((seed >>> 0) * 40503 >>> 0) % ART_DYES.length]); Object.assign(out, { pixels: px, w: ART_W, h: ART_H }); } catch (e) {} }
   return out;
 };
+/* The figures were all drawn in the same oxblood and umber, so each companion is dyed: the seed picks one of these
+   schemes, and the cloth (the dark reds and browns) takes its hue, keeping every pixel's light and shade. Skin, steel,
+   wood and the glowing things are left alone. Some schemes also turn the gold trim to silver. The first leaves the
+   figure as drawn. Five figures a calling and nine dyes make two companions of the same calling seldom alike.
+   [hue in degrees, how much of the cloth's colour to keep, how much lighter, silver trim] */
+const ART_DYES = [null, [215, .75, 1.05], [130, .6, 1], [178, .6, 1], [272, .65, 1.05], [0, .06, 1.1, true], [44, .85, 1.15], [228, .55, .95, true], [352, 1.05, 1.12]];
+function dye(px, scheme) {
+  if (!scheme) return; const [hue, keep, light, silver] = scheme;
+  const hsv = (r, g, b) => { const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn; let h = 0; if (d) h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; return [(h * 60 + 360) % 360, mx ? d / mx : 0, mx / 255]; };
+  const rgb = (h, s, v) => { const c = v * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = v - c, k = Math.floor(h / 60) % 6, t = [[c, x, 0], [x, c, 0], [0, c, x], [0, x, c], [x, 0, c], [c, 0, x]][k]; return t.map((q) => Math.round((q + m) * 255)); };
+  for (let i = 0; i < px.length; i += 4) {
+    if (!px[i + 3]) continue; const [h, s, v] = hsv(px[i], px[i + 1], px[i + 2]);
+    let to = null;
+    if ((h >= 330 || h <= 22) && s >= .3 && v <= .62) to = rgb(hue, Math.min(1, s * keep), Math.min(1, v * light));   /* the cloth */
+    else if (silver && h >= 33 && h <= 55 && s >= .5 && v >= .55) to = rgb(216, .08, Math.min(1, v * 1.05));         /* gold trim to silver */
+    if (to) { px[i] = to[0]; px[i + 1] = to[1]; px[i + 2] = to[2]; }
+  }
+}
 Object.keys(drawnFigure).forEach((k) => { conjure[k] = drawnFigure[k]; });
 conjure.icons = () => ART_ICONS.ctx;   /* the icon sheet once loaded, for the landmarks (07-map.js) and medals (08-status.js) */
 const drawnItem = conjure.paintItem;

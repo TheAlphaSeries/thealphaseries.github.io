@@ -1,8 +1,8 @@
 """Build sprites.png and sprites.json from the PixelLab art in art/raw.
 
 This replaces the drawn sheet that run.py makes. Fish are 96 x 64, side view facing right; plants are 64 x 64 and are
-centred in the same 96 x 64 cell. Under each fish a small splash is painted with alpha 254, which is how the page
-(03-bestiary.js) tells water from creature: the leaping fish rises out of it.
+centred in the same 96 x 64 cell. Every pixel of a creature is fully solid; the water and splashes are drawn by the page
+(03-bestiary.js), which puts each fish on a little stage with water along the bottom.
 
 Run from the repository root:  python3 tools/sprites/pixellab_sheet.py
 """
@@ -15,7 +15,6 @@ from PIL import Image
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 ART = os.path.join(ROOT, "art", "raw")
 W, H, COLS = 96, 64, 8
-LINE = round(H * 88 / 96)   # the water's surface, as 03-bestiary.js reckons it
 
 FISH = """rainbow-trout steelhead brown-trout brook-trout golden-trout lahontan-cutthroat-trout lake-trout kokanee-salmon
 chinook-salmon bass smallmouth-bass spotted-bass striped-bass bluegill redear-sunfish sunfish
@@ -29,28 +28,6 @@ FISH_ALIAS = {"trout": "rainbow-trout", "fish": "american-shad", "flatfish": "ha
 PLANT_ALIAS = {"anthurium": "queen-anthurium", "gloriosum": "philodendron-gloriosum", "monstera": "monstera-thai-constellation", "orchid": "howards-dream",
                "bonsai": "juniper", "grove": "maple-grove", "plant": "philodendron-gloriosum"}
 
-WATER = [(0x15, 0x0a, 0x0e), (0x34, 0x1a, 0x1c), (0x4e, 0x1c, 0x22), (0x70, 0x30, 0x28), (0xce, 0x54, 0x32)]
-
-
-def splash(cell, cx, width):
-    """a low crown of dark water with a few droplets, centred under the fish, painted only where the cell is empty"""
-    p = cell.load()
-
-    def put(x, y, c):
-        if 0 <= x < W and 0 <= y < H and p[x, y][3] == 0:
-            p[x, y] = c + (254,)
-
-    rx = max(8, width // 3)
-    for a in range(0, 360, 2):   # the ring where the water parts
-        t = math.radians(a)
-        put(round(cx + rx * math.cos(t)), round(LINE + 2 * math.sin(t)), WATER[2] if math.sin(t) < 0 else WATER[1])
-    for x in range(cx - rx + 1, cx + rx):
-        put(x, LINE, WATER[0])
-    for i, dx in enumerate((-rx, -rx // 2, rx // 2, rx)):   # spikes and droplets thrown up
-        x = cx + dx
-        for k in range(3 if i in (1, 2) else 2):
-            put(x, LINE - 2 - k, WATER[3])
-        put(x, LINE - 5 - (i % 2), WATER[4])
 
 
 def main():
@@ -74,8 +51,6 @@ def main():
             for x in range(W):
                 if 0 < px[x, y][3] < 255:
                     px[x, y] = px[x, y][:3] + (255,)
-        box = cell.getchannel("A").getbbox()
-        splash(cell, (box[0] + box[2]) // 2, box[2] - box[0])
         place(cell, name, "fish")
     for name in PLANTS:
         for suffix in ("", "-dead"):

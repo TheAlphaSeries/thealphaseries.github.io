@@ -323,7 +323,7 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
   display: flex; padding: 20px; overflow: hidden auto; transition: opacity .4s;
 }
 #intro.done { opacity: 0; pointer-events: none; visibility: hidden; transition: opacity .4s, visibility 0s .4s; }
-#intro .titlewrap { position: relative; z-index: 1; margin: auto; width: min(100%, 940px); display: flex; align-items: center; justify-content: center; gap: clamp(20px, 5vw, 60px); }
+#intro .titlewrap { position: relative; z-index: 2; margin: auto; width: min(100%, 940px); display: flex; align-items: center; justify-content: center; gap: clamp(20px, 5vw, 60px); }
 /* the title is laid out like the link picture (og.png): the figure large at the left, the name beside him, the old sun behind. How he arrives is chosen by lot (see startSprite) */
 #intro::before { content: ""; position: absolute; left: 0; top: 0; width: 2px; height: 2px; box-shadow: 23.6vw 10.3vh 0 #fff, 15.5vw 6.7vh 0 #fff, 91.8vw 80.0vh 0 #a0aad2, 22.2vw 53.7vh 0 #fff, 17.3vw 10.6vh 0 #fff, 92.7vw 82.9vh 0 #a0aad2, 80.0vw 19.3vh 0 #fff, 62.7vw 73.2vh 0 #a0aad2, 88.0vw 8.7vh 0 #a0aad2, 67.2vw 50.6vh 0 #fff, 47.4vw 8.9vh 0 #a0aad2, 86.5vw 54.8vh 0 #fff, 90.9vw 57.2vh 0 #a0aad2, 84.8vw 50.8vh 0 #fff, 59.9vw 43.1vh 0 #fff, 30.5vw 81.3vh 0 #fff, 4.6vw 62.6vh 0 #fff, 53.5vw 47.1vh 0 #fff, 99.7vw 19.6vh 0 #fff, 20.3vw 63.3vh 0 #fff, 35.6vw 74.7vh 0 #fff, 55.9vw 90.4vh 0 #fff, 6.2vw 22.9vh 0 #a0aad2, 61.5vw 23.7vh 0 #fff, 17.8vw 45.9vh 0 #fff, 69.7vw 89.6vh 0 #a0aad2, 73.5vw 96.0vh 0 #fff, 28.9vw 96.6vh 0 #a0aad2, 41.0vw 94.3vh 0 #a0aad2, 81.8vw 29.3vh 0 #fff, 44.4vw 13.6vh 0 #fff, 96.2vw 33.1vh 0 #fff, 4.5vw 17.0vh 0 #a0aad2, 36.3vw 29.0vh 0 #fff, 98.2vw 42.4vh 0 #fff, 5.9vw 5.5vh 0 #fff, 67.7vw 15.0vh 0 #fff, 49.1vw 24.9vh 0 #a0aad2, 12.2vw 52.9vh 0 #a0aad2, 40.9vw 98.8vh 0 #fff, 24.2vw 41.1vh 0 #fff, 42.1vw 24.9vh 0 #a0aad2, 83.1vw 49.9vh 0 #fff, 25.4vw 24.2vh 0 #fff, 23.1vw 87.0vh 0 #fff, 5.1vw 92.8vh 0 #fff, 99.1vw 40.3vh 0 #a0aad2, 65.4vw 79.1vh 0 #a0aad2, 49.4vw 9.3vh 0 #fff, 87.4vw 90.0vh 0 #a0aad2, 33.7vw 65.7vh 0 #a0aad2, 64.2vw 81.5vh 0 #fff, 65.5vw 68.6vh 0 #fff, 92.3vw 95.6vh 0 #fff, 97.1vw 96.2vh 0 #a0aad2, 4.5vw 89.9vh 0 #fff, 96.9vw 66.7vh 0 #fff, 16.7vw 63.5vh 0 #fff, 74.6vw 92.7vh 0 #fff, 0.3vw 92.2vh 0 #fff, 87.6vw 11.6vh 0 #a0aad2, 78.3vw 87.8vh 0 #fff, 87.9vw 20.2vh 0 #a0aad2, 33.1vw 89.2vh 0 #a0aad2, 47.2vw 52.6vh 0 #fff, 3.4vw 59.4vh 0 #fff, 86.5vw 60.8vh 0 #fff, 36.3vw 76.8vh 0 #fff, 1.1vw 83.8vh 0 #a0aad2, 8.5vw 54.3vh 0 #fff; }
 #intro::after { --sx: 80%; --sy: 46%; content: ""; position: absolute; inset: 0; pointer-events: none; background:
@@ -334,6 +334,13 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
   radial-gradient(circle at calc(var(--sx) - 5vmin) calc(var(--sy) - 5vmin), rgba(206,84,50,.95) 0, rgba(206,84,50,.95) 7vmin, transparent 7.2vmin),
   radial-gradient(circle at var(--sx) var(--sy), #b02e20 0, #b02e20 13.4vmin, #701618 13.5vmin, #701618 14vmin, rgba(190,50,30,.28) 14.1vmin, rgba(190,50,30,.14) 20vmin, transparent 30vmin),
   linear-gradient(transparent 50%, rgba(150,52,20,.3)); }
+/* the land under the title (title/, PixelLab art): far hills, the ruined city, and the ledge, each drifting a little at its own pace so they seem to lie at different depths. They sit over the sun, which sets behind the city */
+#vista { position: absolute; left: 0; right: 0; bottom: 0; height: min(39vw, 56vh); z-index: 1; pointer-events: none; overflow: hidden; }
+#vista img { position: absolute; left: -3%; bottom: 0; width: 106%; max-width: none; height: 100%; object-fit: cover; object-position: center bottom; image-rendering: pixelated; }
+#vista img:nth-child(1) { animation: vista-far 46s ease-in-out infinite alternate; } #vista img:nth-child(2) { animation: vista-mid 34s ease-in-out infinite alternate; } #vista img:nth-child(3) { animation: vista-near 26s ease-in-out infinite alternate; }
+@keyframes vista-far { from { transform: translateX(-.5%); } to { transform: translateX(.5%); } }
+@keyframes vista-mid { from { transform: translateX(-1%); } to { transform: translateX(1%); } }
+@keyframes vista-near { from { transform: translateX(-1.8%); } to { transform: translateX(1.8%); } }
 #sprite { flex: none; width: min(360px, 36vw, (100vh - 60px) * .776); height: auto; image-rendering: pixelated; opacity: 0; transform: translateY(40px); transition: transform .9s var(--spring), opacity .6s; }
 #sprite.up { opacity: 1; transform: none; }
 #intro .win { position: relative; background: none; border: 0; border-radius: 0; box-shadow: none; padding: 0; text-align: left; animation: rise 1.2s var(--spring) backwards; }
@@ -443,7 +450,7 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
 
 /* phone view: the command window becomes a bar fixed to the bottom of the screen */
 @media (max-width: 720px) {
-  #intro .titlewrap { flex-direction: column; gap: 18px; } #sprite { width: min(180px, 30vh); } #intro .win { text-align: center; } #intro .name { font-size: clamp(22px, 8vw, 34px); }
+  #vista { height: min(70vw, 38vh); } #intro .titlewrap { flex-direction: column; gap: 18px; } #sprite { width: min(180px, 30vh); } #intro .win { text-align: center; } #intro .name { font-size: clamp(22px, 8vw, 34px); }
   #intro .firstline { margin: 14px auto 0; } #intro .start { margin: 20px auto 0; }
   #intro::after { --sx: 74%; --sy: 24%; }
   body { padding-bottom: 72px; }   /* room for the folded menu fixed to the bottom of a phone screen */
@@ -479,7 +486,7 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
   #readerwin { padding: 22px 18px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .opt:focus-visible::before, .file.chosen, .beastcard.pop, #readerwin.pop, .stage.go > .win, #main > *, #main .files > *, #main .group, #titlebar .site, #intro .win, #intro .start::before { animation: none; }
+  #vista img, .opt:focus-visible::before, .file.chosen, .beastcard.pop, #readerwin.pop, .stage.go > .win, #main > *, #main .files > *, #main .group, #titlebar .site, #intro .win, #intro .start::before { animation: none; }
   #intro, .opt, #sprite, .fishbtn, #minimap { transition: none; }
   .moment, .moment .mstar, .qreport.fresh *, .newtag, .mplace, .encounter { animation: none; }
 }
