@@ -61,3 +61,8 @@ Planned fix: the site draws the three orbs in code over every animation; recolou
 - `item-lamp.png`: has an extra little flame or smoke puff beside it, touching the left edge.
 - `item-tooth.png`: has an extra round orb or coin beside the tooth.
 - `item-whistle.png`: has a bright green gem (off palette).
+
+## Companions (`companions/`)
+
+- `companion-knight-5.png` (Golem): reads as an ordinary armoured knight, not a stone golem.
+- `companion-cleric-3.png` (Golem): reads as a dark hooded figure; the stone body isn't obvious.
