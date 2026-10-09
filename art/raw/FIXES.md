@@ -48,3 +48,16 @@ Planned fix: the site draws the three orbs in code over every animation; recolou
 - `landmark-cablecar.png`: the gondola has no cable.
 - `landmark-bridge.png`: has bright green and teal (off palette).
 - `landmark-museum.png`, `landmark-pillars.png`, `landmark-tree.png`: touch the canvas edge (by 0 to 1 px).
+
+## Medals (`medals/`)
+
+- All 21 are built from one template medal (quill and book), with the emblem swapped by PixelLab and the metal recoloured by hand, so they match. Emblems are small and a bit soft at 32 px; the fish, leaf and three-figures emblems are the hardest to read.
+- `medal-quest-*.png`: its ribbon is a duller mauve than the others.
+
+## Curiosities (`items/`)
+
+- `item-map.png`: a jumble; doesn't read as a map.
+- `item-egg.png`: has a stray red blob stuck to its top-right.
+- `item-lamp.png`: has an extra little flame or smoke puff beside it, touching the left edge.
+- `item-tooth.png`: has an extra round orb or coin beside the tooth.
+- `item-whistle.png`: has a bright green gem (off palette).
