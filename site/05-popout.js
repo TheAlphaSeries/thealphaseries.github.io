@@ -294,7 +294,7 @@ function showEquipment(focusFirst, kit) {
   const wrap = el("div", "beasts equip"), list = el("div", "beastlist"), card = el("div", "beastcard");
   const show = (it, btn) => {
     list.querySelectorAll(".opt").forEach((o) => o.setAttribute("aria-pressed", String(o === btn))); card.textContent = ""; stopPortrait();
-    if (gearKit === "dress") { const doll = el("canvas", "portrait"); doll.width = SPRITE_FRAMES[0][0].length * BIG; doll.height = SPRITE_FRAMES[0].length * BIG; doll.setAttribute("aria-hidden", "true"); card.append(doll); stopPortrait = figure(doll, "ease"); }   /* the keeper himself models the dress */
+    if (gearKit === "dress") { const doll = el("canvas", "portrait"); doll.width = KW * BIG; doll.height = SPRITE_FRAMES[0].length * BIG; doll.setAttribute("aria-hidden", "true"); card.append(doll); stopPortrait = figure(doll, "ease"); }   /* the keeper himself models the dress */
     else if (typeof conjure === "function" && conjure.paintGear) { const pic = el("canvas", "gearpic"); pic.setAttribute("aria-hidden", "true"); conjure.paintGear(pic, conjure.gearIcon(it.slot, it.kit)); card.append(pic); }
     const facts = el("dl", "facts"), fact = (k, v) => { if (v) facts.append(el("dt", null, k), el("dd", null, v)); };
     fact("Slot", it.slot); fact("Maker", it.maker); fact("Confers", it.bonus);
@@ -334,7 +334,7 @@ function questReport(q) {
   /* everyone who was there, and what it earned them */
   const roll = el("ul", "roll"), mine = myLot(), there = companions().filter((c) => c.posts.some((x) => x.quest === q));
   const line = (pic, name, post, earned, extra, you) => { const li = el("li", you ? "you" : null), w = el("span", "rwords"), e = el("span", "rearn"); w.append(name, el("span", "rpost", post)); e.append(el("span", null, earned)); if (extra) e.append(el("span", "rextra", extra)); li.append(pic, w, e); roll.append(li); };
-  const kp = el("canvas", "rollpic"); kp.width = 45; kp.height = 58; kp.setAttribute("aria-hidden", "true"); { const k = kp.getContext("2d"), f = figurePic(FIGURE.stand); k.drawImage(f, 0, 0, f.width, f.height, 0, 0, 45, 58); }
+  const kp = el("canvas", "rollpic"); kp.width = KW; kp.height = 58; kp.setAttribute("aria-hidden", "true"); { const k = kp.getContext("2d"), f = figurePic(FIGURE.stand); k.drawImage(f, 0, 0, f.width, f.height, 0, 0, KW, 58); }
   line(kp, el("span", "rname", STATUS.name || "The keeper"), "The keeper", "+" + exp + " EXP", "", false);
   there.forEach((c) => {
     const pic = el("canvas", "rollpic"); pic.setAttribute("aria-hidden", "true"); drawCompanion(pic, c.name, c.seed, c.calling);

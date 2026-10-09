@@ -1,6 +1,6 @@
 """Build keeper.png, the six drawings of the keeper used by site/10-figure.js, from the PixelLab art in art/raw/keeper.
 
-Each drawing is cut to the 45 x 58 plan the page was built around (shown four times the size), mirrored so the open
+Each drawing is cut to the 50 x 58 plan the page was built around (shown four times the size), mirrored so the open
 hand is on the left and the staff on the right as the page expects, with the orbs taken out: the page paints the
 three orbs itself so that they can move. The six sit side by side in the order of FIGURE in 10-figure.js.
 
@@ -12,8 +12,8 @@ from PIL import Image, ImageOps
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 KEEPER = os.path.join(ROOT, "art", "raw", "keeper")
-PW, PH = 45, 58          # the plan
-CROP = (11, 3, 56, 61)   # where the plan sits in a 64 x 64 frame
+PW, PH = 50, 58          # the plan
+CROP = (6, 3, 56, 61)    # where the plan sits in a 64 x 64 frame (wide enough for the staff when he casts)
 
 # FIGURE: stand, lift, high, highFlare, standFlare, blink -> (strip, frame)
 POSES = [("idle", 0), ("cast", 1), ("cast", 2), ("cast", 3), ("cast", 4), ("idle", 0)]
