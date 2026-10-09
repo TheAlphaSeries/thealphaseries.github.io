@@ -39,3 +39,12 @@ Planned fix: the site draws the three orbs in code over every animation; recolou
 
 - `plant-queen-anthurium.png`: drawn as a common red-flowered anthurium; the Queen Anthurium has long, narrow, hanging dark velvet leaves and no red flower. (Its wilted version inherits this.)
 - All `plant-*-dead.png`: made by hand from the healthy sprite (leaves browned and sagged slightly, a few fallen leaves added), because PixelLab kept redrawing them green and healthy. They read as dried out, but the leaves don't really hang limp; a hand-drawn droop would sell it more.
+
+## Landmarks (`landmarks/`)
+
+- `landmark-house.png`: messy and purple; doesn't read as a house at a glance.
+- `landmark-cathedral.png`: a spiky gold blob; the twin spires don't read.
+- `landmark-pagoda.png`: small and faded, with a purplish cast.
+- `landmark-cablecar.png`: the gondola has no cable.
+- `landmark-bridge.png`: has bright green and teal (off palette).
+- `landmark-museum.png`, `landmark-pillars.png`, `landmark-tree.png`: touch the canvas edge (by 0 to 1 px).
