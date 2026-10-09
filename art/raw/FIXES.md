@@ -18,3 +18,19 @@ Planned fix: the site draws the three orbs in code over every animation; recolou
 - `fish-scene-splash.png`: reads a bit like a dark crown or flame rather than water; it also never fully settles into ripples.
 - `fish-scene-lake.png`: has a reflection of a sun in the water (the sky and sun were cut out). If the site's sun sits elsewhere, the reflection will look wrong.
 - `fish-scene-pier.png`: the moss is green, outside the palette (minor).
+
+## Fish (`fish/`)
+
+- `fish-sunfish.png`: now very small, with a pinkish halo around the outline.
+- `fish-crappie.png`: looks like a bass; a real crappie is deep-bodied and speckled.
+- `fish-striped-bass.png`: has vertical bars like a perch; a striped bass has thin horizontal stripes.
+- `fish-halibut.png`: touches the top and bottom edges.
+- `fish-brook-trout.png`: small and its markings (pale worm-like squiggles, red spots with blue halos) don't read.
+- `fish-lake-trout.png`: tail touches the left edge.
+- `fish-chinook-salmon.png`: touches both left and right edges.
+- `fish-american-shad.png`: comes out bright turquoise (not dimmed), and the row of dark spots behind the gill is missing.
+- `fish-lingcod.png`: touches the left and right edges.
+- `fish-pacific-mackerel.png`: missing its wavy dark tiger stripes on the back.
+- `fish-california-sheephead.png`: cartoonish, with odd white markings and fins that look like little legs.
+- `fish-sevengill-shark.png`: looks like a generic great white; needs the broad head, seven gill slits and single far-back dorsal fin.
+- `fish-red-rock-crab.png`: reads more like a hermit crab or armadillo than a crab.
