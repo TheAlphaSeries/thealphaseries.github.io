@@ -67,3 +67,4 @@ Planned fix: the site draws the three orbs in code over every animation; recolou
 - `companion-knight-5.png` (Golem): reads as an ordinary armoured knight, not a stone golem.
 - `companion-cleric-3.png` (Golem): reads as a dark hooded figure; the stone body isn't obvious.
 - `companion-angler-1.png` (Fishfolk): reads more like a lizard than a fish person.
+- `companion-witch-2.png`, `companion-witch-3.png`, `companion-witch-5.png`: the small familiar (toad, crow, owl) didn't come through.
