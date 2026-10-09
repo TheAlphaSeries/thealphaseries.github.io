@@ -68,3 +68,4 @@ Planned fix: the site draws the three orbs in code over every animation; recolou
 - `companion-cleric-3.png` (Golem): reads as a dark hooded figure; the stone body isn't obvious.
 - `companion-angler-1.png` (Fishfolk): reads more like a lizard than a fish person.
 - `companion-witch-2.png`, `companion-witch-3.png`, `companion-witch-5.png`: the small familiar (toad, crow, owl) didn't come through.
+- Companion idle bobs are a simple 1 px dip made by hand (see NOTES.md). A real breathing idle would need PixelLab's skeleton mode (2 to 4 generations each) to keep the gear intact.
