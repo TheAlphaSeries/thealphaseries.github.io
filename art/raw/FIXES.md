@@ -34,3 +34,8 @@ Planned fix: the site draws the three orbs in code over every animation; recolou
 - `fish-california-sheephead.png`: cartoonish, with odd white markings and fins that look like little legs.
 - `fish-sevengill-shark.png`: looks like a generic great white; needs the broad head, seven gill slits and single far-back dorsal fin.
 - `fish-red-rock-crab.png`: reads more like a hermit crab or armadillo than a crab.
+
+## Plants (`plants/`)
+
+- `plant-queen-anthurium.png`: drawn as a common red-flowered anthurium; the Queen Anthurium has long, narrow, hanging dark velvet leaves and no red flower. (Its wilted version inherits this.)
+- All `plant-*-dead.png`: made by hand from the healthy sprite (leaves browned and sagged slightly, a few fallen leaves added), because PixelLab kept redrawing them green and healthy. They read as dried out, but the leaves don't really hang limp; a hand-drawn droop would sell it more.

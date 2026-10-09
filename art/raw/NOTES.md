@@ -13,3 +13,7 @@
 - `fish-scene-water.png`: 4 frames of 320 x 32 side by side (1280 x 32). Each frame tiles left to right. Opaque, as water should be.
 - `fish-scene-float.png`: 3 frames of 16 x 16 (bob up, bob down, pulled under). Hand-drawn.
 - `fish-scene-splash.png`: 4 frames of 32 x 32, plays once.
+
+## Plants
+
+- Each `plant-<key>-dead.png` is the healthy sprite browned and sagged by hand, so the two line up exactly when swapped.
