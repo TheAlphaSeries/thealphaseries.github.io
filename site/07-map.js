@@ -53,7 +53,48 @@ function loadLand() {
   }).catch(() => { landWait = null; });   /* no coastline: the map still works, as pins on open sea */
   return landWait;
 }
-const SEA = [5, 7, 10], SEA_DOT = [20, 28, 42], LAND_A = [42, 47, 55], LAND_B = [54, 60, 69], COAST = [214, 214, 224], COAST_DIM = [140, 140, 152], HOME_A = [92, 80, 44], HOME_B = [112, 98, 54];
+const HOME_A = [150, 118, 52], HOME_B = [176, 140, 64];   /* the home neighbourhood, in gold */
+/* ---- The world, painted as an old game's overworld under the dying sun ----
+   paintWorld() colours the map dot by dot once the coast is known: wine-dark sea, deeper away from land, with wave
+   marks out at sea and a thin ember edge of foam along the shore; land in rust, ochre and dusky green in broad
+   patches, sandy at the coast and darker inland, with small hills and clumps of trees. Patterns are fixed to the
+   world (ox, oy: where the view's corner lies in world dots), so they stay put as the map moves. */
+const WORLD = { deep: [30, 10, 20], sea: [46, 16, 28], shallow: [70, 24, 36], foam: [206, 84, 50], glint: [244, 210, 170], sand: [190, 146, 86],
+  lands: [[150, 98, 50], [140, 66, 38], [88, 88, 48], [116, 84, 46]], hillLit: [196, 140, 78], hillDark: [66, 36, 24], tree: [40, 54, 30], treeLit: [86, 104, 52] };
+function paintWorld(d, land, w, h, small, ox, oy) {
+  const n = w * h, far = 8, dist = new Uint8Array(n).fill(far), queue = new Int32Array(n); let qh = 0, qt = 0;
+  for (let i = 0; i < n; i++) {   /* how far each dot is from the shore (land and sea alike), up to "far" */
+    const x = i % w, y = (i / w) | 0, me = !!land[i], other = (j) => j >= 0 && j < n && !!land[j] !== me;
+    if ((x > 0 && other(i - 1)) || (x < w - 1 && other(i + 1)) || other(i - w) || other(i + w)) { dist[i] = 1; queue[qt++] = i; }
+  }
+  while (qh < qt) { const i = queue[qh++], x = i % w, k = dist[i] + 1; if (k >= far) continue; for (const j of [x > 0 ? i - 1 : -1, x < w - 1 ? i + 1 : -1, i - w, i + w]) if (j >= 0 && j < n && dist[j] > k && !!land[j] === !!land[i]) { dist[j] = k; queue[qt++] = j; } }
+  const hash = (a, b) => { let t = Math.imul(a, 374761393) ^ Math.imul(b, 668265263); t = Math.imul(t ^ (t >>> 13), 1274126177); return ((t ^ (t >>> 16)) >>> 0) / 4294967296; };
+  const smooth = (gx, gy, size) => { const fx = gx / size, fy = gy / size, x0 = Math.floor(fx), y0 = Math.floor(fy), tx = fx - x0, ty = fy - y0, ex = tx * tx * (3 - 2 * tx), ey = ty * ty * (3 - 2 * ty);
+    const a = hash(x0, y0), b = hash(x0 + 1, y0), c = hash(x0, y0 + 1), e = hash(x0 + 1, y0 + 1); return a + (b - a) * ex + (c - a) * ey + (a - b - c + e) * ex * ey; };
+  const put = (i, col, k) => { d[i * 4] = Math.max(0, Math.min(255, col[0] * k)); d[i * 4 + 1] = Math.max(0, Math.min(255, col[1] * k)); d[i * 4 + 2] = Math.max(0, Math.min(255, col[2] * k)); d[i * 4 + 3] = 255; };
+  for (let i = 0; i < n; i++) {
+    const x = i % w, y = (i / w) | 0, gx = x + ox, gy = y + oy, r = dist[i];
+    if (!land[i]) {   /* the sea */
+      if (r === 1) { put(i, (gx + gy) % 3 ? WORLD.foam : WORLD.glint, small ? .7 : 1); continue; }
+      let col = r <= 2 ? WORLD.shallow : r <= 4 ? WORLD.sea : WORLD.deep;
+      if (!small && r > 4) { const cx = Math.floor(gx / 9), cy = Math.floor(gy / 6), px = gx - cx * 9, py = gy - cy * 6, hv = hash(cx, cy);   /* a wave mark, here and there: a small flat arc */
+        if (hv < .32 && py === 2 && px >= 2 && px <= 5) col = px === 2 || px === 5 ? WORLD.sea : WORLD.shallow; else if (hv < .32 && py === 1 && px >= 3 && px <= 4) col = WORLD.shallow; }
+      put(i, col, 1); continue;
+    }
+    if (land[i] === 2) { put(i, (x + y) % 2 ? HOME_A : HOME_B, 1); continue; }   /* home */
+    if (r === 1) { put(i, WORLD.sand, small ? .8 : 1); continue; }
+    const m = smooth(gx, gy, 14), m2 = smooth(gx + 500, gy + 500, 5), base = WORLD.lands[Math.min(3, Math.floor(m * 4))], shade = 1.06 - Math.min(r, far) * .045 + (m2 - .5) * .12;
+    put(i, base, shade);
+    if (small || r < 3) continue;
+    const cx = Math.floor(gx / 7), cy = Math.floor(gy / 7), px = gx - cx * 7, py = gy - cy * 7, hv = hash(cx + 77, cy - 31);
+    if (hv < .18) {   /* a little hill: a lit left face, a dark right face */
+      if ((py === 2 && px === 3) || (py === 3 && px >= 2 && px <= 3) || (py === 4 && px >= 1 && px <= 3)) put(i, WORLD.hillLit, 1);
+      else if ((py === 3 && px === 4) || (py === 4 && px >= 4 && px <= 5)) put(i, WORLD.hillDark, 1);
+    } else if (hv < .34 && base === WORLD.lands[2]) {   /* trees, on the green */
+      if ((px === 2 || px === 4) && py === 3) put(i, WORLD.treeLit, 1); else if ((px >= 1 && px <= 5 && py === 4) || ((px === 2 || px === 4) && py === 5)) put(i, WORLD.tree, 1);
+    }
+  }
+}
 /* canvas: where to draw. cell: how many screen pixels each map dot covers. small: the simple version for the minimap. */
 function makeMap(canvas, cell, small) {
   const c = canvas.getContext("2d", { willReadFrequently: true });
@@ -105,14 +146,9 @@ function makeMap(canvas, cell, small) {
       }
       c.setTransform(1, 0, 0, 1, 0, 0);
     }
-    const im = c.getImageData(0, 0, w, h), d = im.data, land = new Uint8Array(w * h), edgeCol = small ? COAST_DIM : COAST;
+    const im = c.getImageData(0, 0, w, h), d = im.data, land = new Uint8Array(w * h);
     for (let i = 0; i < w * h; i++) land[i] = d[i * 4] > 110 ? (d[i * 4 + 2] < 100 ? 2 : 1) : 0;   /* 2 = the home neighbourhood */
-    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-      const i = y * w + x; let col;
-      if (land[i]) col = ((x > 0 && !land[i - 1]) || (x < w - 1 && !land[i + 1]) || (y > 0 && !land[i - w]) || (y < h - 1 && !land[i + w])) ? edgeCol : land[i] === 2 ? ((x + y) % 2 ? HOME_A : HOME_B) : ((x + y) % 2 ? LAND_A : LAND_B);
-      else col = (x % 4 === 0 && y % 4 === 2) ? SEA_DOT : SEA;
-      d[i * 4] = col[0]; d[i * 4 + 1] = col[1]; d[i * 4 + 2] = col[2]; d[i * 4 + 3] = 255;
-    }
+    paintWorld(d, land, w, h, small, Math.round(v.x * v.scale - w / 2), Math.round(v.y * v.scale - h / 2));
     c.putImageData(im, 0, 0);
     v.hit = [];
     const pins = v.pins.filter((p) => p.lat != null), last = pins.indexOf(v.chosen);
@@ -199,7 +235,18 @@ function iconPic(at, lit, scale) {   /* at: its place in icons.png. Gives nothin
   x.putImageData(im, 0, 0); return c;
 }
 function landmarkPic(icon, lit, halo) {   /* lit: in colour (been there); otherwise locked, a dark shape with a pale edge. halo: a one-pixel surround, for use on the map */
-  if (!halo) { const art = iconPic(ICON_LANDMARKS.indexOf(Object.prototype.hasOwnProperty.call(LANDMARK.icons, icon) ? icon : "museum"), lit); if (art) return art; }
+  const at = ICON_LANDMARKS.indexOf(Object.prototype.hasOwnProperty.call(LANDMARK.icons, icon) ? icon : "museum");
+  if (!halo) { const art = iconPic(at, lit); if (art) return art; }
+  else {   /* on the map: the PixelLab icon brought down to 16 x 16 (averaged, then made solid again), ringed with the halo */
+    const big = iconPic(at, lit); if (big) {
+      const c = el("canvas"), x = c.getContext("2d"); c.width = c.height = 18; c.setAttribute("aria-hidden", "true");
+      const t = el("canvas"); t.width = t.height = 16; const tx = t.getContext("2d"); tx.imageSmoothingEnabled = true; tx.imageSmoothingQuality = "high"; tx.drawImage(big, 0, 0, 16, 16);
+      const im = tx.getImageData(0, 0, 16, 16), dd = im.data; for (let i = 3; i < dd.length; i += 4) dd[i] = dd[i] > 110 ? 255 : 0; tx.putImageData(im, 0, 0);
+      const on = (i, y) => i >= 0 && y >= 0 && i < 16 && y < 16 && dd[(y * 16 + i) * 4 + 3];
+      x.fillStyle = halo; for (let y = -1; y <= 16; y++) for (let i = -1; i <= 16; i++) if (!on(i, y) && (on(i - 1, y) || on(i + 1, y) || on(i, y - 1) || on(i, y + 1))) x.fillRect(i + 1, y + 1, 1, 1);
+      x.drawImage(t, 1, 1); return c;
+    }
+  }
   const pad = halo ? 1 : 0, c = el("canvas"), x = c.getContext("2d"); c.width = c.height = 16 + pad * 2; c.setAttribute("aria-hidden", "true");
   const rows = Object.prototype.hasOwnProperty.call(LANDMARK.icons, icon) ? LANDMARK.icons[icon] : LANDMARK.icons.museum;
   const on = (i, y) => y >= 0 && y < rows.length && i >= 0 && i < rows[y].length && rows[y][i] !== ".";
@@ -212,7 +259,7 @@ function landmarkPic(icon, lit, halo) {   /* lit: in colour (been there); otherw
   return c;
 }
 const stamps = {};   /* the same pictures ready for the map, made once each */
-const landmarkStamp = (icon, lit, glow) => { const k = icon + "|" + lit + "|" + glow; return stamps[k] || (stamps[k] = landmarkPic(icon, lit, glow ? "#ffffff" : "#000000")); };
+const landmarkStamp = (icon, lit, glow) => { const k = icon + "|" + lit + "|" + glow, art = typeof conjure === "function" && conjure.icons && conjure.icons(); if (!art) return landmarkPic(icon, lit, glow ? "#ffffff" : "#000000"); return stamps[k] || (stamps[k] = landmarkPic(icon, lit, glow ? "#ffffff" : "#000000")); };   /* kept only once the icon sheet is in, so the old drawings never stick */
 function landmarksOf(p) {   /* a place's own landmarks; a pin with none of its own shows the ones other places have marked close by (a city inside a region) */
   if (p.landmarks.length || p.lat == null) return p.landmarks;
   if (!p.near) p.near = PLACES.filter((o) => o !== p).flatMap((o) => o.landmarks.filter((l) => l.lat != null && Math.abs(l.lat - p.lat) < .55 && Math.abs(l.lng - p.lng) < .5));

@@ -7,6 +7,8 @@ find a picture by its place in these lists, so keep them in step with ICON_LANDM
 
 scene/: the fishing scene's pictures, copied as they are.
 
+companions-walk.png: every figure's six-frame walk, one row each in the order of companions.png, the keeper last.
+
 companions.png: 64 x 64 cells, one row per calling in the order of CALLINGS in figures.js, five figures to a row in
 the order of ART_KINDS there.
 
@@ -56,7 +58,23 @@ def scene():
     print("copied the fishing scene into scene/")
 
 
+def walks():
+    """companions-walk.png: each figure's walk (art/raw/companions/companion-*-walk.png, six 64 x 64 frames), one row each
+    in the order of companions.png, and the keeper floating along (art/raw/keeper/keeper-float.png) as the last row"""
+    rows = [os.path.join(ART, "companions", "companion-%s-%d-walk.png" % (c, i + 1)) for c in CALLINGS for i in range(5)]
+    rows.append(os.path.join(ART, "keeper", "keeper-float.png"))
+    sheet = Image.new("RGBA", (64 * 6, 64 * len(rows)), (0, 0, 0, 0))
+    for r, f in enumerate(rows):
+        if os.path.exists(f):
+            sheet.paste(Image.open(f).convert("RGBA").crop((0, 0, 64 * 6, 64)), (0, r * 64))
+        else:
+            print("no walk yet:", os.path.basename(f))
+    sheet.save(os.path.join(ROOT, "companions-walk.png"))
+    print("wrote companions-walk.png")
+
+
 if __name__ == "__main__":
     icons()
     companions()
     scene()
+    walks()

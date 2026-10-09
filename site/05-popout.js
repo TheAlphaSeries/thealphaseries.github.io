@@ -254,16 +254,25 @@ function remarksBlock(p) {
   return box;
 }
 /* ---- The order of march: a quest's company drawn in a row, the keeper at the front, each under the name of their
-   post. A post nobody holds yet is an empty place in the line. ---- */
+   post, all walking (the keeper floating) with the ground going by. A post nobody holds yet is an empty place in the
+   line. ---- */
 function march(q) {
-  const ro = roster(q), all = companions(), row = el("div", "march"), place = (pic, name, post, cls) => { const d = el("div", "mplace" + (cls ? " " + cls : "")); d.append(pic, el("span", "mname", name), el("span", "mpost", post)); d.style.setProperty("--n", row.childElementCount); row.append(d); };
-  const kp = el("canvas", "mpic"); kp.setAttribute("aria-hidden", "true"); { const f = figurePic(FIGURE.stand); kp.width = f.width; kp.height = f.height; kp.getContext("2d").drawImage(f, 0, 0); }
+  const ro = roster(q), all = companions(), row = el("div", "march"), walkers = [], place = (pic, name, post, cls) => { const d = el("div", "mplace" + (cls ? " " + cls : "")); d.append(pic, el("span", "mname", name), el("span", "mpost", post)); d.style.setProperty("--n", row.childElementCount); row.append(d); };
+  const walking = (pic, frames) => { if (!frames) return false; pic.width = 64; pic.height = 80; pic.classList.add("walking"); walkers.push([pic.getContext("2d"), frames, walkers.length * 2]); return true; };   /* walks, if the walks have loaded */
+  const kp = el("canvas", "mpic"); kp.setAttribute("aria-hidden", "true");
+  if (!walking(kp, typeof conjure === "function" && conjure.keeperWalk ? conjure.keeperWalk() : null)) { const f = figurePic(FIGURE.stand); kp.width = f.width; kp.height = f.height; kp.getContext("2d").drawImage(f, 0, 0); }
   place(kp, STATUS.name || "The keeper", "The keeper");
-  const drawn = (name) => { const c = all.find((x) => x.names.has(name.toLowerCase())), pic = el("canvas", "mpic"); pic.setAttribute("aria-hidden", "true"); if (c) drawCompanion(pic, c.name, c.seed, c.calling); return c ? pic : null; };
+  const drawn = (name) => { const c = all.find((x) => x.names.has(name.toLowerCase())), pic = el("canvas", "mpic"); pic.setAttribute("aria-hidden", "true"); if (c && !walking(pic, conjure.walk ? conjure.walk(lot(c.name, c.seed), c.calling) : null)) drawCompanion(pic, c.name, c.seed, c.calling); return c ? pic : null; };
   ro.posts.forEach((p) => { if (p.holder && !p.fellow) return;   /* a post held in name only (by the keeper, say) has no one to draw */
     const pic = p.holder ? drawn(p.holder) : null; if (pic) place(pic, p.holder, p.name); else { const gap = el("span", "mgap", "?"); gap.setAttribute("aria-hidden", "true"); place(gap, "Open", p.name, "open"); } });
   ro.others.forEach((n) => { const pic = drawn(n); if (pic) place(pic, n, "Of the company"); });
-  return row.childElementCount > 1 ? row : null;
+  if (row.childElementCount < 2) return null;
+  if (walkers.length) {   /* the whole line on the march: each a step out of time with the one before, the ground going by beneath */
+    row.classList.add("marching"); let beat = 0;
+    const step = () => { walkers.forEach(([c, frames, off]) => c.putImageData(new ImageData(frames[(beat + off) % frames.length], 64, 80), 0, 0)); };
+    step(); if (!reduceMotion) { const t = setInterval(() => { if (!row.isConnected) return clearInterval(t); if (!document.hidden) { beat++; step(); } }, 120); }
+  }
+  return row;
 }
 /* ---- Equipment: what the keeper wears and carries, set out slot by slot as on an old equipment screen. The list
    is written in the editor (Status page). ---- */
