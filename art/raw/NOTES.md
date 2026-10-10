@@ -27,4 +27,4 @@
 
 ## Title screen
 
-- `title/far.png`, `title/city.png`, `title/ledge.png` (from `art/raw/title`): three 672 x 256 layers on transparency, stacked at the foot of the title screen (`#vista` in index.html), each drifting slowly. The hills layer is trimmed of PixelLab's outline and raised so its ridge shows behind the city.
+- `title/far.png`, `title/city.png`, `title/ledge.png` (from `art/raw/title`): three 672 x 256 layers on transparency, stacked at the foot of the title screen (`#vista` in index.html), each drifting slowly. San Francisco on the Dying Earth: the far hills hold the broken Golden Gate (moved right by hand so both towers show between the buildings) and Sutro Tower; the city is the ruined skyline (Transamerica Pyramid, Coit Tower and its Victorians, the broken Salesforce Tower); the ledge is a Lands End cliff with an old street lamp, whose post was shortened by hand so the lamp fits under the top edge.
