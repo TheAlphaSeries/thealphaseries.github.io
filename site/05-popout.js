@@ -83,6 +83,27 @@ function annalsOf(c) { return typeof conjure === "function" && conjure.annals ? 
 function drawCompanion(canvas, name, seed, calling) {
   const f = what(name, seed, calling); if (!f) return;   /* the figure maker did not load: leave the frame empty */
   const w = f.w || FW, h = f.h || FH; canvas.width = w; canvas.height = h; canvas.getContext("2d").putImageData(new ImageData(f.pixels, w, h), 0, 0);
+  walkOn(canvas, name, seed, calling);
+}
+/* Every companion drawn walks in place, as in the order of march: once the walks have loaded, the picture joins
+   WALKING, and one beat moves them all, each a step out of time with the one drawn before. A picture is let go when
+   it has been off the page for a while, or drawn again as someone else. */
+const WALKING = new Set(); let walkBeat = 0, walkTimer = 0;
+function walkOn(canvas, name, seed, calling) {
+  const mine = {}; canvas.walkAs = mine; WALKING.delete(canvas);
+  if (reduceMotion || typeof conjure !== "function" || !conjure.onWalks) return;
+  conjure.onWalks(() => {
+    if (canvas.walkAs !== mine) return; const frames = conjure.walk(lot(name, seed), calling); if (!frames) return;
+    canvas.walkFrames = frames; canvas.walkOff = (WALKING.size * 2) % frames.length; canvas.walkGone = 0; canvas.width = 64; canvas.height = frames[0].length / 256; WALKING.add(canvas);
+    if (!walkTimer) walkTimer = setInterval(() => {
+      if (document.hidden) return; walkBeat++;
+      for (const c of WALKING) {
+        if (!c.isConnected) { if (++c.walkGone > 20) WALKING.delete(c); continue; } c.walkGone = 0;
+        c.getContext("2d").putImageData(new ImageData(c.walkFrames[(walkBeat + c.walkOff) % c.walkFrames.length], c.width, c.height), 0, 0);
+      }
+      if (!WALKING.size) { clearInterval(walkTimer); walkTimer = 0; }
+    }, 130);
+  });
 }
 /* the companions, as a block of tiles at the foot of the Quest Log */
 function showCompany() {
