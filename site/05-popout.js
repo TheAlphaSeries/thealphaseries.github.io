@@ -267,6 +267,7 @@ function march(q) {
     const pic = p.holder ? drawn(p.holder) : null; if (pic) place(pic, p.holder, p.name); else { const gap = el("span", "mgap", "?"); gap.setAttribute("aria-hidden", "true"); place(gap, "Open", p.name, "open"); } });
   ro.others.forEach((n) => { const pic = drawn(n); if (pic) place(pic, n, "Of the company"); });
   if (row.childElementCount < 2) return null;
+  if (!walkers.length && typeof conjure === "function" && conjure.onWalks) conjure.onWalks(() => { if (row.isConnected) { const fresh = march(q); if (fresh) row.replaceWith(fresh); } });   /* opened before the walks had loaded: set them walking when they come */
   if (walkers.length) {   /* the whole line on the march: each a step out of time with the one before, the ground going by beneath */
     row.classList.add("marching"); let beat = 0;
     const step = () => { walkers.forEach(([c, frames, off]) => c.putImageData(new ImageData(frames[(beat + off) % frames.length], 64, 80), 0, 0)); };
@@ -294,7 +295,7 @@ function showEquipment(focusFirst, kit) {
   const wrap = el("div", "beasts equip"), list = el("div", "beastlist"), card = el("div", "beastcard");
   const show = (it, btn) => {
     list.querySelectorAll(".opt").forEach((o) => o.setAttribute("aria-pressed", String(o === btn))); card.textContent = ""; stopPortrait();
-    if (gearKit === "dress") { const doll = el("canvas", "portrait"); doll.width = KW * BIG; doll.height = SPRITE_FRAMES[0].length * BIG; doll.setAttribute("aria-hidden", "true"); card.append(doll); stopPortrait = figure(doll, "ease"); }   /* the keeper himself models the dress */
+    if (gearKit === "dress") { const doll = el("canvas", "portrait"); doll.width = FIG_W; doll.height = FIG_H; doll.setAttribute("aria-hidden", "true"); card.append(doll); stopPortrait = figure(doll, "ease"); }   /* the keeper himself models the dress */
     else if (typeof conjure === "function" && conjure.paintGear) { const pic = el("canvas", "gearpic"); pic.setAttribute("aria-hidden", "true"); conjure.paintGear(pic, conjure.gearIcon(it.slot, it.kit)); card.append(pic); }
     const facts = el("dl", "facts"), fact = (k, v) => { if (v) facts.append(el("dt", null, k), el("dd", null, v)); };
     fact("Slot", it.slot); fact("Maker", it.maker); fact("Confers", it.bonus);

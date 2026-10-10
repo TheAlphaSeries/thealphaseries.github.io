@@ -24,6 +24,9 @@ const HAND = [6, 16], STONE = [39, 11], HEAD = [22, 10];   /* where the orbs hov
 /* The drawings are planned small (one letter a pixel) and shown four times the size, with their stair-steps rounded
    off and a soft fall of light from the upper left. Each is made once and kept. */
 const BIG = 4, figureKept = [];
+/* the canvas he is set going on is wider and taller than his drawing, so an orb sent up or round him is never cut off:
+   PAD drawing-pixels each side, TOP above. FIG_W x FIG_H is that canvas. */
+const PAD = 4, TOP = 8, FIG_W = (KW + 2 * PAD) * BIG, FIG_H = (58 + TOP) * BIG;
 function figurePic(n) {
   if (figureKept[n]) return figureKept[n];
   if (keeperArt) {   /* the PixelLab drawing, blown up four times with hard pixel edges */
@@ -84,7 +87,7 @@ const ACTS = {
 function figure(canvas, mode, enter) {
   const c = canvas.getContext("2d"), look = { shown: enter ? 0 : 1, orbOnly: false, step: false }; let beat = 0, at = 0, name = "", act = null, timer = null, arriving = !!enter;
   const paint = (pose) => {
-    c.clearRect(0, 0, canvas.width, canvas.height); c.save(); if (look.step && Math.floor(beat / 3) % 2) c.translate(0, -BIG);
+    c.clearRect(0, 0, canvas.width, canvas.height); c.save(); c.translate(PAD * BIG, TOP * BIG); if (look.step && Math.floor(beat / 3) % 2) c.translate(0, -BIG);
     if (pose.orb && pose.behind) drawOrb(c, pose.orb[0], pose.orb[1], pose.orb[2], beat);
     if (!look.orbOnly) drawFigure(c, pose.body, look.shown);
     if (pose.orb && !pose.behind && (look.shown > 0 || look.orbOnly)) drawOrb(c, pose.orb[0], pose.orb[1], pose.orb[2], beat);
@@ -116,7 +119,7 @@ const spriteBox = $("#sprite"), ARRIVALS = ["rise", "stroll", "descend", "appear
 let stopWave = () => {}, stopPortrait = () => {};
 function startSprite() {
   const c = spriteBox.getContext("2d"), move = (transform, transition, opacity) => { spriteBox.style.transition = transition || ""; spriteBox.style.transform = transform || ""; spriteBox.style.opacity = opacity == null ? "" : opacity; };
-  if (reduceMotion) { drawFigure(c, FIGURE.stand); drawOrb(c, HAND[0], HAND[1], 2, 0); spriteBox.classList.add("up"); return; }
+  if (reduceMotion) { c.translate(PAD * BIG, TOP * BIG); drawFigure(c, FIGURE.stand); drawOrb(c, HAND[0], HAND[1], 2, 0); spriteBox.classList.add("up"); return; }
   let how = ARRIVALS[Math.floor(Math.random() * ARRIVALS.length)]; while (how === store.get("arrival")) how = ARRIVALS[Math.floor(Math.random() * ARRIVALS.length)];
   const asked = /[?&]arrive=([a-z]+)/.exec(location.search); if (asked && ARRIVALS.includes(asked[1])) how = asked[1];
   store.set("arrival", how);

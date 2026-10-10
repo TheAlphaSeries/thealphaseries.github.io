@@ -34,7 +34,7 @@ function tally() {
 function showStatus(focusFirst) {
   openScreen("status", "m-status");
   const t = tally(), wrap = el("div", "sheet"), who = el("div", "who"), pic = el("canvas", "portrait"), facts = el("dl", "facts stats"), bar = el("div", "xpbar"), fill = el("i");
-  pic.width = KW * BIG; pic.height = SPRITE_FRAMES[0].length * BIG; pic.setAttribute("aria-hidden", "true");
+  pic.width = FIG_W; pic.height = FIG_H; pic.setAttribute("aria-hidden", "true");
   stopPortrait(); stopPortrait = figure(pic, "ease");   /* the same figure that waves from the title screen, here standing at his ease */
   fill.style.width = Math.max(2, Math.min(100, t.into / t.span * 100)) + "%"; bar.append(fill);
   bar.setAttribute("role", "img"); bar.setAttribute("aria-label", t.toNext + " experience to the next level");

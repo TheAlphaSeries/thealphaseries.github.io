@@ -220,7 +220,7 @@ h3 { font-size: 12px; line-height: 1.7; color: var(--accent); margin-top: 8px; }
 /* ----- the status screen: portrait and level on the left, the numbers on the right ----- */
 .sheet { display: grid; grid-template-columns: minmax(0, 220px) minmax(0, 1fr); gap: 22px; align-items: start; }
 .who { border: 3px solid var(--border); border-radius: 9px; box-shadow: inset 0 0 0 2px var(--border-shade); padding: 16px 14px; text-align: center; overflow-wrap: anywhere; }
-.portrait { display: block; width: 200px; height: 232px; max-width: 100%; margin: 0 auto 10px; image-rendering: pixelated; }
+.portrait { display: block; width: 232px; height: 264px; max-width: 100%; margin: 0 auto 10px; image-rendering: pixelated; }
 .who .class { margin: 4px 0 0; color: var(--dim); }
 .who .level { margin: 12px 0 6px; font-family: var(--display); font-size: 12px; line-height: 1.7; color: #ffd257; }
 .xpbar { height: 12px; border: 2px solid var(--border); background: rgba(0, 0, 0, .45); }
@@ -350,7 +350,8 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
 @keyframes vista-far { from { transform: translateX(-.5%); } to { transform: translateX(.5%); } }
 @keyframes vista-mid { from { transform: translateX(-1%); } to { transform: translateX(1%); } }
 @keyframes vista-near { from { transform: translateX(-1.8%); } to { transform: translateX(1.8%); } }
-#sprite { flex: none; width: min(360px, 36vw, (100vh - 60px) * .862); height: auto; image-rendering: pixelated; opacity: 0; transform: translateY(40px); transition: transform .9s var(--spring), opacity .6s; }
+#sprite { --kw: min(418px, 41.8vw, 100vh - 60px); flex: none; width: var(--kw); margin: calc(var(--kw) * -.138) calc(var(--kw) * -.069) 0; height: auto;   /* the canvas has room round him for the orb (PAD, TOP in 10-figure.js); the margins take it back so he stands where he did */
+  image-rendering: pixelated; opacity: 0; transform: translateY(40px); transition: transform .9s var(--spring), opacity .6s; }
 #sprite.up { opacity: 1; transform: none; }
 #intro .win { position: relative; background: none; border: 0; border-radius: 0; box-shadow: none; padding: 0; text-align: left; animation: rise 1.2s var(--spring) backwards; }
 #intro .name { font-family: var(--display); font-size: clamp(24px, 5vw, 54px); line-height: 1.3; white-space: nowrap; color: #f6f2ff; text-shadow: .1em .1em 0 #0a0a14; }
@@ -461,7 +462,7 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
 
 /* phone view: the command window becomes a bar fixed to the bottom of the screen */
 @media (max-width: 720px) {
-  #vista { height: min(70vw, 38vh); } #vista img { object-position: 90% bottom; }   /* the keeper stands above the skyline here, not on the cliff, so show the towers */ #intro .titlewrap { flex-direction: column; gap: 18px; } #sprite { width: min(200px, 33vh); } #intro .win { text-align: center; } #intro .name { font-size: clamp(22px, 8vw, 34px); }
+  #vista { height: min(70vw, 38vh); } #vista img { object-position: 90% bottom; }   /* the keeper stands above the skyline here, not on the cliff, so show the towers */ #intro .titlewrap { flex-direction: column; gap: 18px; } #sprite { --kw: min(232px, 38.3vh); } #intro .win { text-align: center; } #intro .name { font-size: clamp(22px, 8vw, 34px); }
   #intro .firstline { margin: 14px auto 0; } #intro .start { margin: 20px auto 0; }
   #intro::after { --sx: 74%; --sy: 24%; }
   body { padding-bottom: 72px; }   /* room for the folded menu fixed to the bottom of a phone screen */
