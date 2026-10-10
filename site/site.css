@@ -452,7 +452,7 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
 
 /* phone view: the command window becomes a bar fixed to the bottom of the screen */
 @media (max-width: 720px) {
-  #vista { height: min(70vw, 38vh); } #intro .titlewrap { flex-direction: column; gap: 18px; } #sprite { width: min(200px, 33vh); } #intro .win { text-align: center; } #intro .name { font-size: clamp(22px, 8vw, 34px); }
+  #vista { height: min(70vw, 38vh); } #vista img { object-position: 90% bottom; }   /* the keeper stands above the skyline here, not on the cliff, so show the towers */ #intro .titlewrap { flex-direction: column; gap: 18px; } #sprite { width: min(200px, 33vh); } #intro .win { text-align: center; } #intro .name { font-size: clamp(22px, 8vw, 34px); }
   #intro .firstline { margin: 14px auto 0; } #intro .start { margin: 20px auto 0; }
   #intro::after { --sx: 74%; --sy: 24%; }
   body { padding-bottom: 72px; }   /* room for the folded menu fixed to the bottom of a phone screen */
