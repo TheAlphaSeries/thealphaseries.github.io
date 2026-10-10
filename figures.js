@@ -336,7 +336,7 @@ conjure.annals = function (seed, F) {
 const ART_KINDS = {"Wanderer": ["Human", "Elf", "Dwarf", "Mushroom Folk", "Foxfolk"], "Knight": ["Human", "Orc", "Lizardfolk", "Skeleton", "Golem"], "Mage": ["Elf", "Mothfolk", "Imp", "Catfolk", "Shade"], "Rogue": ["Goblin", "Catfolk", "Foxfolk", "Shade", "Human"], "Ranger": ["Elf", "Birdfolk", "Foxfolk", "Rootfolk", "Human"], "Cleric": ["Dwarf", "Human", "Golem", "Mothfolk", "Frogfolk"], "Bard": ["Frogfolk", "Elf", "Birdfolk", "Goblin", "Catfolk"], "Alchemist": ["Goblin", "Slime", "Imp", "Dwarf", "Mushroom Folk"], "Angler": ["Fishfolk", "Frogfolk", "Human", "Lizardfolk", "Birdfolk"], "Lamplighter": ["Ghost", "Mothfolk", "Human", "Skeleton", "Imp"], "Porter": ["Golem", "Orc", "Dwarf", "Mushroom Folk", "Slime"], "Cartographer": ["Birdfolk", "Elf", "Human", "Goblin", "Ghost"], "Cook": ["Orc", "Frogfolk", "Dwarf", "Slime", "Catfolk"], "Boatman": ["Skeleton", "Fishfolk", "Lizardfolk", "Human", "Shade"], "Monk": ["Human", "Rootfolk", "Foxfolk", "Ghost", "Golem"], "Berserker": ["Orc", "Dwarf", "Lizardfolk", "Human", "Catfolk"], "Necromancer": ["Skeleton", "Shade", "Elf", "Goblin", "Ghost"], "Merchant": ["Goblin", "Foxfolk", "Imp", "Dwarf", "Frogfolk"], "Gardener": ["Rootfolk", "Mushroom Folk", "Frogfolk", "Human", "Mothfolk"], "Smith": ["Dwarf", "Golem", "Orc", "Lizardfolk", "Human"], "Paladin": ["Human", "Elf", "Dwarf", "Golem", "Birdfolk"], "Witch": ["Human", "Goblin", "Ghost", "Mothfolk", "Catfolk"], "Duelist": ["Elf", "Catfolk", "Foxfolk", "Human", "Skeleton"], "Hermit": ["Rootfolk", "Mushroom Folk", "Human", "Ghost", "Shade"]};
 const ART_W = 64, ART_H = 80, ITEM_ICONS = ["lamp", "map", "bottle", "coin", "key", "compass", "ring", "whistle", "book", "tooth", "mirror", "egg"], ITEM_AT = 24 + 21;   /* where the curiosities start in icons.png */
 const artSheet = (src) => { const it = { ctx: null, waiting: [] }, im = new Image(); im.onload = () => { try { const c = document.createElement("canvas"); c.width = im.naturalWidth; c.height = im.naturalHeight; it.ctx = c.getContext("2d", { willReadFrequently: true }); it.ctx.drawImage(im, 0, 0); } catch (e) { it.ctx = null; } it.waiting.splice(0).forEach((f) => f()); }; im.src = src; return it; };   /* waiting: what to do once it has loaded */
-const ART_FIGURES = artSheet("companions.png"), ART_ICONS = artSheet("icons.png"), ART_WALK = artSheet("companions-walk.png");   /* the walks: six 64 x 64 frames a row, one row per figure in the order of companions.png, and the keeper floating along in the last row */
+const ART_FIGURES = artSheet("companions.png"), ART_ICONS = artSheet("icons.png"), ART_WALK = artSheet("companions-walk.png"), ART_FRONT = artSheet("companions-front.png");   /* the walks: six 64 x 64 frames a row, one row per figure in the order of companions.png, and the keeper floating along in the last row */
 const drawnFigure = conjure;
 conjure = function (seed, wanted) {
   const f = drawnFigure(seed, wanted), set = ART_KINDS[f.calling]; if (!set) return f;
@@ -351,13 +351,16 @@ function artFrame(ctx, x, y, seed) {   /* one 64 x 64 picture from a sheet, set 
   if (seed) dye(px, ART_DYES[((seed >>> 0) * 40503 >>> 0) % ART_DYES.length]); return px;
 }
 /* A companion walking, or the keeper floating along: six frames, each a 64 x 80 picture like the figure's, or
-   nothing until the walks have loaded. */
-conjure.walk = (seed, wanted) => {
-  if (!ART_WALK.ctx) return null; const f = drawnFigure(seed, wanted), row = Object.keys(ART_KINDS).indexOf(f.calling); if (row < 0) return null;
-  try { const y = (row * 5 + artPick(seed)) * 64; return Array.from({ length: 6 }, (_, i) => artFrame(ART_WALK.ctx, i * 64, y, seed)); } catch (e) { return null; }
+   nothing until the walks have loaded.
+   facing: "side" (the default: walking to the right, as in the order of march) or "front" (towards the viewer). */
+const walkSheet = (facing) => (facing === "front" ? ART_FRONT : ART_WALK);
+const walkRow = (sheet, y, seed) => { const frames = Array.from({ length: 6 }, (_, i) => artFrame(sheet.ctx, i * 64, y, seed)); return frames[0].some((v, i) => i % 4 === 3 && v) ? frames : null; };   /* nothing, if that row has not been drawn yet */
+conjure.walk = (seed, wanted, facing) => {
+  const sheet = walkSheet(facing); if (!sheet.ctx) return null; const f = drawnFigure(seed, wanted), row = Object.keys(ART_KINDS).indexOf(f.calling); if (row < 0) return null;
+  try { return walkRow(sheet, (row * 5 + artPick(seed)) * 64, seed); } catch (e) { return null; }
 };
-conjure.onWalks = (f) => { if (ART_WALK.ctx) f(); else ART_WALK.waiting.push(f); };   /* once the walks have loaded (at once if they have) */
-conjure.keeperWalk = () => { if (!ART_WALK.ctx) return null; try { return Array.from({ length: 6 }, (_, i) => artFrame(ART_WALK.ctx, i * 64, 120 * 64, 0)); } catch (e) { return null; } };
+conjure.onWalks = (f, facing) => { const sheet = walkSheet(facing); if (sheet.ctx) f(); else sheet.waiting.push(f); };   /* once the walks have loaded (at once if they have) */
+conjure.keeperWalk = (facing) => { const sheet = walkSheet(facing); if (!sheet.ctx) return null; try { return walkRow(sheet, 120 * 64, 0); } catch (e) { return null; } };
 /* The figures were all drawn in the same oxblood and umber, so each companion is dyed: the seed picks one of these
    schemes, and the cloth (the dark reds and browns) takes its hue, keeping every pixel's light and shade. Skin, steel,
    wood and the glowing things are left alone. Some schemes also turn the gold trim to silver. The first leaves the

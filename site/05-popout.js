@@ -83,13 +83,13 @@ function annalsOf(c) { return typeof conjure === "function" && conjure.annals ? 
 function drawCompanion(canvas, name, seed, calling) {
   const f = what(name, seed, calling); if (!f) return;   /* the figure maker did not load: leave the frame empty */
   const w = f.w || FW, h = f.h || FH; canvas.width = w; canvas.height = h; canvas.getContext("2d").putImageData(new ImageData(f.pixels, w, h), 0, 0);
-  walkOn(canvas, () => conjure.walk(lot(name, seed), calling));
+  walkOn(canvas, () => conjure.walk(lot(name, seed), calling, "front"));
 }
 /* Every companion drawn walks in place, as in the order of march: once the walks have loaded, the picture joins
    WALKING, and one beat moves them all, each a step out of time with the one drawn before. A picture is let go when
    it has been off the page for a while, or drawn again as someone else. */
 const WALKING = new Set(); let walkBeat = 0, walkTimer = 0;
-function walkOn(canvas, framesOf) {   /* framesOf: gives the six frames, once the walks have loaded */
+function walkOn(canvas, framesOf) {   /* framesOf: gives the six frames (facing the viewer), once the walks have loaded */
   const mine = {}; canvas.walkAs = mine; WALKING.delete(canvas);
   if (reduceMotion || typeof conjure !== "function" || !conjure.onWalks) return;
   conjure.onWalks(() => {
@@ -103,7 +103,7 @@ function walkOn(canvas, framesOf) {   /* framesOf: gives the six frames, once th
       }
       if (!WALKING.size) { clearInterval(walkTimer); walkTimer = 0; }
     }, 130);
-  });
+  }, "front");
 }
 /* the companions, as a block of tiles at the foot of the Quest Log */
 function showCompany() {
@@ -113,7 +113,7 @@ function showCompany() {
   {   /* the keeper heads the company, as he goes on every quest: floating along, and his card opens the Status screen */
     const b = opt(null, () => showStatus(true), "fellow"), pic = el("canvas", "fellowpic"); pic.setAttribute("aria-hidden", "true");
     const f = figurePic(FIGURE.stand); pic.width = f.width; pic.height = f.height; pic.getContext("2d").drawImage(f, 0, 0);
-    walkOn(pic, () => conjure.keeperWalk());
+    walkOn(pic, () => conjure.keeperWalk("front"));
     b.append(pic, el("span", "name", STATUS.name || "The keeper"), el("span", "fkind", "The keeper"), el("span", "flevel", "Level " + tally().level), el("span", "ftitle", "Of every company"), el("span", "fcount", count(QUESTS.length, "venture")));
     b.style.setProperty("--i", 0); wrap.append(b);
   }

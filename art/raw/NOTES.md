@@ -23,7 +23,8 @@
 
 - 120 figures, `companion-<calling>-<1..5>.png`, 64 x 64, three-quarter view (south-east), made in PixelLab's premium mode with the keeper as the style reference.
 - `companion-<calling>-<n>-idle.png`: 2 frames of 64 x 64 side by side (128 x 64). Frame 1 is the still; in frame 2 the upper body dips 1 px while the feet stay planted. Made by hand from the still, because PixelLab's idle template redrew the figures and dropped their gear. Long items that cross the waist (staffs, poles) get a 1 px kink in frame 2, which isn't noticeable at speed.
-- `companion-<calling>-<n>-walk.png`: six 64 x 64 frames walking east (PixelLab v3 animation), used for the order of march on a quest. All 8 directions exist in PixelLab if they're ever wanted.
+- `companion-<calling>-<n>-walk.png`: six 64 x 64 frames walking east (PixelLab v3 animation), used for the order of march on a quest.
+- `companion-<calling>-<n>-front.png`: six 64 x 64 frames walking towards the viewer (PixelLab v3, south), used on the Company cards and companion pages; `keeper/keeper-float-front.png` is the keeper floating towards the viewer. All 8 directions exist in PixelLab if they're ever wanted.
 
 ## Title screen
 

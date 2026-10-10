@@ -7,7 +7,8 @@ find a picture by its place in these lists, so keep them in step with ICON_LANDM
 
 scene/: the fishing scene's pictures, copied as they are.
 
-companions-walk.png: every figure's six-frame walk, one row each in the order of companions.png, the keeper last.
+companions-walk.png: every figure's six-frame walk, side on, one row each in the order of companions.png, the keeper last.
+companions-front.png: the same, walking towards the viewer (art/raw/companions/companion-*-front.png, keeper-float-front).
 
 ui/menu-icons.png: the menu's pictures (art/raw/menu, 24 x 24), side by side in the order of MENU, which site.css
 follows with --i on each command.
@@ -86,9 +87,24 @@ def menu():
     print("wrote ui/menu-icons.png", len(MENU), "pictures")
 
 
+def fronts():
+    """companions-front.png: like companions-walk.png, but each figure walks towards the viewer"""
+    rows = [os.path.join(ART, "companions", "companion-%s-%d-front.png" % (c, i + 1)) for c in CALLINGS for i in range(5)]
+    rows.append(os.path.join(ART, "keeper", "keeper-float-front.png"))
+    sheet = Image.new("RGBA", (64 * 6, 64 * len(rows)), (0, 0, 0, 0))
+    for r, f in enumerate(rows):
+        if os.path.exists(f):
+            sheet.paste(Image.open(f).convert("RGBA").crop((0, 0, 64 * 6, 64)), (0, r * 64))
+        else:
+            print("no front walk yet:", os.path.basename(f))
+    sheet.save(os.path.join(ROOT, "companions-front.png"))
+    print("wrote companions-front.png")
+
+
 if __name__ == "__main__":
     menu()
     icons()
     companions()
     scene()
     walks()
+    fronts()
