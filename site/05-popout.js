@@ -359,16 +359,16 @@ function questReport(q) {
    A picture of a companion (or of a quest's report) made on the spot, in the site's look, for sending to friends or
    posting. It holds only what the site already shows. On a phone it opens the usual share sheet; elsewhere it is
    saved as a picture. Nothing is sent anywhere by the site itself. */
-const CARD = { w: 1080, h: 1350, gold: "#ffd257", dim: "#c9d0ff" };
+const CARD = { w: 1080, h: 1350, gold: "#ffd257", dim: "#cdbfae" };
 async function cardBase() {
   try { await Promise.all(['40px "Press Start 2P"', '30px "DotGothic16"', 'italic 30px "Newsreader"'].map((f) => document.fonts.load(f))); } catch (e) {}
   const cv = el("canvas"); cv.width = CARD.w; cv.height = CARD.h; const c = cv.getContext("2d");
-  c.fillStyle = "#05071f"; c.fillRect(0, 0, CARD.w, CARD.h);
+  c.fillStyle = "#07050a"; c.fillRect(0, 0, CARD.w, CARD.h);
   for (let i = 0; i < 140; i++) { const x = (i * 7919) % CARD.w, y = (i * 104729) % CARD.h; c.fillStyle = "rgba(255,255,255," + (.25 + (i % 5) * .12) + ")"; c.fillRect(x, y, i % 4 ? 3 : 5, i % 4 ? 3 : 5); }   /* the drifting specks, stood still */
-  const g = c.createLinearGradient(0, 40, 0, CARD.h - 40); g.addColorStop(0, "#2a3da6"); g.addColorStop(1, "#080d48");
+  const g = c.createLinearGradient(0, 40, 0, CARD.h - 40); g.addColorStop(0, "#261b33"); g.addColorStop(1, "#0c0811");   /* the windows' violet-black */
   const round = (x, y, w, h, r) => { c.beginPath(); if (c.roundRect) c.roundRect(x, y, w, h, r); else c.rect(x, y, w, h); };   /* older browsers get square corners */
   c.fillStyle = g; round(40, 40, CARD.w - 80, CARD.h - 80, 26); c.fill();
-  c.lineWidth = 10; c.strokeStyle = "#f6f2ff"; c.stroke(); c.lineWidth = 4; c.strokeStyle = "#8f98c8"; round(52, 52, CARD.w - 104, CARD.h - 104, 18); c.stroke();
+  c.lineWidth = 10; c.strokeStyle = "#f0d070"; c.stroke(); c.lineWidth = 4; c.strokeStyle = "#8a6a20"; round(52, 52, CARD.w - 104, CARD.h - 104, 18); c.stroke();
   c.textBaseline = "top"; c.shadowColor = "rgba(0,0,0,.7)"; c.shadowOffsetX = 3; c.shadowOffsetY = 3;
   c.fillStyle = "#fff"; c.font = '34px "Press Start 2P", monospace'; c.fillText("HALF LIFE", 96, 100);
   c.fillStyle = CARD.dim; c.font = '32px "DotGothic16", monospace'; c.textAlign = "right"; c.fillText("halflife.studio", CARD.w - 96, 102); c.textAlign = "left";

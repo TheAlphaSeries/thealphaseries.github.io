@@ -6,19 +6,22 @@
    Layout: a 16-bit RPG menu screen. Title bar across the top, a large main window
    (log list / About / Help), a command window and a status window on the right.
    A title screen with a Start button covers it first; an opened entry pops out as a
-   translucent window. The classic blue menu look: to change it, edit --win-a and --win-b just below. */
+   translucent window. The windows are near-black with a violet glow, in gold frames with a violet stone at each
+   corner (ui/frame.png, drawn by tools/sprites/frame.py), to match the keeper and the title screen. To change the
+   colours, edit the lines starting with -- just below. */
 :root {
   color-scheme: dark;
-  --win-a: #2a3da6;       /* window gradient, top: the classic menu blue */
-  --win-b: #080d48;       /* window gradient, bottom */
-  --accent: #ffffff;      /* cursor, headings */
+  --win-a: #261b33;       /* window gradient, top: violet-black */
+  --win-b: #0c0811;       /* window gradient, bottom */
+  --glow: rgba(138, 58, 176, .22);   /* the violet light inside each window, from the top */
+  --accent: #f0d070;      /* headings: the frame's gold */
   --bg: color-mix(in srgb, var(--win-b) 28%, #000);            /* field behind the windows */
   --veil: color-mix(in srgb, var(--bg) 62%, transparent);
-  --border: #f6f2ff;                                            /* window frame */
-  --border-shade: color-mix(in srgb, var(--win-a) 45%, #c4c4cc);/* inner frame line */
+  --border: #c8a040;                                            /* frames inside windows: gold */
+  --border-shade: #4a3418;                                      /* their inner line */
   --fg: #ffffff;
-  --dim: color-mix(in srgb, var(--win-a) 22%, #fff);            /* dates, captions */
-  --off: color-mix(in srgb, var(--win-a) 48%, #fff);            /* unavailable commands */
+  --dim: #cdbfae;                                               /* dates, captions: old parchment */
+  --off: #6e6274;                                               /* unavailable commands */
   --spring: cubic-bezier(.34, 1.56, .64, 1);
   --display: "Press Start 2P", "Courier New", monospace;
   --body: "DotGothic16", ui-monospace, Menlo, monospace;
@@ -43,14 +46,14 @@ body {
   grid-template-rows: auto auto auto 1fr;
 }
 .win {
-  background: linear-gradient(to bottom, var(--win-a), var(--win-b));
-  border: 3px solid var(--border); border-radius: 9px;
-  box-shadow: inset 0 0 0 2px var(--border-shade), 0 0 0 2px #000;
-  padding: 14px 16px; min-width: 0;
+  background: radial-gradient(130% 70% at 50% 0%, var(--glow), transparent 70%), linear-gradient(to bottom, var(--win-a), var(--win-b));
+  border: 12px solid transparent; border-image: url("../ui/frame.png") 12;   /* the gold frame; the gradient shows through its open pixels */
+  box-shadow: inset 0 0 18px rgba(0, 0, 0, .55), 0 6px 18px rgba(0, 0, 0, .55);
+  padding: 6px 8px; min-width: 0; image-rendering: pixelated;
 }
 #titlebar { grid-area: help; }
 #titlebar .site { font-family: var(--display); font-size: 13px; line-height: 1.6; color: var(--accent); }
-#main { grid-area: main; min-height: 440px; padding: 20px 20px 22px; }
+#main { grid-area: main; min-height: 440px; padding: 10px 10px 12px; }
 #menu { grid-area: menu; display: flex; flex-direction: column; gap: 4px; }
 #menutoggle { display: none; }   /* only on a phone, where the menu folds to one row (see the phone view below) */
 #status { grid-area: status; align-self: start; display: grid; grid-template-columns: auto 1fr; gap: 2px 14px; font-variant-numeric: tabular-nums; }
@@ -69,12 +72,12 @@ h3 { font-size: 12px; line-height: 1.7; color: var(--accent); margin-top: 8px; }
   background: none; border: 0; border-radius: 4px; color: inherit; font: inherit; text-shadow: inherit; cursor: pointer;
   transition: transform .5s var(--spring);
 }
-.opt::before {
-  content: ""; width: 0; height: 0; align-self: center; visibility: hidden;
-  border-left: 10px solid var(--accent); border-top: 6px solid transparent; border-bottom: 6px solid transparent;
-  filter: drop-shadow(1px 1px 0 rgba(0, 0, 0, .7));
+.opt::before {   /* the cursor: one of the keeper's violet orbs */
+  content: ""; width: 10px; height: 10px; align-self: center; justify-self: center; visibility: hidden; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #f4eaff 0 18%, #b98cff 45%, #6a3ad0 85%);
+  box-shadow: 0 0 6px 1px rgba(185, 140, 255, .75), 1px 1px 0 rgba(0, 0, 0, .7);
 }
-.opt:hover, .opt:focus-visible { transform: translateX(6px); }
+.opt:hover, .opt:focus-visible { transform: translateX(6px); background: linear-gradient(90deg, rgba(200, 160, 64, .16), transparent 85%); }
 .opt:active { transform: translateX(2px) scale(.97); transition-duration: .1s; }
 .opt:hover::before, .opt:focus-visible::before, .opt[aria-current="true"]::before { visibility: visible; }
 .opt:focus-visible { outline: none; }
@@ -83,6 +86,12 @@ h3 { font-size: 12px; line-height: 1.7; color: var(--accent); margin-top: 8px; }
 .opt.locked { color: var(--off); cursor: default; pointer-events: none; }   /* greyed out: cannot be pointed at, selected or pressed */
 .opt[aria-pressed="true"] { color: var(--accent); }
 #menu .opt, .row .opt { font-family: var(--display); font-size: 12px; line-height: 1.7; }
+/* each command has its picture (ui/menu-icons.png, 24 px each, in the order of --i) between the cursor and the word */
+#menu .opt:not(.menutoggle) { grid-template-columns: 18px 24px minmax(0, 1fr); gap: 0 10px; align-items: center; padding-block: 3px; }
+#menu .opt:not(.menutoggle)::after { content: ""; grid-column: 2; grid-row: 1; width: 24px; height: 24px; background: url("../ui/menu-icons.png") calc(var(--i, 0) * -24px) 0; image-rendering: pixelated; filter: drop-shadow(1px 1px 0 rgba(0, 0, 0, .6)); }
+#menu .opt.locked::after { opacity: .4; filter: grayscale(1); }
+#m-files { --i: 0; } #m-quests { --i: 1; } #m-chron { --i: 2; } #m-bestiary { --i: 3; } #m-plants { --i: 4; } #m-photos { --i: 5; } #m-map { --i: 6; }
+#m-status { --i: 7; } #m-gear { --i: 8; } #m-prints { --i: 9; } #m-about { --i: 10; } #m-how { --i: 11; } #m-music { --i: 12; }
 
 .intro { margin: 0 0 22px; font-size: 18px; max-width: 62ch; }
 .tally { color: var(--dim); margin: -6px 0 14px 24px; font-variant-numeric: tabular-nums; }
@@ -261,7 +270,7 @@ h3 { font-size: 12px; line-height: 1.7; color: var(--accent); margin-top: 8px; }
 .mapkeys button:hover, .mapkeys button:focus-visible { background: var(--accent); color: #000; outline: none; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px 8px; margin: 0 0 12px; } .chipgap { flex: 0 0 10px; }
 .chip { display: inline-flex; align-items: center; gap: 8px; font: inherit; color: var(--dim); background: none; border: 2px solid currentColor; border-radius: 6px; padding: 3px 10px; cursor: pointer; opacity: .55; }
-.chip[aria-pressed="true"] { color: var(--fg); opacity: 1; }
+.chip[aria-pressed="true"] { color: var(--fg); border-color: var(--accent); opacity: 1; }
 .chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .dot { display: inline-block; width: 10px; height: 10px; flex: none; }
 .dot.fishing, .kind.fishing { color: #6fb7ff; } .dot.landmark, .kind.landmark { color: #ffd257; } .dot.home, .kind.home { color: #ffffff; } .dot.region, .kind.region { color: #ff8a5c; } .dot.hike, .kind.hike { color: #7fd68a; } .dot.trip, .kind.trip { color: #c79bff; }
@@ -472,10 +481,12 @@ figcaption { color: var(--dim); font-size: 16px; font-style: italic; line-height
   }
   #menu .opt { grid-template-columns: 14px minmax(0, 1fr); gap: 0 4px; padding: 10px 4px; white-space: nowrap; font-size: 11px; }
   #menu .opt:hover, #menu .opt:focus-visible { transform: none; }
+  #menu .opt:not(.menutoggle) { grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 4px 0; padding: 8px 2px; text-align: center; }   /* each picture above its word */
+  #menu .opt:not(.menutoggle)::before { display: none; } #menu .opt:not(.menutoggle)::after { grid-column: 1; grid-row: 1; } #menu .opt[aria-current="true"] { color: var(--accent); }
   /* folded: one row, the Menu button with the name of the screen that is up. Open: the full grid above it. */
   #menu:not(.open) .opt:not(.menutoggle) { display: none; }
-  #menutoggle { display: grid; grid-column: 1 / -1; grid-template-columns: 14px auto minmax(0, 1fr); } #menutoggle .where { color: var(--dim); text-align: right; overflow: hidden; text-overflow: ellipsis; }
-  #menu.open #menutoggle { border-top: 2px solid rgba(255, 255, 255, .3); margin-top: 4px; padding-top: 12px; } #menu.open #menutoggle .where::before { content: "Close"; color: var(--fg); } #menu.open #menutoggle .where { font-size: 0; } #menu.open #menutoggle .where::before { font-size: 11px; }
+  #menu #menutoggle { display: grid; grid-column: 1 / -1; grid-template-columns: 14px auto minmax(0, 1fr); } #menutoggle .where { color: var(--dim); text-align: right; overflow: hidden; text-overflow: ellipsis; }
+  #menu.open #menutoggle { border-top: 2px solid rgba(200, 160, 64, .4); margin-top: 4px; padding-top: 12px; } #menu.open #menutoggle .where::before { content: "Close"; color: var(--fg); } #menu.open #menutoggle .where { font-size: 0; } #menu.open #menutoggle .where::before { font-size: 11px; }
   #menu.open { grid-template-rows: auto; } #menu.open #menutoggle { order: 99; }
   #main { min-height: 0; padding: 16px 12px 20px; }
   .opt { padding-block: 9px; }
