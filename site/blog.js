@@ -2,8 +2,8 @@
    1. The ground: pale blue paper, washes of blue laid on it, silver-white ribbons and fine ink lines, painted by
       paintLeaf on the canvas behind everything, a little differently each visit.
    2. The words: posts.json (made from the editor's files by scripts/build-index.mjs) is read once, then the address
-      after # picks the page: #/ the poster, #/journal, #/post/<file>, #/photos, #/about. The side menu leads to each,
-      and lists the latest entries under Journal.
+      after # picks the page: #/ the poster, #/accounts (the writing), #/post/<file> (one account), #/visions (the
+      photographs), #/chronicler (about). The side menu leads to each, and lists the latest accounts beneath Accounts.
    3. The portrait on the poster is site/portrait.webp (or .png, .jpg); until there is one, a sketch stands in.
    4. The photographs open in a viewer that can be stepped through with the arrow keys or a swipe. */
 (() => {
@@ -138,6 +138,8 @@
   const plain = (src) => String(src || "").replace(/!\[[^\]]*\]\([^)]*\)/g, "").replace(/\[([^\]]+)\]\([^)]*\)/g, "$1").replace(/[#>*_`]/g, "").replace(/\s+/g, " ").trim();
   const lede = (src, words = 34) => { const w = plain(src).split(" "); return w.slice(0, words).join(" ") + (w.length > words ? "…" : ""); };
   const when = (iso) => { const d = new Date(iso + "T12:00:00"); return isNaN(d) ? "" : d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }); };
+  const ORDINAL = ["", "First", "Second", "Third", "Fourth", "Fifth", "Sixth", "Seventh", "Eighth", "Ninth", "Tenth", "Eleventh", "Twelfth", "Thirteenth", "Fourteenth", "Fifteenth", "Sixteenth", "Seventeenth", "Eighteenth", "Nineteenth", "Twentieth"];
+  const ordinal = (n) => ORDINAL[n] || "No. " + n;   /* "Account the Second" */
   const roman = (n) => { let s = ""; for (const [v, r] of [[1000, "M"], [900, "CM"], [500, "D"], [400, "CD"], [100, "C"], [90, "XC"], [50, "L"], [40, "XL"], [10, "X"], [9, "IX"], [5, "V"], [4, "IV"], [1, "I"]]) while (n >= v) { s += r; n -= v; } return s; };
   const sized = (src, dir) => (/^\/photos\//.test(src) ? "/" + dir + src.slice(7) + ".jpg" : src);
   const imgTag = (src, alt, dir) => `<img src="${esc(sized(src, dir))}" data-full="${esc(src)}" alt="${esc(alt)}" loading="lazy" decoding="async" onerror="if(this.src!==this.dataset.full)this.src=this.dataset.full">`;
@@ -160,10 +162,10 @@
     nav("home"); document.title = "Half Life";
     const p = DATA.posts[0];
     main.innerHTML = `<section class="poster" aria-label="Half Life">
-        <h1 class="poster-title">HALF LIFE</h1>
+        <h1 class="poster-title">Half <em>Life</em></h1>
         <div class="poster-rule" aria-hidden="true"></div>
         <div class="portrait"><img alt="Chris, drawn in ink and smoke" hidden></div>
-        ${p ? `<p class="latest">Most lately: <a href="#/post/${esc(p.file)}">${esc(p.title)}</a></p>` : ""}
+        ${p ? `<p class="latest">Lately set down: <a href="#/post/${esc(p.file)}">${esc(p.title)}</a></p>` : ""}
       </section>`;
     const box = $(".portrait"), img = $("img", box);
     const tryPic = (srcs) => { if (!srcs.length) { const cv = document.createElement("canvas"); cv.className = "sketch"; cv.setAttribute("aria-hidden", "true"); box.appendChild(cv); requestAnimationFrame(() => sketch(cv)); return; }
@@ -172,24 +174,24 @@
   }
 
   function showJournal() {
-    nav("journal"); document.title = "Journal · Half Life";
+    nav("accounts"); document.title = "Accounts · Half Life";
     const n = DATA.posts.length;
-    main.innerHTML = `<article class="sheet"><p class="kicker">The Journal</p><h1>Accounts</h1><p class="when">in no particular order of importance</p>${FLOURISH}
-      <ol class="contents">${DATA.posts.map((p, i) => `<li><a href="#/post/${esc(p.file)}"><span class="n">${roman(n - i)}</span><span><span class="t">${esc(p.title)}</span><span class="d">${esc(when(p.date))}</span></span><span class="l">${esc(lede(p.body))}</span></a></li>`).join("") || '<li class="empty">Nothing is written here yet.</li>'}</ol></article>`;
+    main.innerHTML = `<article class="sheet"><p class="kicker">Set down in ink</p><h1>Accounts</h1><p class="when">in no particular order of importance</p>${FLOURISH}
+      <ol class="contents">${DATA.posts.map((p, i) => `<li><a href="#/post/${esc(p.file)}"><span class="n">${roman(n - i)}</span><span><span class="t">${esc(p.title)}</span><span class="d">${esc(when(p.date))}</span></span><span class="l">${esc(lede(p.body))}</span></a></li>`).join("") || '<li class="empty">Nothing has yet been set down.</li>'}</ol></article>`;
   }
 
   function showPost(file) {
     const i = DATA.posts.findIndex((p) => p.file === file), p = DATA.posts[i];
-    if (!p) { location.replace("#/journal"); return; }
-    nav("journal", file); document.title = p.title + " · Half Life";
+    if (!p) { location.replace("#/accounts"); return; }
+    nav("accounts", file); document.title = p.title + " · Half Life";
     const n = DATA.posts.length, newer = DATA.posts[i - 1], older = DATA.posts[i + 1], coverInBody = p.cover && p.body.includes(p.cover);
     main.innerHTML = `<article class="sheet">
-        <p class="kicker">Entry ${roman(n - i)}</p><h1>${esc(p.title)}</h1><p class="when">${esc(when(p.date))}</p>${FLOURISH}
+        <p class="kicker">Account the ${ordinal(n - i)}</p><h1>${esc(p.title)}</h1><p class="when">${esc(when(p.date))}</p>${FLOURISH}
         ${p.cover && !coverInBody ? `<figure class="cover">${imgTag(p.cover, "", "large")}</figure>` : ""}
         <div class="prose">${markdown(p.body)}</div>
         <nav class="postnav" aria-label="More entries">
-          ${older ? `<a class="prev" href="#/post/${esc(older.file)}"><span class="k">&larr; Earlier</span><span class="t">${esc(older.title)}</span></a>` : "<span></span>"}
-          ${newer ? `<a class="next" href="#/post/${esc(newer.file)}"><span class="k">Later &rarr;</span><span class="t">${esc(newer.title)}</span></a>` : ""}
+          ${older ? `<a class="prev" href="#/post/${esc(older.file)}"><span class="k">&larr; The account before</span><span class="t">${esc(older.title)}</span></a>` : "<span></span>"}
+          ${newer ? `<a class="next" href="#/post/${esc(newer.file)}"><span class="k">The account after &rarr;</span><span class="t">${esc(newer.title)}</span></a>` : ""}
         </nav>
       </article>`;
     const pics = [...main.querySelectorAll(".prose figure img, .cover img")];
@@ -204,23 +206,23 @@
     return list;
   }
   function showPhotos() {
-    nav("photos"); document.title = "Photographs · Half Life";
+    nav("visions"); document.title = "Visions · Half Life";
     const all = allPhotos();
-    main.innerHTML = `<article class="sheet wide"><p class="kicker">The Collection</p><h1>Photographs</h1><p class="when">what the light allowed</p>${FLOURISH}
+    main.innerHTML = `<article class="sheet wide"><p class="kicker">Gathered while the light obliged</p><h1>Visions</h1><p class="when">plates taken before the sun thinks better of it</p>${FLOURISH}
       <div class="gallery">${all.map((ph, k) => `<button type="button" data-k="${k}" aria-label="${esc(ph.caption || "Open photograph " + (k + 1))}">${imgTag(ph.src, ph.caption, "thumbs")}</button>`).join("") || '<p class="empty">The plates are still drying.</p>'}</div></article>`;
     main.querySelectorAll(".gallery button").forEach((b) => b.addEventListener("click", () => view(all, +b.dataset.k)));
   }
 
   function showAbout() {
-    nav("about"); document.title = "About · Half Life";
-    main.innerHTML = `<article class="sheet about"><p class="kicker">On the name</p><h1>About</h1>${FLOURISH}${markdown(DATA.about) || '<p class="empty">To be written.</p>'}</article>`;
+    nav("chronicler"); document.title = "The Chronicler · Half Life";
+    main.innerHTML = `<article class="sheet about"><p class="kicker">Concerning the one who keeps this record</p><h1>The Chronicler</h1>${FLOURISH}${markdown(DATA.about) || '<p class="empty">This remains to be set down.</p>'}</article>`;
   }
 
   function route() {
     const h = decodeURIComponent(location.hash.replace(/^#\/?/, ""));
     if (/^\d{4}-\d{2}-\d{2}-/.test(h)) { location.replace("#/post/" + h); return; }   // links from the old site
     const [what, arg] = h.split("/");
-    if (what === "post" && arg) showPost(arg); else if (what === "journal") showJournal(); else if (what === "photos") showPhotos(); else if (what === "about") showAbout(); else showHome();
+    if (what === "post" && arg) showPost(arg); else if (what === "accounts" || what === "journal") showJournal(); else if (what === "visions" || what === "photos") showPhotos(); else if (what === "chronicler" || what === "about") showAbout(); else showHome();   /* the old names still lead to the same pages */
     scrollTo({ top: 0, behavior: "instant" });
   }
   addEventListener("hashchange", route);
