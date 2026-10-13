@@ -17,7 +17,7 @@
 <link rel="stylesheet" href="/site/blog.css">
 </head>
 <body class="home">
-<a class="skip" href="#main">Skip to the accounts</a>
+<a class="skip" href="#main">Skip to the posts</a>
 <canvas id="leaf" aria-hidden="true"></canvas>
 
 <aside class="side">
@@ -27,13 +27,22 @@
   </a>
   <button class="menutoggle" type="button" aria-expanded="false" aria-controls="menu">Menu</button>
   <nav class="menu" id="menu" aria-label="Sections">
-    <ol>
-      <li><a href="#/accounts" data-route="accounts"><span class="num">I</span><span class="name">Accounts</span></a><ol class="entries" id="entries"></ol></li>
-      <li><a href="#/visions" data-route="visions"><span class="num">II</span><span class="name">Visions</span></a></li>
-      <li><a href="#/chronicler" data-route="chronicler"><span class="num">III</span><span class="name">The Chronicler</span></a></li>
-    </ol>
+    <div class="menuwin cmdwin">
+      <ol class="cmds">
+        <li><a href="#/posts" data-route="posts" data-say="Read what has been set down, most lately first."><span class="name">Posts</span><span class="count" id="postcount"></span></a></li>
+        <li><a href="#/visions" data-route="visions" data-say="Look upon what the light allowed, before it thought better of it."><span class="name">Visions</span><span class="count" id="photocount"></span></a></li>
+        <li><a href="#/about" data-route="about" data-say="Learn something of the one who keeps this record."><span class="name">About</span></a></li>
+      </ol>
+      <i class="pointer" aria-hidden="true"></i>
+    </div>
+    <div class="menuwin postwin">
+      <p class="wintitle">Lately set down</p>
+      <ol class="entries" id="entries"></ol>
+      <i class="pointer" aria-hidden="true"></i>
+    </div>
+    <div class="menuwin saywin" aria-live="polite"><p id="say">Everything is already changing.</p></div>
+    <button class="soundtoggle" type="button" id="sound" aria-pressed="true">Sound <span>on</span></button>
   </nav>
-  <p class="motto">Everything is already changing.<br>One may as well go see what it becomes.</p>
   <p class="colophon">Kept by Chris, of San Francisco</p>
 </aside>
 

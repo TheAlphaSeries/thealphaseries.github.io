@@ -2,13 +2,14 @@
    1. The ground: pale blue paper, washes of blue laid on it, silver-white ribbons and fine ink lines, painted by
       paintLeaf on the canvas behind everything, a little differently each visit.
    2. The words: posts.json (made from the editor's files by scripts/build-index.mjs) is read once, then the address
-      after # picks the page: #/ the poster, #/accounts (the writing), #/post/<file> (one account), #/visions (the
-      photographs), #/chronicler (about). The side menu leads to each, and lists the latest accounts beneath Accounts.
+      after # picks the page: #/ the poster, #/posts, #/post/<file> (one post), #/visions (the photographs),
+      #/about. The side menu leads to each, as an old game's menu would (see "the menu" below).
    3. The portrait on the poster is site/portrait.webp (or .png, .jpg); until there is one, a sketch stands in.
    4. The photographs open in a viewer that can be stepped through with the arrow keys or a swipe. */
 (() => {
   "use strict";
   const $ = (s, el = document) => el.querySelector(s);
+  const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
   /* ------------------------------------------------------------------ the gold and the ink -------------------- */
@@ -139,7 +140,7 @@
   const lede = (src, words = 34) => { const w = plain(src).split(" "); return w.slice(0, words).join(" ") + (w.length > words ? "…" : ""); };
   const when = (iso) => { const d = new Date(iso + "T12:00:00"); return isNaN(d) ? "" : d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }); };
   const ORDINAL = ["", "First", "Second", "Third", "Fourth", "Fifth", "Sixth", "Seventh", "Eighth", "Ninth", "Tenth", "Eleventh", "Twelfth", "Thirteenth", "Fourteenth", "Fifteenth", "Sixteenth", "Seventeenth", "Eighteenth", "Nineteenth", "Twentieth"];
-  const ordinal = (n) => ORDINAL[n] || "No. " + n;   /* "Account the Second" */
+  const ordinal = (n) => ORDINAL[n] || "No. " + n;   /* "The Second Post" */
   const roman = (n) => { let s = ""; for (const [v, r] of [[1000, "M"], [900, "CM"], [500, "D"], [400, "CD"], [100, "C"], [90, "XC"], [50, "L"], [40, "XL"], [10, "X"], [9, "IX"], [5, "V"], [4, "IV"], [1, "I"]]) while (n >= v) { s += r; n -= v; } return s; };
   const sized = (src, dir) => (/^\/photos\//.test(src) ? "/" + dir + src.slice(7) + ".jpg" : src);
   const imgTag = (src, alt, dir) => `<img src="${esc(sized(src, dir))}" data-full="${esc(src)}" alt="${esc(alt)}" loading="lazy" decoding="async" onerror="if(this.src!==this.dataset.full)this.src=this.dataset.full">`;
@@ -150,12 +151,63 @@
 
   function nav(route, file) {
     document.body.classList.toggle("home", route === "home");
-    document.querySelectorAll(".menu > ol > li > a").forEach((a) => (a.dataset.route === route ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current")));
+    document.querySelectorAll(".cmds a").forEach((a) => (a.dataset.route === route ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current")));
     document.querySelectorAll("#entries a").forEach((a) => (a.dataset.file === file ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current")));
     side.classList.remove("open"); $(".menutoggle").setAttribute("aria-expanded", "false");
+    choose(document.querySelector('.menu a[aria-current="page"]') || document.querySelector(".cmds a"), true);
   }
   function menuEntries() {
-    $("#entries").innerHTML = DATA.posts.slice(0, 6).map((p) => `<li><a href="#/post/${esc(p.file)}" data-file="${esc(p.file)}"><span class="d">${esc(when(p.date))}</span>${esc(p.title)}</a></li>`).join("");
+    $("#entries").innerHTML = DATA.posts.slice(0, 5).map((p) => `<li><a href="#/post/${esc(p.file)}" data-file="${esc(p.file)}" data-say="${esc(lede(p.body, 16))}"><span class="d">${esc(when(p.date))}</span>${esc(p.title)}</a></li>`).join("");
+    $("#postcount").textContent = DATA.posts.length || ""; $("#photocount").textContent = allPhotos().length || "";
+    menuItems().forEach((a) => { a.addEventListener("mouseenter", () => choose(a)); a.addEventListener("focus", () => choose(a)); a.addEventListener("click", () => blip("pick")); });
+  }
+
+  /* ------------------------------------------------------------------ the menu -------------------------------- */
+  // As in an old game: one thing is chosen at a time; the pointer slides to it and bobs; the window at the foot says
+  // what it does, a letter at a time; the arrow keys move the choice, Enter takes it, 1 2 3 jump to the commands.
+  const menuItems = () => [...document.querySelectorAll(".cmds a, #entries a")];
+  let chosen = null, sayTimer = 0;
+  function choose(a, quiet) {
+    if (!a || a === chosen) return;
+    chosen = a; menuItems().forEach((x) => x.classList.toggle("sel", x === a));
+    document.querySelectorAll(".menuwin").forEach((w) => w.classList.toggle("active", w.contains(a)));
+    const win = a.closest(".menuwin"), ptr = $(".pointer", win), r = a.getBoundingClientRect(), wr = win.getBoundingClientRect();
+    ptr.style.top = (r.top - wr.top + r.height / 2 - 8) + "px";
+    say(a.dataset.say || "");
+    if (!quiet) blip("move");
+  }
+  function say(text) {
+    const el = $("#say"); clearInterval(sayTimer);
+    if (still) { el.textContent = text; return; }
+    let i = 0; el.textContent = "";
+    sayTimer = setInterval(() => { el.textContent = text.slice(0, ++i); if (i >= text.length) clearInterval(sayTimer); }, 16);
+  }
+  addEventListener("keydown", (e) => {
+    if (!viewer.hidden || e.metaKey || e.ctrlKey || e.altKey || /input|textarea|select/i.test(document.activeElement.tagName)) return;
+    const items = menuItems(); if (!items.length) return;
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault(); const i = items.indexOf(chosen), next = items[(i + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length];
+      choose(next); next.focus({ preventScroll: true });
+    } else if (/^[1-3]$/.test(e.key)) { const a = document.querySelectorAll(".cmds a")[+e.key - 1]; if (a) { choose(a, true); blip("pick"); location.hash = a.getAttribute("href"); } }
+    else if (e.key === "Enter" && chosen && document.activeElement === document.body) { blip("pick"); location.hash = chosen.getAttribute("href"); }
+  });
+
+  // the sounds: a short soft tick when the choice moves, two notes when it is taken. Off with the button at the foot.
+  const soundBtn = $("#sound"); let audio = null, soundOn = true;
+  try { soundOn = localStorage.getItem("hl-sound") !== "off"; } catch (e) {}
+  const showSound = () => { soundBtn.setAttribute("aria-pressed", String(soundOn)); $("span", soundBtn).textContent = soundOn ? "on" : "off"; };
+  showSound();
+  soundBtn.addEventListener("click", () => { soundOn = !soundOn; try { localStorage.setItem("hl-sound", soundOn ? "on" : "off"); } catch (e) {} showSound(); blip("pick"); });
+  function tone(f, t0, dur, vol) {
+    const o = audio.createOscillator(), g = audio.createGain();
+    o.type = "triangle"; o.frequency.value = f; g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(vol, t0 + .006); g.gain.exponentialRampToValueAtTime(.0001, t0 + dur);
+    o.connect(g).connect(audio.destination); o.start(t0); o.stop(t0 + dur + .02);
+  }
+  function blip(kind) {
+    if (!soundOn || !navigator.userActivation?.hasBeenActive) return;   // never before the visitor has touched the page
+    try { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return; }
+    const t = audio.currentTime;
+    if (kind === "pick") { tone(880, t, .09, .05); tone(1320, t + .07, .14, .045); } else tone(660, t, .05, .035);
   }
 
   function showHome() {
@@ -174,24 +226,24 @@
   }
 
   function showJournal() {
-    nav("accounts"); document.title = "Accounts · Half Life";
+    nav("posts"); document.title = "Posts · Half Life";
     const n = DATA.posts.length;
-    main.innerHTML = `<article class="sheet"><p class="kicker">Set down in ink</p><h1>Accounts</h1><p class="when">in no particular order of importance</p>${FLOURISH}
+    main.innerHTML = `<article class="sheet"><p class="kicker">Set down in ink</p><h1>Posts</h1><p class="when">in no particular order of importance</p>${FLOURISH}
       <ol class="contents">${DATA.posts.map((p, i) => `<li><a href="#/post/${esc(p.file)}"><span class="n">${roman(n - i)}</span><span><span class="t">${esc(p.title)}</span><span class="d">${esc(when(p.date))}</span></span><span class="l">${esc(lede(p.body))}</span></a></li>`).join("") || '<li class="empty">Nothing has yet been set down.</li>'}</ol></article>`;
   }
 
   function showPost(file) {
     const i = DATA.posts.findIndex((p) => p.file === file), p = DATA.posts[i];
-    if (!p) { location.replace("#/accounts"); return; }
-    nav("accounts", file); document.title = p.title + " · Half Life";
+    if (!p) { location.replace("#/posts"); return; }
+    nav("posts", file); document.title = p.title + " · Half Life";
     const n = DATA.posts.length, newer = DATA.posts[i - 1], older = DATA.posts[i + 1], coverInBody = p.cover && p.body.includes(p.cover);
     main.innerHTML = `<article class="sheet">
-        <p class="kicker">Account the ${ordinal(n - i)}</p><h1>${esc(p.title)}</h1><p class="when">${esc(when(p.date))}</p>${FLOURISH}
+        <p class="kicker">The ${ordinal(n - i)} Post</p><h1>${esc(p.title)}</h1><p class="when">${esc(when(p.date))}</p>${FLOURISH}
         ${p.cover && !coverInBody ? `<figure class="cover">${imgTag(p.cover, "", "large")}</figure>` : ""}
         <div class="prose">${markdown(p.body)}</div>
         <nav class="postnav" aria-label="More entries">
-          ${older ? `<a class="prev" href="#/post/${esc(older.file)}"><span class="k">&larr; The account before</span><span class="t">${esc(older.title)}</span></a>` : "<span></span>"}
-          ${newer ? `<a class="next" href="#/post/${esc(newer.file)}"><span class="k">The account after &rarr;</span><span class="t">${esc(newer.title)}</span></a>` : ""}
+          ${older ? `<a class="prev" href="#/post/${esc(older.file)}"><span class="k">&larr; The post before</span><span class="t">${esc(older.title)}</span></a>` : "<span></span>"}
+          ${newer ? `<a class="next" href="#/post/${esc(newer.file)}"><span class="k">The post after &rarr;</span><span class="t">${esc(newer.title)}</span></a>` : ""}
         </nav>
       </article>`;
     const pics = [...main.querySelectorAll(".prose figure img, .cover img")];
@@ -214,15 +266,15 @@
   }
 
   function showAbout() {
-    nav("chronicler"); document.title = "The Chronicler · Half Life";
-    main.innerHTML = `<article class="sheet about"><p class="kicker">Concerning the one who keeps this record</p><h1>The Chronicler</h1>${FLOURISH}${markdown(DATA.about) || '<p class="empty">This remains to be set down.</p>'}</article>`;
+    nav("about"); document.title = "About · Half Life";
+    main.innerHTML = `<article class="sheet about"><p class="kicker">Concerning the one who keeps this record</p><h1>About</h1>${FLOURISH}${markdown(DATA.about) || '<p class="empty">This remains to be set down.</p>'}</article>`;
   }
 
   function route() {
     const h = decodeURIComponent(location.hash.replace(/^#\/?/, ""));
     if (/^\d{4}-\d{2}-\d{2}-/.test(h)) { location.replace("#/post/" + h); return; }   // links from the old site
     const [what, arg] = h.split("/");
-    if (what === "post" && arg) showPost(arg); else if (what === "accounts" || what === "journal") showJournal(); else if (what === "visions" || what === "photos") showPhotos(); else if (what === "chronicler" || what === "about") showAbout(); else showHome();   /* the old names still lead to the same pages */
+    if (what === "post" && arg) showPost(arg); else if (["posts", "accounts", "journal"].includes(what)) showJournal(); else if (what === "visions" || what === "photos") showPhotos(); else if (["about", "chronicler"].includes(what)) showAbout(); else showHome();   /* the old names still lead to the same pages */
     scrollTo({ top: 0, behavior: "instant" });
   }
   addEventListener("hashchange", route);
