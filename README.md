@@ -23,5 +23,6 @@ The site updates itself a minute or two after saving.
    photos in `thumbs/` and `large/`. Both run by themselves (`.github/workflows/build-index.yml`).
 3. Cloudflare publishes the result (`wrangler.jsonc`, `scripts/worker.js`).
 
-The page itself is `index.html`, `site/blog.css` (the look: colours at the top) and `site/blog.js` (the painted sky,
-which is made fresh on every visit, and the pages).
+The page itself is `index.html`, `site/blog.css` (the look: colours at the top) and `site/blog.js` (the gold leaf,
+silver washes and ink painted behind everything, a little differently each visit, and the pages). The portrait on the
+home page is `site/portrait.jpg`; until it exists a stand-in is drawn.
