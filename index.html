@@ -2,111 +2,53 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Half Life</title>
-<meta name="description" content="Half Life. Photographs, a log, a bestiary of fish and a map of where it all happened. By Chris.">
-<meta name="theme-color" content="#02040f">
+<meta name="description" content="Half Life: the journal of Chris, of San Francisco. Thoughts and photographs, kept while everything changes.">
+<meta name="theme-color" content="#0d0907">
 <meta property="og:title" content="Half Life">
-<meta property="og:description" content="Photographs, a log, a bestiary of fish and a map of where it all happened. By Chris.">
-<meta property="og:site_name" content="Half Life">
+<meta property="og:description" content="Thoughts and photographs, kept while everything changes.">
 <meta property="og:image" content="https://halflife.studio/og.png">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Half Life: a hooded pixel figure with three glowing eyes, an orb and a staff, under a dying red sun.">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Half Life">
-<meta name="twitter:description" content="Photographs, a log, a bestiary of fish and a map of where it all happened. By Chris.">
-<meta name="twitter:image" content="https://halflife.studio/og.png">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://halflife.studio/">
-<link rel="canonical" href="https://halflife.studio/">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23000'/%3E%3Ccircle cx='16' cy='16' r='11' fill='none' stroke='%23fff' stroke-width='2'/%3E%3Cpath d='M16 5a11 11 0 0 0 0 22z' fill='%23fff'/%3E%3C/svg%3E">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=DotGothic16&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&display=swap">
-<style>
-:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
-body { margin: 0; }
-img { max-width: 100%; }
-[hidden] { display: none !important; }
-</style>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/site/blog.css">
 </head>
-<body>
-<link rel="stylesheet" href="site/site.css">
+<body class="home">
+<a class="skip" href="#main">Skip to the writing</a>
+<div class="progress" aria-hidden="true"><i id="progress"></i></div>
 
-<canvas id="sky" aria-hidden="true"></canvas>
-
-<div class="stage" id="stage">
-  <div class="win" id="titlebar"><span class="site">HALF LIFE</span><span id="helpline" aria-live="off"></span></div>
-
-  <main class="win" id="main" tabindex="-1"></main>
-
-  <nav class="win" id="menu" aria-label="Commands">
-    <button class="opt menutoggle" type="button" id="menutoggle" aria-expanded="false"><span>Menu</span><span class="where" id="menuwhere"></span></button>
-    <button class="opt" type="button" id="m-files">Log</button>
-    <button class="opt" type="button" id="m-quests">Quests</button>
-    <button class="opt" type="button" id="m-chron">Chronicle</button>
-    <button class="opt" type="button" id="m-bestiary">Bestiary</button>
-    <button class="opt" type="button" id="m-plants">Herbarium</button>
-    <button class="opt" type="button" id="m-photos">Photos</button>
-    <button class="opt" type="button" id="m-map">Map</button>
-    <button class="opt" type="button" id="m-status">Status</button>
-    <button class="opt" type="button" id="m-gear">Equipment</button>
-    <button class="opt locked" type="button" id="m-prints" disabled>Shop</button>
-    <button class="opt" type="button" id="m-about">About</button>
-    <button class="opt" type="button" id="m-how">Help</button>
-    <button class="opt" type="button" id="m-music" aria-pressed="true">Music Off</button>
+<header class="masthead">
+  <canvas id="sky" aria-hidden="true"></canvas>
+  <svg id="filigree" aria-hidden="true" focusable="false"></svg>
+  <div class="shade" aria-hidden="true"></div>
+  <nav class="nav" aria-label="Sections">
+    <a class="brand" href="#/">Half Life</a>
+    <span class="links"><a href="#/" data-route="journal">Journal</a><a href="#/photos" data-route="photos">Photographs</a><a href="#/about" data-route="about">About</a></span>
   </nav>
-
-  <dl class="win" id="status">
-    <dt>Level</dt><dd id="lvl">-</dd>
-    <dt>Entries</dt><dd id="count">0</dd>
-    <dt>Saved</dt><dd id="latest">-</dd>
-    <dt>Complete</dt><dd id="pct">-</dd>
-    <dt>Time</dt><dd id="clock">--:--:--</dd>
-  </dl>
-
-  <button class="win" id="minimap" type="button" aria-label="Open the map"><canvas aria-hidden="true"></canvas><span>Map</span></button>
-</div>
-
-<div id="reader" hidden><article class="win" id="readerwin" tabindex="-1" role="dialog" aria-modal="true" aria-label="Log entry"></article></div>
-
-<div id="zoom" hidden>
-  <img alt="">
-  <p></p>
-  <div class="zoomnav" hidden><button type="button" id="zprev" aria-label="Previous photo">Prev</button><span id="zcount"></span><button type="button" id="znext" aria-label="Next photo">Next</button></div>
-</div>
-
-<div id="moments" aria-live="polite"></div>
-<div id="intro"><div id="vista" aria-hidden="true"><img src="title/far.png" alt=""><img src="title/city.png" alt=""><img src="title/ledge.png" alt=""></div><div class="titlewrap">
-  <canvas id="sprite" width="232" height="264" aria-hidden="true"></canvas>
-  <div class="win">
-  <div class="name">HALF LIFE</div>
-  <div class="tagline">Still receiving...</div>
-  <p class="firstline" id="firstline" hidden>The log of Chris, of San Francisco: what he wrote, caught, grew and saw, kept the way an old game keeps a save. Nothing here asks for an account.</p>
-  <button class="opt start" id="startbtn" type="button">Start</button>
-  <button class="opt start" id="continuebtn" type="button" hidden></button>
+  <div class="hero" id="hero">
+    <h1 class="title">Half <em>Life</em></h1>
+    <p class="motto">Everything is already changing. One may as well go see what it becomes.</p>
   </div>
-</div></div>
+  <a class="descend" href="#main" aria-label="Down to the journal"><svg viewBox="0 0 40 60" aria-hidden="true"><path d="M20 4 C 8 18, 32 26, 20 40 M20 40 l-7 -7 M20 40 l7 -7"/></svg></a>
+</header>
 
-<!-- The page is drawn by the scripts in site/, read in this order (site/README.md says what each does). figures.js draws the companions. -->
-<script src="figures.js"></script>
-<script src="site/01-content.js"></script>
-<script src="site/02-home.js"></script>
-<script src="site/03-bestiary.js"></script>
-<script src="site/04-text.js"></script>
-<script src="site/05-popout.js"></script>
-<script src="site/06-photos.js"></script>
-<script src="site/07-map.js"></script>
-<script src="site/08-status.js"></script>
-<script src="site/09-menu.js"></script>
-<script src="site/10-figure.js"></script>
-<script src="site/11-sky.js"></script>
-<script src="site/12-music.js"></script>
-<script src="site/13-moments.js"></script>
-<script src="site/14-touches.js"></script>
-<script src="site/15-sayings.js"></script>
-<script src="site/16-fishing.js"></script>
-<script src="site/17-start.js"></script>
+<main id="main" tabindex="-1"><p class="loading">Unrolling the pages&hellip;</p></main>
+
+<footer class="footer">
+  <svg class="fleuron" viewBox="0 0 240 30" aria-hidden="true"><path d="M2 15 H86 M154 15 H238 M120 3 C 104 3, 98 27, 120 27 C 142 27, 136 3, 120 3 Z M120 9 C 112 9, 110 21, 120 21 C 130 21, 128 9, 120 9 M86 15 C 94 9, 100 9, 106 15 M154 15 C 146 21, 140 21, 134 15"/></svg>
+  <p>Half Life &middot; kept by Chris, of San Francisco</p>
+</footer>
+
+<div class="viewer" id="viewer" hidden role="dialog" aria-modal="true" aria-label="Photograph">
+  <button class="vclose" type="button" aria-label="Close">&times;</button>
+  <button class="vprev" type="button" aria-label="Previous photograph">&lsaquo;</button>
+  <figure><img alt=""><figcaption></figcaption></figure>
+  <button class="vnext" type="button" aria-label="Next photograph">&rsaquo;</button>
+</div>
+
+<script src="/site/blog.js" defer></script>
 </body>
 </html>

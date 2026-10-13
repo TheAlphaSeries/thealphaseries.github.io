@@ -1,12 +1,8 @@
 // Gathers everything written in the editor into posts.json, the single file the site loads.
 //
-//   posts/      log entries            ->  "posts"
-//   bestiary/   one file per fish      ->  "bestiary"   (pages/bestiary.md -> "bestiary_intro")
-//   albums/     photo albums           ->  "albums"
-//   places/     map pins and landmarks ->  "places"
-//   quests/     the quest log          ->  "quests"     (no dates are published, on purpose)
-//   plants/     the herbarium          ->  "plants"     (pages/bonsai.md, pages/houseplants.md -> "plants_intro")
-//   pages/about.md                     ->  "about"
+//   posts/      the journal: one file per post    ->  "posts"
+//   albums/     photo albums                      ->  "albums"
+//   pages/about.md                                ->  "about"
 //
 // Each file is a small header between two "---" lines (name: value pairs, and lists) followed by
 // the writing itself. parse() reads that shape; the rest of this script picks out the fields the
@@ -59,112 +55,36 @@ const str = (v) => (Array.isArray(v) ? v.join(" ") : String(v == null ? "" : v))
 const list = (v) => (Array.isArray(v) ? v : str(v) ? [str(v)] : []).filter((x) => typeof x !== "object").map((x) => String(x).trim()).filter(Boolean);
 const isoDay = (v) => { const d = /^\d{4}-\d{2}-\d{2}/.exec(str(v)); return d ? d[0] : ""; };
 
+const photo = (v) => str(v).trim().replace(/^\/+/, "/");   // "/photos/x.jpg" as the editor writes it
+
+// Posts: one file per post in posts/, newest first. A post may name a cover photo; its first picture otherwise.
 const posts = [];
 if (existsSync("posts")) {
   for (const name of readdirSync("posts")) {
     if (!name.endsWith(".md")) continue;
     const { meta, body } = parse(readFileSync("posts/" + name, "utf8"));
-    const date = /^\d{4}-\d{2}-\d{2}/.exec(String(meta.date || "")) || /^\d{4}-\d{2}-\d{2}/.exec(name);
-    posts.push({ file: name.replace(/\.md$/, ""), title: String(meta.title || name.replace(/\.md$/, "")), date: date ? date[0] : "", place: str(meta.place), body });
+    const first = /!\[[^\]]*\]\(([^)\s]+)/.exec(body);
+    posts.push({ file: name.replace(/\.md$/, ""), title: str(meta.title) || name.replace(/\.md$/, ""), date: isoDay(meta.date) || isoDay(name),
+      cover: photo(meta.cover) || (first ? first[1] : ""), body });
   }
 }
 posts.sort((a, b) => b.date.localeCompare(a.date) || b.file.localeCompare(a.file));
-// The bestiary: one file per fish caught in bestiary/, listed in file-name order.
-const bestiary = [];
-if (existsSync("bestiary")) {
-  for (const name of readdirSync("bestiary").sort()) {
-    if (!name.endsWith(".md")) continue;
-    const { meta, body } = parse(readFileSync("bestiary/" + name, "utf8"));
-    const num = (v) => { const n = parseFloat(v); return Number.isFinite(n) && n > 0 ? n : null; };
-    const day = /^\d{4}-\d{2}-\d{2}/.exec(String(meta.date || ""));
-    bestiary.push({ file: name.replace(/\.md$/, ""), name: String(meta.name || name.replace(/\.md$/, "")), sprite: String(meta.sprite || "fish"),
-      date: day ? day[0] : "", weight: num(meta.weight), length: num(meta.length), location: String(meta.location || ""),
-      rarity: String(meta.rarity || "").toLowerCase(), catch_rate: num(meta.catch_rate), fight: num(meta.fight), lure: String(meta.lure || ""),
-      photo: String(meta.photo || ""), status: /^(wanted|uncaught|no)$/i.test(str(meta.status).trim()) ? "wanted" : "caught", lore: body });
-  }
-}
+
 // Photo albums: one file per album in albums/, newest first.
 const albums = [];
 if (existsSync("albums")) {
   for (const name of readdirSync("albums")) {
     if (!name.endsWith(".md")) continue;
-    const { meta, body } = parse(readFileSync("albums/" + name, "utf8"));
-    const file = name.replace(/\.md$/, "");
-    albums.push({ file, title: str(meta.title) || file, date: isoDay(meta.date) || isoDay(name), place: str(meta.place), photos: list(meta.photos), body,
+    const file = name.replace(/\.md$/, ""), { meta, body } = parse(readFileSync("albums/" + name, "utf8"));
+    albums.push({ file, title: str(meta.title) || file, date: isoDay(meta.date) || isoDay(name), photos: list(meta.photos).map(photo), body,
       // captions: which photo, and what to say under it. Kept apart from the photo list so photos can still be added many at a time.
       captions: (Array.isArray(meta.captions) ? meta.captions : []).filter((c) => c && typeof c === "object" && str(c.photo).trim() && str(c.caption).trim())
-        .map((c) => ({ photo: str(c.photo).trim(), caption: str(c.caption).trim() })) });
+        .map((c) => ({ photo: photo(c.photo), caption: str(c.caption).trim() })) });
   }
 }
 albums.sort((a, b) => b.date.localeCompare(a.date) || b.file.localeCompare(a.file));
-// Reads coordinates pasted as "37.7297, -122.1040" (or with N/S/E/W). Gives [null, null] if they make no sense.
-function coords(v) {
-  const c = /(-?\d+(?:\.\d+)?)\s*°?\s*([NS])?[\s,;]+(-?\d+(?:\.\d+)?)\s*°?\s*([EW])?/i.exec(str(v));
-  if (!c) return [null, null];
-  const lat = parseFloat(c[1]) * (/s/i.test(c[2] || "") ? -1 : 1), lng = parseFloat(c[3]) * (/w/i.test(c[4] || "") ? -1 : 1);
-  return Math.abs(lat) <= 90 && Math.abs(lng) <= 180 ? [lat, lng] : [null, null];
-}
-// Map pins: one file per place in places/. Coordinates are pasted as "latitude, longitude".
-const places = [];
-if (existsSync("places")) {
-  for (const name of readdirSync("places").sort()) {
-    if (!name.endsWith(".md")) continue;
-    const { meta, body } = parse(readFileSync("places/" + name, "utf8"));
-    const file = name.replace(/\.md$/, "");
-    const [lat, lng] = coords(meta.coordinates);
-    places.push({ file, name: str(meta.name) || file, kind: str(meta.kind).toLowerCase() || "landmark", lat, lng, date: isoDay(meta.date), photo: str(meta.photo),
-      trip: str(meta.trip).trim(), stop: Number.isFinite(parseFloat(meta.stop)) ? parseFloat(meta.stop) : null, note: body,
-      landmarks: (Array.isArray(meta.landmarks) ? meta.landmarks : []).filter((l) => l && typeof l === "object" && String(l.name || "").trim())
-        .map((l) => { const [lat, lng] = coords(l.coordinates); return { name: String(l.name).trim(), icon: String(l.icon || "").trim().toLowerCase(), visited: /^(true|yes|1)$/i.test(String(l.visited || "").trim()), lat, lng }; }) });
-  }
-}
-// Quests: one file per quest in quests/. Upcoming trips and other things set out to do, each with objectives to tick off.
-const quests = [];
-if (existsSync("quests")) {
-  for (const name of readdirSync("quests").sort()) {
-    if (!name.endsWith(".md")) continue;
-    const { meta, body } = parse(readFileSync("quests/" + name, "utf8"));
-    const file = name.replace(/\.md$/, "");
-    quests.push({ file, title: str(meta.title) || file, status: /^(done|complete|completed)$/i.test(str(meta.status).trim()) ? "completed" : "active",
-      order: Number.isFinite(parseFloat(meta.order)) ? parseFloat(meta.order) : null, when: str(meta.when).trim(), place: str(meta.place).trim(), body,   // no dates for what lies ahead, on purpose: the site is public
-      // the game side of a quest: how hard, what sort, what it pays. The day it was finished is in the past, so it may be shown.
-      difficulty: Number.isFinite(parseInt(meta.difficulty, 10)) ? parseInt(meta.difficulty, 10) : null, kind: str(meta.kind).trim().toLowerCase(), reward: str(meta.reward).trim(),
-      exp: Number.isFinite(parseInt(meta.exp, 10)) ? parseInt(meta.exp, 10) : null, completed: /^\d{4}-\d{2}-\d{2}/.test(str(meta.completed)) ? str(meta.completed).slice(0, 10) : "",
-      // once it is finished: how well it went, who stood out, the album of it, and the report of how it went
-      grade: /^[SABCD]$/.test(str(meta.grade).trim().toUpperCase()) ? str(meta.grade).trim().toUpperCase() : "", commended: str(meta.commended).trim(), album: str(meta.album).trim(), report: str(meta.report).trim(),
-      // posts in the company that a friend can ask for by name; "held" marks one already taken (by Chris, say)
-      roles: (Array.isArray(meta.roles) ? meta.roles : []).filter((r) => r && typeof r === "object" && String(r.name || "").trim())
-        .map((r) => ({ name: String(r.name).trim(), about: String(r.about || "").trim(), held: String(r.held || "").trim() })),
-      objectives: (Array.isArray(meta.objectives) ? meta.objectives : []).filter((o) => o && typeof o === "object" && String(o.text || "").trim())
-        .map((o) => ({ text: String(o.text).trim(), done: /^(true|yes|1)$/i.test(String(o.done || "").trim()) })) });
-  }
-}
-// The herbarium: one file per plant in plants/, in file-name order. Each is a bonsai or a house plant, living or perished.
-const plants = [];
-if (existsSync("plants")) {
-  for (const name of readdirSync("plants").sort()) {
-    if (!name.endsWith(".md")) continue;
-    const { meta, body } = parse(readFileSync("plants/" + name, "utf8"));
-    const file = name.replace(/\.md$/, ""), n = parseInt(str(meta.count), 10), t = parseInt(str(meta.temper), 10);
-    plants.push({ file, name: str(meta.name) || file, botanical: str(meta.botanical), kind: /^bonsai$/i.test(str(meta.kind).trim()) ? "bonsai" : "house",
-      sprite: str(meta.sprite).trim().toLowerCase() || "plant", status: /^(perished|dead|killed)$/i.test(str(meta.status).trim()) ? "perished" : "living",
-      count: n >= 1 && n <= 999 ? n : 1, rarity: str(meta.rarity).toLowerCase(), temper: t >= 1 && t <= 5 ? t : null,
-      light: str(meta.light), water: str(meta.water), acquired: isoDay(meta.acquired), photo: str(meta.photo), lore: body });
-  }
-}
-const page = (f) => (existsSync("pages/" + f) ? parse(readFileSync("pages/" + f, "utf8")).body : "");
-const plantsIntro = { bonsai: page("bonsai.md"), house: page("houseplants.md") };
-// The Status screen: a name, a class and a few words (pages/status.md). The numbers on that screen are counted by the site itself.
-const statusPage = existsSync("pages/status.md") ? parse(readFileSync("pages/status.md", "utf8")) : { meta: {}, body: "" };
-const status = { name: str(statusPage.meta.name), class: str(statusPage.meta.class), home: str(statusPage.meta.home), body: statusPage.body,
-  // what the keeper wears and carries, slot by slot
-  equipment: (Array.isArray(statusPage.meta.equipment) ? statusPage.meta.equipment : []).filter((x) => x && typeof x === "object" && String(x.name || "").trim())
-    .map((x) => ({ kit: String(x.kit || "").trim().toLowerCase(), slot: String(x.slot || "").trim(), name: String(x.name).trim(), maker: String(x.maker || "").trim(), bonus: String(x.bonus || "").trim(), about: String(x.about || "").trim() })) };
+
 const about = existsSync("pages/about.md") ? parse(readFileSync("pages/about.md", "utf8")).body : "";
-// "source" records where this copy of the list was built, which helps when checking the site.
 const source = process.env.GITHUB_ACTIONS ? "github" : (process.env.WORKERS_CI || process.env.WORKERS_CI_BUILD_UUID) ? "cloudflare" : "other";
-const bestiaryIntro = existsSync("pages/bestiary.md") ? parse(readFileSync("pages/bestiary.md", "utf8")).body : "";
-writeFileSync("posts.json", JSON.stringify({ source, about, bestiary_intro: bestiaryIntro, posts, bestiary, albums, places, quests, plants, plants_intro: plantsIntro, status }, null, 2) + "\n");
-// A small stamp, written only at publish time, to confirm this script ran there.
-if (!process.env.GITHUB_ACTIONS) writeFileSync("build.json", JSON.stringify({ source, entries: posts.length, built: new Date().toISOString() }) + "\n");
-console.log("posts.json: " + posts.length + " entries");
+writeFileSync("posts.json", JSON.stringify({ source, about, posts, albums }, null, 2) + "\n");
+console.log("posts.json: " + posts.length + " posts, " + albums.length + " albums");
