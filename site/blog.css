@@ -86,7 +86,7 @@ main { position: relative; z-index: 2; margin-left: var(--side); min-height: 100
 .poster-title { margin: 0; font: 700 clamp(3.2rem, 7.6vw, 5.8rem)/.95 var(--title); font-variation-settings: "opsz" 96; letter-spacing: .01em; color: var(--ink); }
 .poster-rule { position: relative; height: 12px; margin: 14px auto 18px; width: 86%; background: linear-gradient(var(--ink), var(--ink)) 0 50% / 100% 1.4px no-repeat; }
 .poster-rule::after { content: ""; position: absolute; left: 50%; top: 50%; width: 10px; height: 10px; background: var(--ink); transform: translate(-50%, -50%) rotate(45deg); }
-.portrait { position: relative; aspect-ratio: 4 / 5; background: #faf7f0; box-shadow: 0 1px 0 rgba(23, 22, 28, .08), 0 30px 60px -30px rgba(60, 45, 20, .45); overflow: hidden; }
+.portrait { position: relative; aspect-ratio: 1003 / 1102; background: #faf7f0; box-shadow: 0 1px 0 rgba(23, 22, 28, .08), 0 30px 60px -30px rgba(60, 45, 20, .45); overflow: hidden; }
 .portrait img, .portrait canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .poster-jp { margin: 20px 0 0; font: 800 clamp(2.3rem, 6vw, 4.2rem)/1.1 var(--jp); letter-spacing: .06em; color: var(--ink); }
 .latest { margin: 26px 0 0; font: italic 400 1.15rem/1.4 var(--display); color: var(--ink-soft); }
