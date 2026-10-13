@@ -1,10 +1,10 @@
 /* HALF LIFE: how the page works.
-   1. The ground: paper, gold leaf laid in squares, silver-white ribbons and fine ink lines, painted by paintLeaf on
-      the canvas behind everything, a little differently each visit.
+   1. The ground: pale blue paper, washes of blue laid on it, silver-white ribbons and fine ink lines, painted by
+      paintLeaf on the canvas behind everything, a little differently each visit.
    2. The words: posts.json (made from the editor's files by scripts/build-index.mjs) is read once, then the address
       after # picks the page: #/ the poster, #/journal, #/post/<file>, #/photos, #/about. The side menu leads to each,
       and lists the latest entries under Journal.
-   3. The portrait on the poster is site/portrait.jpg (or .png) if there is one; until then a sketch stands in.
+   3. The portrait on the poster is site/portrait.webp (or .png, .jpg); until there is one, a sketch stands in.
    4. The photographs open in a viewer that can be stepped through with the arrow keys or a swipe. */
 (() => {
   "use strict";
@@ -52,8 +52,8 @@
     for (let t = 0, r = 10 + rnd() * 16; t < 9; t += .25) { a += turn * .35; r *= .95; x += Math.cos(a) * r * .25; y += Math.sin(a) * r * .25; c.lineTo(x, y); }
     c.strokeStyle = `rgba(30,28,36,${.35 + rnd() * .3})`; c.lineWidth = .6 + rnd() * .8; c.stroke();
   }
-  // Gilding: where the noise is high, gold leaf; its edges ragged, its surface shimmering, the seams of the squares
-  // faintly showing, as real leaf does when it is laid. Worked out pixel by pixel at half size, then laid on.
+  // Washes: where the noise is high, a pale blue laid on like watercolour, its edges ragged, its surface mottled
+  // where the pigment pooled. Worked out pixel by pixel at half size, then laid on.
   function gild(c, W, H, nz, s, cover, bias) {
     const k = 2, w = Math.ceil(W / k), h = Math.ceil(H / k), img = new ImageData(w, h), d = img.data, sk = s / k;
     const edge = .055, t0 = 1 - cover;
@@ -61,19 +61,18 @@
       const fx = x / w, fy = y / h, m = nz(fx * 2.4 + 3, fy * 2.4 * (H / W) * 1.6) + (bias ? bias(fx, fy) : 0) + (nz(fx * 22, fy * 22) - .5) * .08;
       if (m < t0) continue;
       const a = Math.min(1, (m - t0) / edge), sheen = nz(fx * 5 + 9, fy * 5) - .5, flake = nz(fx * 60, fy * 60) - .5;
-      const gx = x % sk, gy = y % sk, seam = gx < 1 || gy < 1 ? .82 : 1;      // the edge of each square of leaf
-      const i = (y * w + x) * 4, lum = (1 + sheen * .55 + flake * .12) * seam;
-      d[i] = Math.min(255, 214 * lum); d[i + 1] = Math.min(255, 172 * lum); d[i + 2] = Math.min(255, 84 * lum + 10); d[i + 3] = 235 * a;
+      const i = (y * w + x) * 4, lum = 1 + sheen * .14 + flake * .05, edgeDark = a < 1 ? .93 : 1;   // pigment gathers at a wash's edge
+      d[i] = Math.min(255, 186 * lum * edgeDark); d[i + 1] = Math.min(255, 207 * lum * edgeDark); d[i + 2] = Math.min(255, 230 * lum); d[i + 3] = 150 * a;
     }
     const tmp = document.createElement("canvas"); tmp.width = w; tmp.height = h; tmp.getContext("2d").putImageData(img, 0, 0);
     c.imageSmoothingEnabled = true; c.drawImage(tmp, 0, 0, W, H);
   }
   function paintLeaf(cv, seed, opts = {}) {
     const W = cv.width, H = cv.height, c = cv.getContext("2d"), rnd = dice(seed), nz = noise(rnd);
-    c.fillStyle = "#f4efe4"; c.fillRect(0, 0, W, H);
+    c.fillStyle = "#eef3f8"; c.fillRect(0, 0, W, H);
     for (let i = 0; i < 26; i++) {                         // blue-grey and sepia washes, soaked into the paper
       const x = rnd() * W, y = rnd() * H, r = Math.max(W, H) * (.08 + rnd() * .22), cool = rnd() < .6;
-      const g = c.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, cool ? `rgba(138,152,173,${.1 + rnd() * .12})` : `rgba(176,150,110,${.08 + rnd() * .08})`); g.addColorStop(1, "rgba(244,239,228,0)");
+      const g = c.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, cool ? `rgba(138,160,190,${.1 + rnd() * .12})` : `rgba(170,160,200,${.06 + rnd() * .06})`); g.addColorStop(1, "rgba(238,243,248,0)");
       c.fillStyle = g; c.fillRect(x - r, y - r, r * 2, r * 2);
     }
     gild(c, W, H, nz, opts.leaf || Math.max(48, Math.min(96, W / 16)), opts.cover ?? .5, opts.bias);
@@ -86,7 +85,7 @@
     const k = Math.min(devicePixelRatio || 1, 1.5), W = Math.round(innerWidth * k), H = Math.round(innerHeight * k);
     if (leafSize === W + "x" + H) return; leafSize = W + "x" + H;
     leaf.width = W; leaf.height = H;
-    const wide = innerWidth > 860, menuEdge = 300 / innerWidth;   // on a wide screen, keep the gold off the menu's side, fading in beyond it
+    const wide = innerWidth > 860, menuEdge = 300 / innerWidth;   // on a wide screen, keep the washes off the menu's side, fading in beyond it
     const t0 = performance.now();
     paintLeaf(leaf, (Math.random() * 2 ** 31) | 0, { bias: wide ? (fx) => Math.min(0, (fx - menuEdge * 1.1) * 1.6) : null });
     leaf.dataset.ms = Math.round(performance.now() - t0);
@@ -163,14 +162,13 @@
     main.innerHTML = `<section class="poster" aria-label="Half Life">
         <h1 class="poster-title">HALF LIFE</h1>
         <div class="poster-rule" aria-hidden="true"></div>
-        <div class="portrait"><img alt="Chris, drawn" hidden></div>
-        <p class="poster-jp" lang="ja">ハーフ・ライフ</p>
+        <div class="portrait"><img alt="Chris, drawn in ink and smoke" hidden></div>
         ${p ? `<p class="latest">Most lately: <a href="#/post/${esc(p.file)}">${esc(p.title)}</a></p>` : ""}
       </section>`;
     const box = $(".portrait"), img = $("img", box);
     const tryPic = (srcs) => { if (!srcs.length) { const cv = document.createElement("canvas"); cv.className = "sketch"; cv.setAttribute("aria-hidden", "true"); box.appendChild(cv); requestAnimationFrame(() => sketch(cv)); return; }
-      img.onload = () => { img.hidden = false; }; img.onerror = () => tryPic(srcs.slice(1)); img.src = srcs[0]; };
-    tryPic(["/site/portrait.jpg", "/site/portrait.png"]);
+      img.onload = () => { img.hidden = false; box.classList.add("hung"); }; img.onerror = () => tryPic(srcs.slice(1)); img.src = srcs[0]; };
+    tryPic(["/site/portrait.webp", "/site/portrait.png", "/site/portrait.jpg"]);
   }
 
   function showJournal() {
