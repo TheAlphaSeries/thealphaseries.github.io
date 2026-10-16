@@ -4,7 +4,8 @@
    2. The words: posts.json (made from the editor's files by scripts/build-index.mjs) is read once, then the address
       after # picks the page: #/ the poster, #/posts, #/post/<file> (one post), #/visions (the photographs),
       #/about. The side menu leads to each, as an old game's menu would (see "the menu" below).
-   3. The portrait on the poster is site/portrait.webp (or .png, .jpg); until there is one, a sketch stands in.
+   3. The portraits on the poster (PORTRAITS) take turns: a different one first on each visit, then a slow
+      crossfade every few seconds. If none will load, a sketch stands in.
    4. The photographs open in a viewer that can be stepped through with the arrow keys or a swipe. */
 (() => {
   "use strict";
@@ -216,13 +217,38 @@
     main.innerHTML = `<section class="poster" aria-label="Half Life">
         <h1 class="poster-title">Half <em>Life</em></h1>
         <div class="poster-rule" aria-hidden="true"></div>
-        <div class="portrait"><img alt="Chris, drawn in ink and smoke" hidden></div>
+        <div class="portrait" role="img" aria-label="Chris, drawn in ink and smoke"></div>
         ${p ? `<p class="latest">Lately set down: <a href="#/post/${esc(p.file)}">${esc(p.title)}</a></p>` : ""}
       </section>`;
-    const box = $(".portrait"), img = $("img", box);
-    const tryPic = (srcs) => { if (!srcs.length) { const cv = document.createElement("canvas"); cv.className = "sketch"; cv.setAttribute("aria-hidden", "true"); box.appendChild(cv); requestAnimationFrame(() => sketch(cv)); return; }
-      img.onload = () => { img.hidden = false; box.classList.add("hung"); }; img.onerror = () => tryPic(srcs.slice(1)); img.src = srcs[0]; };
-    tryPic(["/site/portrait.webp", "/site/portrait.png", "/site/portrait.jpg"]);
+    hang($(".portrait"));
+  }
+
+  // The portraits take turns. The first is shown as soon as it loads; the others are fetched after it, and each
+  // fades in over the last every ROTATE milliseconds while the home page is open and can be seen.
+  const PORTRAITS = ["/site/portrait-1.webp", "/site/portrait-2.webp", "/site/portrait-3.webp"], ROTATE = 9000;
+  let rotation = 0;
+  function hang(box) {
+    clearInterval(rotation);
+    let last = -1; try { last = +sessionStorage.getItem("hl-portrait"); } catch (e) {}
+    const order = PORTRAITS.map((_, i) => i).sort(() => Math.random() - .5);
+    if (order[0] === last && order.length > 1) order.push(order.shift());   // not the same one twice running
+    try { sessionStorage.setItem("hl-portrait", order[0]); } catch (e) {}
+    const imgs = order.map((k, n) => { const im = document.createElement("img"); im.alt = ""; im.decoding = "async"; im.className = "pic"; im.dataset.n = n; return im; });
+    const first = imgs[0];
+    first.onload = () => {
+      box.classList.add("hung"); first.classList.add("on"); box.appendChild(first);
+      imgs.slice(1).forEach((im, j) => { im.src = PORTRAITS[order[j + 1]]; box.appendChild(im); });
+      if (still || imgs.length < 2) return;
+      let at = 0;
+      rotation = setInterval(() => {
+        if (!box.isConnected) return clearInterval(rotation);
+        if (document.hidden) return;
+        const next = imgs[(at + 1) % imgs.length]; if (!next.complete || !next.naturalWidth) return;   // wait until it has arrived
+        imgs[at].classList.remove("on"); next.classList.add("on"); at = (at + 1) % imgs.length;
+      }, ROTATE);
+    };
+    first.onerror = () => { const cv = document.createElement("canvas"); cv.className = "sketch"; cv.setAttribute("aria-hidden", "true"); box.appendChild(cv); requestAnimationFrame(() => sketch(cv)); };
+    first.src = PORTRAITS[order[0]];
   }
 
   function showJournal() {
