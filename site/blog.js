@@ -225,7 +225,7 @@
 
   // The portraits take turns. The first is shown as soon as it loads; the others are fetched after it, and each
   // fades in over the last every ROTATE milliseconds while the home page is open and can be seen.
-  const PORTRAITS = ["/site/portrait-1.webp?v=2", "/site/portrait-2.webp?v=2", "/site/portrait-3.webp?v=2", "/site/portrait-4.webp?v=2"], ROTATE = 9000;
+  const PORTRAITS = ["/site/portrait-1.webp?v=3", "/site/portrait-2.webp?v=3", "/site/portrait-3.webp?v=3", "/site/portrait-4.webp?v=3"], ROTATE = 9000;
   let rotation = 0;
   function hang(box) {
     clearInterval(rotation);
