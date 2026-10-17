@@ -30,7 +30,7 @@
     <div class="menuwin cmdwin">
       <ol class="cmds">
         <li><a href="#/posts" data-route="posts" data-say="Read what has been set down, most lately first."><span class="name">Posts</span><span class="count" id="postcount"></span></a></li>
-        <li><a href="#/visions" data-route="visions" data-say="Look upon what the light allowed, before it thought better of it."><span class="name">Visions</span><span class="count" id="photocount"></span></a></li>
+        <li><a href="#/photos" data-route="photos" data-say="Look upon what the light allowed, before it thought better of it."><span class="name">Photos</span><span class="count" id="photocount"></span></a></li>
         <li><a href="#/about" data-route="about" data-say="Learn something of the one who keeps this record."><span class="name">About</span></a></li>
       </ol>
       <i class="pointer" aria-hidden="true"></i>
@@ -41,7 +41,7 @@
       <i class="pointer" aria-hidden="true"></i>
     </div>
     <div class="menuwin saywin" aria-live="polite"><p id="say">Everything is already changing.</p></div>
-    <button class="soundtoggle" type="button" id="sound" aria-pressed="true">Sound <span>on</span></button>
+    <div class="toggles"><button class="soundtoggle" type="button" id="music" aria-pressed="false">Music <span>off</span></button><button class="soundtoggle" type="button" id="sound" aria-pressed="true">Sound <span>on</span></button></div>
   </nav>
 </aside>
 
@@ -55,5 +55,6 @@
 </div>
 
 <script src="/site/blog.js" defer></script>
+<script src="/site/music.js" defer></script>
 </body>
 </html>

@@ -2,7 +2,7 @@
    1. The ground: pale blue paper, washes of blue laid on it, silver-white ribbons and fine ink lines, painted by
       paintLeaf on the canvas behind everything, a little differently each visit.
    2. The words: posts.json (made from the editor's files by scripts/build-index.mjs) is read once, then the address
-      after # picks the page: #/ the poster, #/posts, #/post/<file> (one post), #/visions (the photographs),
+      after # picks the page: #/ the poster, #/posts, #/post/<file> (one post), #/photos,
       #/about. The side menu leads to each, as an old game's menu would (see "the menu" below).
    3. The portraits on the poster (PORTRAITS) take turns: a different one first on each visit, then a slow
       crossfade every few seconds. If none will load, a sketch stands in.
@@ -284,9 +284,9 @@
     return list;
   }
   function showPhotos() {
-    nav("visions"); document.title = "Visions · Half Life";
+    nav("photos"); document.title = "Photos · Half Life";
     const all = allPhotos();
-    main.innerHTML = `<article class="sheet wide"><p class="kicker">Gathered while the light obliged</p><h1>Visions</h1><p class="when">plates taken before the sun thinks better of it</p>${FLOURISH}
+    main.innerHTML = `<article class="sheet wide"><p class="kicker">Gathered while the light obliged</p><h1>Photos</h1><p class="when">plates taken before the sun thinks better of it</p>${FLOURISH}
       <div class="gallery">${all.map((ph, k) => `<button type="button" data-k="${k}" aria-label="${esc(ph.caption || "Open photograph " + (k + 1))}">${imgTag(ph.src, ph.caption, "thumbs")}</button>`).join("") || '<p class="empty">The plates are still drying.</p>'}</div></article>`;
     main.querySelectorAll(".gallery button").forEach((b) => b.addEventListener("click", () => view(all, +b.dataset.k)));
   }
@@ -300,7 +300,7 @@
     const h = decodeURIComponent(location.hash.replace(/^#\/?/, ""));
     if (/^\d{4}-\d{2}-\d{2}-/.test(h)) { location.replace("#/post/" + h); return; }   // links from the old site
     const [what, arg] = h.split("/");
-    if (what === "post" && arg) showPost(arg); else if (["posts", "accounts", "journal"].includes(what)) showJournal(); else if (what === "visions" || what === "photos") showPhotos(); else if (["about", "chronicler"].includes(what)) showAbout(); else showHome();   /* the old names still lead to the same pages */
+    if (what === "post" && arg) showPost(arg); else if (["posts", "accounts", "journal"].includes(what)) showJournal(); else if (what === "photos" || what === "visions") showPhotos(); else if (["about", "chronicler"].includes(what)) showAbout(); else showHome();   /* the old names still lead to the same pages */
     scrollTo({ top: 0, behavior: "instant" });
   }
   addEventListener("hashchange", route);
