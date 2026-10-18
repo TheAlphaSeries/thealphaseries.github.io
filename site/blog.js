@@ -1,6 +1,6 @@
 /* HALF LIFE: how the page works.
-   1. The ground: pale blue paper, washes of blue laid on it, silver-white ribbons and fine ink lines, painted by
-      paintLeaf on the canvas behind everything, a little differently each visit.
+   1. The world: behind every page, the last dusk of the Dying Earth over Saint Frane, painted by paintWorld afresh
+      on each visit; motes drift across it and the old sun now and then gutters.
    2. The words: posts.json (made from the editor's files by scripts/build-index.mjs) is read once, then the address
       after # picks the page: #/ the poster, #/posts, #/post/<file> (one post), #/photos,
       #/about. The side menu leads to each, as an old game's menu would (see "the menu" below).
@@ -13,100 +13,140 @@
   const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
-  /* ------------------------------------------------------------------ the gold and the ink -------------------- */
+  /* ------------------------------------------------------------------ the world ----------------------------- */
+  // Behind every page, the last dusk of the world, painted fresh on each visit: a sky gone deep blue above and rose
+  // at the rim, a vast dim sun the colour of old wine, spotted and guttering, sinking over the broken spires of Saint
+  // Frane and its seven hills, veils of violet haze between them, and motes adrift in the failing light.
   function dice(seed) { let s = seed >>> 0 || 1; return () => ((s = (s + 0x6d2b79f5) >>> 0), (((s ^ (s >>> 15)) * (s | 1) ^ (s + (s ^ (s >>> 7)) * (s | 61))) >>> 0) / 4294967296); }
   function noise(rnd) {
     const p = new Uint8Array(512), v = new Float32Array(256);
     for (let i = 0; i < 256; i++) { p[i] = i; v[i] = rnd(); }
     for (let i = 255; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [p[i], p[j]] = [p[j], p[i]]; }
     for (let i = 0; i < 256; i++) p[i + 256] = p[i];
-    const at = (x, y) => v[p[(p[x & 255] + y) & 255]], s = (t) => t * t * (3 - 2 * t);
-    const n = (x, y) => { const X = Math.floor(x), Y = Math.floor(y), u = s(x - X), w = s(y - Y);
+    const at = (x, y) => v[p[(p[x & 255] + y) & 255]], sm = (t) => t * t * (3 - 2 * t);
+    const n = (x, y) => { const X = Math.floor(x), Y = Math.floor(y), u = sm(x - X), w = sm(y - Y);
       return (at(X, Y) * (1 - u) + at(X + 1, Y) * u) * (1 - w) + (at(X, Y + 1) * (1 - u) + at(X + 1, Y + 1) * u) * w; };
     return (x, y) => n(x, y) * .55 + n(x * 2.1, y * 2.1) * .3 + n(x * 4.3, y * 4.3) * .15;
   }
-
-  // a long ribbon of silver-white, the way Amano's cloth and smoke fly: wide pale body, fine grey edges
-  function ribbon(c, W, H, rnd, nz, x0, y0, len, wide) {
-    const pts = []; let x = x0, y = y0, a = rnd() * 6.3;
-    for (let i = 0; i < len; i++) { a += (nz(x / W * 2.2, y / H * 2.2) - .5) * .5; x += Math.cos(a) * 9; y += Math.sin(a) * 9; pts.push([x, y, a]); }
-    // many fine strands side by side, thickest in the middle of the ribbon and drawn to a point at each end
-    const strands = Math.max(8, Math.round(wide / 2.2));
-    c.lineCap = "round"; c.lineJoin = "round";
-    for (let k = 0; k <= strands; k++) {
-      const o = k / strands - .5, edge = Math.abs(o) > .44, wob = rnd() * 6.3;
-      c.beginPath();
-      pts.forEach(([px, py, pa], i) => {
-        const t = i / (pts.length - 1), taper = Math.pow(Math.sin(Math.PI * t), .7), off = o * wide * taper + Math.sin(t * 9 + wob) * wide * .03;
-        const qx = px - Math.sin(pa) * off, qy = py + Math.cos(pa) * off;
-        i ? c.lineTo(qx, qy) : c.moveTo(qx, qy);
-      });
-      c.strokeStyle = edge ? `rgba(122,132,150,${.35 + rnd() * .2})` : `rgba(252,251,247,${.16 + rnd() * .22})`;
-      c.lineWidth = edge ? .7 : 1.2 + rnd() * 2.2; c.stroke();
-    }
-  }
-  // a fine ink line that wanders and ends in a curl
-  function inkLine(c, W, H, rnd, nz, x0, y0) {
-    let x = x0, y = y0, a = rnd() * 6.3; c.beginPath(); c.moveTo(x, y);
-    const n = 40 + rnd() * 90;
-    for (let i = 0; i < n; i++) { a += (nz(x / W * 3, y / H * 3) - .5) * .7; x += Math.cos(a) * 7; y += Math.sin(a) * 7; c.lineTo(x, y); }
-    const turn = rnd() < .5 ? 1 : -1;
-    for (let t = 0, r = 10 + rnd() * 16; t < 9; t += .25) { a += turn * .35; r *= .95; x += Math.cos(a) * r * .25; y += Math.sin(a) * r * .25; c.lineTo(x, y); }
-    c.strokeStyle = `rgba(30,28,36,${.35 + rnd() * .3})`; c.lineWidth = .6 + rnd() * .8; c.stroke();
-  }
-  // Washes: where the noise is high, a pale blue laid on like watercolour, its edges ragged, its surface mottled
-  // where the pigment pooled. Worked out pixel by pixel at half size, then laid on.
-  function gild(c, W, H, nz, s, cover, bias) {
-    const k = 2, w = Math.ceil(W / k), h = Math.ceil(H / k), img = new ImageData(w, h), d = img.data, sk = s / k;
-    const edge = .055, t0 = 1 - cover;
-    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-      const fx = x / w, fy = y / h, m = nz(fx * 2.4 + 3, fy * 2.4 * (H / W) * 1.6) + (bias ? bias(fx, fy) : 0) + (nz(fx * 22, fy * 22) - .5) * .08;
-      if (m < t0) continue;
-      const a = Math.min(1, (m - t0) / edge), sheen = nz(fx * 5 + 9, fy * 5) - .5, flake = nz(fx * 60, fy * 60) - .5;
-      const i = (y * w + x) * 4, lum = 1 + sheen * .14 + flake * .05, edgeDark = a < 1 ? .93 : 1;   // pigment gathers at a wash's edge
-      d[i] = Math.min(255, 186 * lum * edgeDark); d[i + 1] = Math.min(255, 207 * lum * edgeDark); d[i + 2] = Math.min(255, 230 * lum); d[i + 3] = 150 * a;
-    }
-    const tmp = document.createElement("canvas"); tmp.width = w; tmp.height = h; tmp.getContext("2d").putImageData(img, 0, 0);
-    c.imageSmoothingEnabled = true; c.drawImage(tmp, 0, 0, W, H);
-  }
-  function paintLeaf(cv, seed, opts = {}) {
+  const mix = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t), rgb = (c, a = 1) => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${a})`;
+  const SKY = [[0, [10, 12, 32]], [.35, [30, 26, 66]], [.58, [74, 42, 92]], [.76, [150, 70, 96]], [.88, [206, 112, 104]], [1, [226, 150, 118]]];
+  const skyAt = (t) => { for (let i = 1; i < SKY.length; i++) if (t <= SKY[i][0]) return mix(SKY[i - 1][1], SKY[i][1], (t - SKY[i - 1][0]) / (SKY[i][0] - SKY[i - 1][0])); return SKY[SKY.length - 1][1]; };
+  function paintWorld(cv, seed) {
     const W = cv.width, H = cv.height, c = cv.getContext("2d"), rnd = dice(seed), nz = noise(rnd);
-    c.fillStyle = "#eef3f8"; c.fillRect(0, 0, W, H);
-    for (let i = 0; i < 26; i++) {                         // blue-grey and sepia washes, soaked into the paper
-      const x = rnd() * W, y = rnd() * H, r = Math.max(W, H) * (.08 + rnd() * .22), cool = rnd() < .6;
-      const g = c.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, cool ? `rgba(138,160,190,${.1 + rnd() * .12})` : `rgba(170,160,200,${.06 + rnd() * .06})`); g.addColorStop(1, "rgba(238,243,248,0)");
-      c.fillStyle = g; c.fillRect(x - r, y - r, r * 2, r * 2);
+    const u = Math.max(W, H * 1.4) / 100, hz = H * .7;             // u: one unit of the scene; hz: the far shore
+    const sun = { x: W * (.58 + rnd() * .16), y: hz - u * 6.5, r: u * 15 };
+    let g = c.createLinearGradient(0, 0, 0, hz); SKY.forEach(([t, col]) => g.addColorStop(t, rgb(col))); c.fillStyle = g; c.fillRect(0, 0, W, H);
+    for (let i = 0, n = Math.round(W * H / 2600); i < n; i++) {     // the stars, which no longer quite go out by day
+      const y = Math.pow(rnd(), 1.8) * hz * .75; c.fillStyle = `rgba(232,226,255,${(.12 + rnd() * .55) * (1 - y / (hz * .75))})`; const z = rnd() < .08 ? 2 : 1; c.fillRect(rnd() * W, y, z, z);
     }
-    gild(c, W, H, nz, opts.leaf || Math.max(48, Math.min(96, W / 16)), opts.cover ?? .5, opts.bias);
-    for (let i = 0, n = opts.ribbons ?? Math.round(W / 220); i < n; i++) ribbon(c, W, H, rnd, nz, rnd() * W, rnd() * H, 50 + rnd() * 120, (14 + rnd() * 40) * (opts.scale || 1));
-    for (let i = 0, n = opts.ink ?? Math.round(W / 140); i < n; i++) inkLine(c, W, H, rnd, nz, rnd() * W, rnd() * H);
+    // the sky laid on in strokes, as paint is, following slow currents
+    c.lineCap = "round";
+    for (let i = 0, n = Math.round(W * hz / 900); i < n; i++) {
+      const x = rnd() * W, y = rnd() * hz, t = y / hz, d = nz(x / (u * 28), y / (u * 7)), lit = Math.max(0, 1 - Math.hypot(x - sun.x, (y - sun.y) * 1.6) / (u * 60));
+      let col = skyAt(t); if (d > .5) col = mix(col, [40, 22, 56], Math.min(.7, (d - .5) * 3) * (1 - lit)); col = mix(col, [240, 160, 140], lit * lit * .5);
+      col = col.map((v) => v + (rnd() - .5) * 14);
+      const len = u * (1 + rnd() * 5) * (1 + (d > .5 ? 1.5 : 0)), ang = (nz(x / (u * 50), y / (u * 50)) - .5) * .5;
+      c.strokeStyle = rgb(col, .18 + rnd() * .3); c.lineWidth = u * (.15 + rnd() * .6);
+      c.beginPath(); c.moveTo(x, y); c.quadraticCurveTo(x + Math.cos(ang) * len / 2, y - u * .2, x + Math.cos(ang) * len, y + Math.sin(ang) * len); c.stroke();
+    }
+    // the sun's breath on the sky, then the sun: huge, dim, wine and ember, spotted with soft dark blots
+    g = c.createRadialGradient(sun.x, sun.y, sun.r * .6, sun.x, sun.y, sun.r * 4.5); g.addColorStop(0, "rgba(246,140,108,.5)"); g.addColorStop(.35, "rgba(196,80,100,.22)"); g.addColorStop(1, "rgba(90,30,80,0)");
+    c.fillStyle = g; c.fillRect(0, 0, W, H);
+    g = c.createRadialGradient(sun.x - sun.r * .2, sun.y - sun.r * .28, sun.r * .05, sun.x, sun.y, sun.r);
+    g.addColorStop(0, "#ffc39a"); g.addColorStop(.45, "#ec7a62"); g.addColorStop(.85, "#b13f50"); g.addColorStop(1, "rgba(150,44,70,0)");
+    c.fillStyle = g; c.beginPath(); c.arc(sun.x, sun.y, sun.r, 0, 7); c.fill();
+    for (let i = 0; i < 4; i++) {
+      const a = rnd() * 6.3, d = Math.sqrt(rnd()) * sun.r * .7, sx = sun.x + Math.cos(a) * d, sy = sun.y + Math.sin(a) * d, sr = sun.r * (.04 + rnd() * .07);
+      g = c.createRadialGradient(sx, sy, 0, sx, sy, sr); g.addColorStop(0, "rgba(120,36,52,.3)"); g.addColorStop(1, "rgba(120,36,52,0)"); c.fillStyle = g; c.fillRect(sx - sr, sy - sr, sr * 2, sr * 2);
+    }
+    for (let i = 0; i < 9; i++) {                                    // thin cloud bars drawn across the sun's face
+      const y = sun.y + (rnd() - .3) * sun.r * 1.4, len = sun.r * (.5 + rnd() * 1.1), x = sun.x + (rnd() - .5) * sun.r * 1.3 - len / 2;
+      c.strokeStyle = `rgba(${70 + rnd() * 40 | 0},${28 + rnd() * 20 | 0},${60 + rnd() * 20 | 0},${.25 + rnd() * .35})`; c.lineWidth = u * (.15 + rnd() * .45);
+      c.beginPath(); c.moveTo(x, y); c.quadraticCurveTo(x + len / 2, y - u * (.3 + rnd() * .5), x + len, y + u * (rnd() - .5) * .8); c.stroke();
+    }
+    // the far shore: a low line of towers and domes, pale with distance
+    const ridge = (x, base, amp, off) => base - (nz(x / (u * 20) + off, off) - .3) * amp;
+    const towers = (col, base, amp, off, count, scale, lamps) => {
+      c.fillStyle = rgb(col);
+      for (let i = 0; i < count; i++) {
+        const x = rnd() * W, gnd = ridge(x, base, amp, off), w = u * (.25 + rnd() * .7) * scale, h = u * (1.5 + Math.pow(rnd(), 2) * 9) * scale, kind = rnd();
+        c.beginPath(); c.moveTo(x - w, gnd + u); c.lineTo(x - w, gnd - h);
+        if (kind < .3) { c.lineTo(x, gnd - h - w * 3.2); c.lineTo(x + w, gnd - h); }                         /* a spire */
+        else if (kind < .55) { c.arc(x, gnd - h, w, Math.PI, 0); }                                          /* a dome */
+        else { c.lineTo(x - w * .2, gnd - h - u * rnd() * 1.2 * scale); c.lineTo(x + w * .4, gnd - h + u * .5 * scale); c.lineTo(x + w, gnd - h * (.8 + rnd() * .15)); }   /* broken */
+        c.lineTo(x + w, gnd + u); c.fill();
+        if (lamps && rnd() < .3) { c.fillStyle = `rgba(255,196,150,${.35 + rnd() * .45})`; c.fillRect(x - w * .25, gnd - h * (.25 + rnd() * .5), Math.max(1, u * .12), Math.max(1, u * .16)); c.fillStyle = rgb(col); }
+      }
+    };
+    c.fillStyle = rgb([92, 58, 104]); c.beginPath(); c.moveTo(0, H); for (let x = 0; x <= W; x += u * .5) c.lineTo(x, ridge(x, hz, u * 4, 1)); c.lineTo(W, H); c.fill();
+    towers([92, 58, 104], hz + u * .5, u * 4, 1, Math.round(W / (u * 2.2)), .55, false);
+    // the Grey Water, holding the sun
+    const sea = hz + u * 1.5;
+    g = c.createLinearGradient(0, sea, 0, H); g.addColorStop(0, "#5a3456"); g.addColorStop(.3, "#2e1c3a"); g.addColorStop(1, "#110b1a"); c.fillStyle = g; c.fillRect(0, sea, W, H - sea);
+    for (let i = 0; i < 420; i++) {
+      const y = sea + Math.pow(rnd(), 1.5) * (H - sea) * .8, k = (y - sea) / (H - sea), spread = u * (3 + k * 22);
+      const x = sun.x + (rnd() - .5) * spread * 2, len = u * (.5 + rnd() * 3) * (1 - k * .5);
+      c.strokeStyle = `rgba(255,${150 + rnd() * 60 | 0},${120 + rnd() * 40 | 0},${(.6 - k) * (.3 + rnd() * .6)})`; c.lineWidth = Math.max(1, u * (.06 + rnd() * .12));
+      c.beginPath(); c.moveTo(x - len / 2, y); c.lineTo(x + len / 2, y); c.stroke();
+    }
+    g = c.createLinearGradient(0, hz - u * 4, 0, sea + u * 3); g.addColorStop(0, "rgba(200,130,160,0)"); g.addColorStop(.7, "rgba(200,130,160,.22)"); g.addColorStop(1, "rgba(200,130,160,0)");
+    c.fillStyle = g; c.fillRect(0, hz - u * 4, W, u * 8.5);         /* the haze that lies along the water */
+    // the near hills of Saint Frane at either hand, the bay open between them
+    [[[48, 30, 66], 1.1, 7, 3], [[18, 12, 28], 1.6, 13, 5]].forEach(([col, scale, rise, off], L) => {
+      const edge = (x) => Math.pow(Math.abs(x / W - .5) * 2, 1.6);
+      const top = (x) => H - (u * rise * (.35 + edge(x)) + (nz(x / (u * 16) + off, off) - .3) * u * 6) * (L ? 1 : .9) - (L ? 0 : u * 3);
+      c.fillStyle = rgb(col); c.beginPath(); c.moveTo(0, H); for (let x = 0; x <= W; x += u * .5) c.lineTo(x, top(x)); c.lineTo(W, H); c.fill();
+      c.fillStyle = rgb(col);
+      for (let i = 0, n = L ? 9 : 14; i < n; i++) {
+        let x = rnd() * W; if (Math.abs(x / W - .5) < .22) x = rnd() < .5 ? x * .45 : W - (W - x) * .45;   /* keep the bay clear */
+        const gnd = top(x), w = u * (.4 + rnd() * .9) * scale, h = u * (2 + Math.pow(rnd(), 1.6) * 8) * scale, kind = rnd();
+        c.beginPath(); c.moveTo(x - w, gnd + u * 2); c.lineTo(x - w, gnd - h);
+        if (kind < .35) { c.lineTo(x, gnd - h - w * 3); c.lineTo(x + w, gnd - h); } else if (kind < .55) c.arc(x, gnd - h, w, Math.PI, 0);
+        else { c.lineTo(x - w * .2, gnd - h - u * rnd()); c.lineTo(x + w * .3, gnd - h + u * .6); c.lineTo(x + w, gnd - h * (.82 + rnd() * .1)); }
+        c.lineTo(x + w, gnd + u * 2); c.fill();
+        if (L === 0 && rnd() < .4) { c.fillStyle = `rgba(255,196,150,${.4 + rnd() * .4})`; c.fillRect(x - w * .2, gnd - h * (.3 + rnd() * .4), Math.max(1, u * .14), Math.max(1, u * .2)); c.fillStyle = rgb(col); }
+      }
+      // rim light: where the sun catches the tops of the near hills
+      c.strokeStyle = L ? "rgba(230,130,120,.18)" : "rgba(230,140,130,.25)"; c.lineWidth = Math.max(1, u * .12);
+      c.beginPath(); for (let x = 0; x <= W; x += u * .5) { const y = top(x); x ? c.lineTo(x, y) : c.moveTo(x, y); } c.stroke();
+    });
+    // a fine grain over all, so it reads as paint rather than glass
+    const img = c.getImageData(0, 0, W, H), d = img.data;
+    for (let i = 0; i < d.length; i += 4) { const n = (rnd() - .5) * 10; d[i] += n; d[i + 1] += n; d[i + 2] += n; }
+    c.putImageData(img, 0, 0);
+    return sun;
   }
-
-  const leaf = $("#leaf"); let leafSize = "";
-  function setLeaf() {
+  // The painting is kept, and motes drift over a copy of it; now and then the sun gutters like a lamp short of oil.
+  const world = $("#leaf"); let art = null, motes = [], sunAt = null, worldSize = "", frame = 0, gutter = 0, nextGutter = 0;
+  function setWorld() {
     const k = Math.min(devicePixelRatio || 1, 1.5), W = Math.round(innerWidth * k), H = Math.round(innerHeight * k);
-    if (leafSize === W + "x" + H) return; leafSize = W + "x" + H;
-    leaf.width = W; leaf.height = H;
-    const wide = innerWidth > 860, menuEdge = 300 / innerWidth;   // on a wide screen, keep the washes off the menu's side, fading in beyond it
-    const t0 = performance.now();
-    paintLeaf(leaf, (Math.random() * 2 ** 31) | 0, { bias: wide ? (fx) => Math.min(0, (fx - menuEdge * 1.1) * 1.6) : null });
-    leaf.dataset.ms = Math.round(performance.now() - t0);
+    if (worldSize === W + "x" + H) return; worldSize = W + "x" + H;
+    art = document.createElement("canvas"); art.width = W; art.height = H; sunAt = paintWorld(art, (Math.random() * 2 ** 31) | 0);
+    world.width = W; world.height = H; world.getContext("2d").drawImage(art, 0, 0);
+    motes = Array.from({ length: Math.round(W / 26) }, () => ({ x: Math.random() * W, y: Math.random() * H, v: .1 + Math.random() * .35, r: .5 + Math.random() * 1.6, p: Math.random() * 6.3 }));
+    nextGutter = frame + 600 + Math.random() * 1200;
+  }
+  function drift() {
+    requestAnimationFrame(drift); if (document.hidden || (frame++ & 1) || !art) return;
+    const c = world.getContext("2d"), W = world.width, H = world.height, k = W / 1400;
+    c.globalCompositeOperation = "source-over"; c.drawImage(art, 0, 0);
+    if (frame > nextGutter) { gutter = 90; nextGutter = frame + 1400 + Math.random() * 2400; }
+    if (gutter > 0) { const dim = Math.abs(Math.sin(gutter-- / 90 * Math.PI * 3)) * .45; c.fillStyle = `rgba(10,6,20,${dim * Math.sin(gutter / 90 * Math.PI)})`; c.fillRect(0, 0, W, H); }
+    c.globalCompositeOperation = "lighter";
+    for (const m of motes) {
+      m.y -= m.v * k; m.p += .02; m.x += Math.sin(m.p) * .3 * k; if (m.y < -4) { m.y = H + 4; m.x = Math.random() * W; }
+      c.fillStyle = `rgba(255,200,180,${.15 + .35 * (.5 + .5 * Math.sin(m.p * 2))})`; c.beginPath(); c.arc(m.x, m.y, m.r * k * 1.3, 0, 7); c.fill();
+    }
+    c.globalCompositeOperation = "source-over";
   }
   let resized = 0;
-  addEventListener("resize", () => { clearTimeout(resized); resized = setTimeout(() => { setLeaf(); if ($("canvas.sketch")) sketch($("canvas.sketch")); }, 250); });
+  addEventListener("resize", () => { clearTimeout(resized); resized = setTimeout(setWorld, 250); });
 
   /* ------------------------------------------------------------------ the portrait ---------------------------- */
-  // Until a portrait is hung, a sketch holds its place: a head and shoulders in blue-grey wash on gold, its hair
-  // flying out in ink, and smoke crossing in front, after the Weeknd print.
+  // Should no portrait load, a small painting of the dying sun keeps the frame.
   function sketch(cv) {
     const r = cv.getBoundingClientRect(), k = Math.min(devicePixelRatio || 1, 1.5);
-    cv.width = Math.round(r.width * k); cv.height = Math.round(r.height * k);
-    const W = cv.width, H = cv.height, c = cv.getContext("2d"), rnd = dice(7), nz = noise(rnd);
-    paintLeaf(cv, 11, { leaf: W / 8, cover: .6, ribbons: 0, ink: 0 });
-    for (let i = 0; i < 6; i++) ribbon(c, W, H, rnd, nz, W * (.2 + rnd() * .6), H * (.2 + rnd() * .6), 70 + rnd() * 60, W * (.03 + rnd() * .05));
-    for (let i = 0; i < 9; i++) inkLine(c, W, H, rnd, nz, W * rnd(), H * rnd());
-    c.font = `italic ${Math.round(W * .028)}px "Cormorant Garamond", serif`; c.fillStyle = "rgba(70,67,79,.85)"; c.textAlign = "center";
-    c.fillText("the portrait is being painted", W / 2, H * .955);
+    cv.width = Math.round(r.width * k); cv.height = Math.round(r.height * k); paintWorld(cv, 7);
   }
 
   /* ------------------------------------------------------------------ the words ------------------------------- */
@@ -189,7 +229,7 @@
     if (e.key === "ArrowDown" || e.key === "ArrowUp") {
       e.preventDefault(); const i = items.indexOf(chosen), next = items[(i + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length];
       choose(next); next.focus({ preventScroll: true });
-    } else if (/^[1-3]$/.test(e.key)) { const a = document.querySelectorAll(".cmds a")[+e.key - 1]; if (a) { choose(a, true); blip("pick"); location.hash = a.getAttribute("href"); } }
+    } else if (/^[1-4]$/.test(e.key)) { const a = document.querySelectorAll(".cmds a")[+e.key - 1]; if (a) { choose(a, true); blip("pick"); location.hash = a.getAttribute("href"); } }
     else if (e.key === "Enter" && chosen && document.activeElement === document.body) { blip("pick"); location.hash = chosen.getAttribute("href"); }
   });
 
@@ -217,6 +257,7 @@
     main.innerHTML = `<section class="poster" aria-label="Half Life">
         <h1 class="poster-title">Half <em>Life</em></h1>
         <div class="poster-rule" aria-hidden="true"></div>
+        <p class="epigraph">Being a record kept in Saint Frane, in the last age of the sun</p>
         <div class="portrait" role="img" aria-label="Chris, drawn in ink and smoke"></div>
         ${p ? `<p class="latest">Lately set down: <a href="#/post/${esc(p.file)}">${esc(p.title)}</a></p>` : ""}
       </section>`;
@@ -296,11 +337,31 @@
     main.innerHTML = `<article class="sheet about"><p class="kicker">Concerning the one who keeps this record</p><h1>About</h1>${FLOURISH}${markdown(DATA.about) || '<p class="empty">This remains to be set down.</p>'}</article>`;
   }
 
+
+  /* ------------------------------------------------------------------ the realm ------------------------------- */
+  // A gazetteer of the Chronicler's world, in the manner of the old almanacs: each entry a heading and a few lines.
+  const REALM = [
+    ["The Sun", "Old, swollen and the colour of spilled wine, the sun hangs low and is not to be trusted. Now and then it gutters like a lamp short of oil, and every soul in the city pauses mid-word to see whether it will return. So far it has. The almanac-makers have given up predicting its end and now sell instead small medallions which, worn at the throat, are said to make the matter less upsetting."],
+    ["Saint Frane", "A city of seven hills on the last coast, older than its own records. Its towers were raised by people who understood what they built; their descendants understand only that the towers are tall and that certain of the doors still open. Streets climb and fall like a wave stopped mid-motion. The inhabitants are courteous, superstitious, and fond of argument, in roughly that order."],
+    ["The Grey Water", "The bay below the city, wide and cold, with an island in its middle where a fortress of the old age keeps its silence. Fishermen work the shallows at dusk, which here lasts most of the day. They say the deep water holds things that remember being fish and resent having changed. The Chronicler has caught several and found them, on the whole, reasonable."],
+    ["The Fog Wall", "Each morning a pale wall walks in from the sea and swallows the western hills. Those who go into it come back, as a rule, though occasionally a day or two later than they left, and with opinions they did not previously hold."],
+    ["The Broken Span", "A great red bridge once leapt the mouth of the bay. Its two towers stand yet; the road between them fell long ago into the sea. Pilgrims climb the southern tower to watch the sun set through the cables, and to throw small offerings into the gap, for luck, or for spite."],
+    ["The Isle of Rest", "Far across the western ocean, reached by airship, lies an island of warm water, long afternoons and drinks served in vessels the size of a thimble beneath little paper canopies. It is said to restore the body and correct the opinions. The Chronicler has been, and intends to go again."],
+    ["Magic", "There is magic still, though no one now alive could invent a spell. The great formulae were written ages ago and are hoarded, traded and stolen like jewels; a magician holds only a few in mind at once, and each, once spoken, is gone until it is learned again. Most practitioners are therefore careful, and the careless ones are brief."],
+    ["Curiosities", "The realm teems with oddities: the cat who sits upon the Chronicler's shoulders and will not say from where it came; mirrors that show yesterday; plants which, properly flattered, flower out of season; and the fish of the Grey Water, catalogued with some pride and released with some relief."],
+    ["The Chronicler", "Of no fixed occupation, the Chronicler goes about the city in black with jade at the ear and an unreasonable number of plans. He keeps this record of what he sees, catches, grows and photographs, on the principle that the sun may go out at any moment and someone ought to have written it down."]
+  ];
+  function showRealm() {
+    nav("realm"); document.title = "The Realm · Half Life";
+    main.innerHTML = `<article class="sheet realm"><p class="kicker">A gazetteer of the last age</p><h1>The Realm</h1><p class="when">Saint Frane and its surroundings, as the Chronicler has found them</p>${FLOURISH}
+      ${REALM.map(([t, b], i) => `<section class="entry"><h2><span class="n">${roman(i + 1)}</span>${esc(t)}</h2><p>${esc(b)}</p></section>`).join("")}</article>`;
+  }
+
   function route() {
     const h = decodeURIComponent(location.hash.replace(/^#\/?/, ""));
     if (/^\d{4}-\d{2}-\d{2}-/.test(h)) { location.replace("#/post/" + h); return; }   // links from the old site
     const [what, arg] = h.split("/");
-    if (what === "post" && arg) showPost(arg); else if (["posts", "accounts", "journal"].includes(what)) showJournal(); else if (what === "photos" || what === "visions") showPhotos(); else if (["about", "chronicler"].includes(what)) showAbout(); else showHome();   /* the old names still lead to the same pages */
+    if (what === "post" && arg) showPost(arg); else if (["posts", "accounts", "journal"].includes(what)) showJournal(); else if (what === "photos" || what === "visions") showPhotos(); else if (what === "realm") showRealm(); else if (["about", "chronicler"].includes(what)) showAbout(); else showHome();   /* the old names still lead to the same pages */
     scrollTo({ top: 0, behavior: "instant" });
   }
   addEventListener("hashchange", route);
@@ -322,7 +383,7 @@
   viewer.addEventListener("touchend", (e) => { if (x0 == null) return; const dx = e.changedTouches[0].clientX - x0; if (Math.abs(dx) > 50) show(vk + (dx < 0 ? 1 : -1)); x0 = null; });
 
   /* ------------------------------------------------------------------ begin ----------------------------------- */
-  setLeaf();
+  setWorld(); if (!still) requestAnimationFrame(drift);
   fetch("/posts.json", { cache: "no-cache" }).then((r) => r.json()).then((d) => {
     DATA = { posts: Array.isArray(d.posts) ? d.posts : [], albums: Array.isArray(d.albums) ? d.albums : [], about: d.about || "" };
     DATA.albums.forEach((a) => { a.photos = Array.isArray(a.photos) ? a.photos : []; a.captions = Array.isArray(a.captions) ? a.captions : []; });
