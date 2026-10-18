@@ -14,9 +14,10 @@
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
   /* ------------------------------------------------------------------ the world ----------------------------- */
-  // Behind every page, the last dusk of the world, painted fresh on each visit: a sky gone deep blue above and rose
-  // at the rim, a vast dim sun the colour of old wine, spotted and guttering, sinking over the broken spires of Saint
-  // Frane and its seven hills, veils of violet haze between them, and motes adrift in the failing light.
+  // Behind every page, the long dusk of a world whose sun is failing, painted fresh on each visit: a sky of fuligin
+  // going to rust and ochre at the rim, a vast dim sun the colour of old blood, mottled and guttering, sinking behind
+  // the Citadel (towers of smooth dark metal that were once ships, or so it is said) and the great wall on the hills,
+  // its light lying on the Grey Water, and ash adrift in the air.
   function dice(seed) { let s = seed >>> 0 || 1; return () => ((s = (s + 0x6d2b79f5) >>> 0), (((s ^ (s >>> 15)) * (s | 1) ^ (s + (s ^ (s >>> 7)) * (s | 61))) >>> 0) / 4294967296); }
   function noise(rnd) {
     const p = new Uint8Array(512), v = new Float32Array(256);
@@ -29,7 +30,7 @@
     return (x, y) => n(x, y) * .55 + n(x * 2.1, y * 2.1) * .3 + n(x * 4.3, y * 4.3) * .15;
   }
   const mix = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t), rgb = (c, a = 1) => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${a})`;
-  const SKY = [[0, [10, 12, 32]], [.35, [30, 26, 66]], [.58, [74, 42, 92]], [.76, [150, 70, 96]], [.88, [206, 112, 104]], [1, [226, 150, 118]]];
+  const SKY = [[0, [6, 7, 12]], [.35, [16, 16, 26]], [.6, [42, 30, 36]], [.78, [104, 56, 40]], [.9, [168, 96, 52]], [1, [196, 130, 70]]];   /* fuligin above, rust and ochre at the rim */
   const skyAt = (t) => { for (let i = 1; i < SKY.length; i++) if (t <= SKY[i][0]) return mix(SKY[i - 1][1], SKY[i][1], (t - SKY[i - 1][0]) / (SKY[i][0] - SKY[i - 1][0])); return SKY[SKY.length - 1][1]; };
   function paintWorld(cv, seed) {
     const W = cv.width, H = cv.height, c = cv.getContext("2d"), rnd = dice(seed), nz = noise(rnd);
@@ -43,25 +44,25 @@
     c.lineCap = "round";
     for (let i = 0, n = Math.round(W * hz / 900); i < n; i++) {
       const x = rnd() * W, y = rnd() * hz, t = y / hz, d = nz(x / (u * 28), y / (u * 7)), lit = Math.max(0, 1 - Math.hypot(x - sun.x, (y - sun.y) * 1.6) / (u * 60));
-      let col = skyAt(t); if (d > .5) col = mix(col, [40, 22, 56], Math.min(.7, (d - .5) * 3) * (1 - lit)); col = mix(col, [240, 160, 140], lit * lit * .5);
+      let col = skyAt(t); if (d > .5) col = mix(col, [26, 20, 22], Math.min(.7, (d - .5) * 3) * (1 - lit)); col = mix(col, [230, 150, 90], lit * lit * .45);
       col = col.map((v) => v + (rnd() - .5) * 14);
       const len = u * (1 + rnd() * 5) * (1 + (d > .5 ? 1.5 : 0)), ang = (nz(x / (u * 50), y / (u * 50)) - .5) * .5;
       c.strokeStyle = rgb(col, .18 + rnd() * .3); c.lineWidth = u * (.15 + rnd() * .6);
       c.beginPath(); c.moveTo(x, y); c.quadraticCurveTo(x + Math.cos(ang) * len / 2, y - u * .2, x + Math.cos(ang) * len, y + Math.sin(ang) * len); c.stroke();
     }
     // the sun's breath on the sky, then the sun: huge, dim, wine and ember, spotted with soft dark blots
-    g = c.createRadialGradient(sun.x, sun.y, sun.r * .6, sun.x, sun.y, sun.r * 4.5); g.addColorStop(0, "rgba(246,140,108,.5)"); g.addColorStop(.35, "rgba(196,80,100,.22)"); g.addColorStop(1, "rgba(90,30,80,0)");
+    g = c.createRadialGradient(sun.x, sun.y, sun.r * .6, sun.x, sun.y, sun.r * 4.5); g.addColorStop(0, "rgba(220,110,60,.42)"); g.addColorStop(.35, "rgba(150,60,40,.2)"); g.addColorStop(1, "rgba(60,24,20,0)");
     c.fillStyle = g; c.fillRect(0, 0, W, H);
     g = c.createRadialGradient(sun.x - sun.r * .2, sun.y - sun.r * .28, sun.r * .05, sun.x, sun.y, sun.r);
-    g.addColorStop(0, "#ffc39a"); g.addColorStop(.45, "#ec7a62"); g.addColorStop(.85, "#b13f50"); g.addColorStop(1, "rgba(150,44,70,0)");
+    g.addColorStop(0, "#f2a46a"); g.addColorStop(.45, "#c8563a"); g.addColorStop(.85, "#8a2a24"); g.addColorStop(1, "rgba(110,34,28,0)");
     c.fillStyle = g; c.beginPath(); c.arc(sun.x, sun.y, sun.r, 0, 7); c.fill();
     for (let i = 0; i < 4; i++) {
       const a = rnd() * 6.3, d = Math.sqrt(rnd()) * sun.r * .7, sx = sun.x + Math.cos(a) * d, sy = sun.y + Math.sin(a) * d, sr = sun.r * (.04 + rnd() * .07);
-      g = c.createRadialGradient(sx, sy, 0, sx, sy, sr); g.addColorStop(0, "rgba(120,36,52,.3)"); g.addColorStop(1, "rgba(120,36,52,0)"); c.fillStyle = g; c.fillRect(sx - sr, sy - sr, sr * 2, sr * 2);
+      g = c.createRadialGradient(sx, sy, 0, sx, sy, sr); g.addColorStop(0, "rgba(70,20,16,.45)"); g.addColorStop(1, "rgba(70,20,16,0)"); c.fillStyle = g; c.fillRect(sx - sr, sy - sr, sr * 2, sr * 2);
     }
     for (let i = 0; i < 9; i++) {                                    // thin cloud bars drawn across the sun's face
       const y = sun.y + (rnd() - .3) * sun.r * 1.4, len = sun.r * (.5 + rnd() * 1.1), x = sun.x + (rnd() - .5) * sun.r * 1.3 - len / 2;
-      c.strokeStyle = `rgba(${70 + rnd() * 40 | 0},${28 + rnd() * 20 | 0},${60 + rnd() * 20 | 0},${.25 + rnd() * .35})`; c.lineWidth = u * (.15 + rnd() * .45);
+      c.strokeStyle = `rgba(${40 + rnd() * 30 | 0},${22 + rnd() * 14 | 0},${20 + rnd() * 14 | 0},${.25 + rnd() * .35})`; c.lineWidth = u * (.15 + rnd() * .45);
       c.beginPath(); c.moveTo(x, y); c.quadraticCurveTo(x + len / 2, y - u * (.3 + rnd() * .5), x + len, y + u * (rnd() - .5) * .8); c.stroke();
     }
     // the far shore: a low line of towers and domes, pale with distance
@@ -78,21 +79,37 @@
         if (lamps && rnd() < .3) { c.fillStyle = `rgba(255,196,150,${.35 + rnd() * .45})`; c.fillRect(x - w * .25, gnd - h * (.25 + rnd() * .5), Math.max(1, u * .12), Math.max(1, u * .16)); c.fillStyle = rgb(col); }
       }
     };
-    c.fillStyle = rgb([92, 58, 104]); c.beginPath(); c.moveTo(0, H); for (let x = 0; x <= W; x += u * .5) c.lineTo(x, ridge(x, hz, u * 4, 1)); c.lineTo(W, H); c.fill();
-    towers([92, 58, 104], hz + u * .5, u * 4, 1, Math.round(W / (u * 2.2)), .55, false);
+    const far = [70, 48, 46];
+    c.fillStyle = rgb(far); c.beginPath(); c.moveTo(0, H); for (let x = 0; x <= W; x += u * .5) c.lineTo(x, ridge(x, hz, u * 4, 1)); c.lineTo(W, H); c.fill();
+    // the great wall, running along the far hills as far as the eye goes, with a tower at every league
+    c.fillStyle = rgb(far.map((v) => v * .85));
+    c.beginPath(); for (let x = 0; x <= W; x += u * .5) { const y = ridge(x, hz, u * 4, 1) - u * 2.2; x ? c.lineTo(x, y) : c.moveTo(x, y); } for (let x = W; x >= 0; x -= u * .5) c.lineTo(x, ridge(x, hz, u * 4, 1) + 1); c.fill();
+    for (let x = rnd() * u * 6; x < W; x += u * (5 + rnd() * 3)) { const y = ridge(x, hz, u * 4, 1); c.fillRect(x - u * .45, y - u * 3.6, u * .9, u * 3.6); }
+    towers(far, hz + u * .5, u * 4, 1, Math.round(W / (u * 4)), .45, false);
+    // the Citadel: a crown of tall smooth towers on a hill, round and tapering, finned at the foot — ships, once
+    const cx = W * (.18 + rnd() * .12), cb = hz + u * .3; c.fillStyle = rgb([38, 28, 30]);
+    c.beginPath(); c.moveTo(cx - u * 16, cb + u); c.quadraticCurveTo(cx, cb - u * 7, cx + u * 16, cb + u); c.fill();
+    for (let i = 0; i < 9; i++) {
+      if (rnd() < .15) continue;   /* one or two have fallen */
+      const x = cx + (i - 4) * u * 2.9 + (rnd() - .5) * u * 1.6, gnd = cb - u * 4.5 * Math.max(0, 1 - Math.pow((x - cx) / (u * 16), 2)), w = u * (.4 + rnd() * .7), h = u * (5 + Math.pow(rnd(), 1.4) * 19) * (1 - Math.abs(i - 4) * .1);
+      c.beginPath(); c.moveTo(x - w, gnd + u); c.lineTo(x - w, gnd - h * .7);
+      c.quadraticCurveTo(x - w, gnd - h, x, gnd - h - w * 1.6); c.quadraticCurveTo(x + w, gnd - h, x + w, gnd - h * .7); c.lineTo(x + w, gnd + u); c.fill();
+      c.beginPath(); c.moveTo(x - w, gnd); c.lineTo(x - w * 2.1, gnd + u * .6); c.lineTo(x - w, gnd - h * .14); c.moveTo(x + w, gnd); c.lineTo(x + w * 2.1, gnd + u * .6); c.lineTo(x + w, gnd - h * .14); c.fill();   /* fins */
+      if (rnd() < .6) { c.fillStyle = `rgba(255,180,110,${.35 + rnd() * .4})`; for (let k = 0; k < 3; k++) if (rnd() < .5) c.fillRect(x - u * .08, gnd - h * (.2 + k * .2 + rnd() * .1), Math.max(1, u * .14), Math.max(1, u * .2)); c.fillStyle = rgb([38, 28, 30]); }
+    }
     // the Grey Water, holding the sun
     const sea = hz + u * 1.5;
-    g = c.createLinearGradient(0, sea, 0, H); g.addColorStop(0, "#5a3456"); g.addColorStop(.3, "#2e1c3a"); g.addColorStop(1, "#110b1a"); c.fillStyle = g; c.fillRect(0, sea, W, H - sea);
+    g = c.createLinearGradient(0, sea, 0, H); g.addColorStop(0, "#4a2e26"); g.addColorStop(.3, "#22181a"); g.addColorStop(1, "#0a0809"); c.fillStyle = g; c.fillRect(0, sea, W, H - sea);
     for (let i = 0; i < 420; i++) {
       const y = sea + Math.pow(rnd(), 1.5) * (H - sea) * .8, k = (y - sea) / (H - sea), spread = u * (3 + k * 22);
       const x = sun.x + (rnd() - .5) * spread * 2, len = u * (.5 + rnd() * 3) * (1 - k * .5);
-      c.strokeStyle = `rgba(255,${150 + rnd() * 60 | 0},${120 + rnd() * 40 | 0},${(.6 - k) * (.3 + rnd() * .6)})`; c.lineWidth = Math.max(1, u * (.06 + rnd() * .12));
+      c.strokeStyle = `rgba(255,${140 + rnd() * 50 | 0},${80 + rnd() * 40 | 0},${(.6 - k) * (.3 + rnd() * .6)})`; c.lineWidth = Math.max(1, u * (.06 + rnd() * .12));
       c.beginPath(); c.moveTo(x - len / 2, y); c.lineTo(x + len / 2, y); c.stroke();
     }
-    g = c.createLinearGradient(0, hz - u * 4, 0, sea + u * 3); g.addColorStop(0, "rgba(200,130,160,0)"); g.addColorStop(.7, "rgba(200,130,160,.22)"); g.addColorStop(1, "rgba(200,130,160,0)");
+    g = c.createLinearGradient(0, hz - u * 4, 0, sea + u * 3); g.addColorStop(0, "rgba(170,120,90,0)"); g.addColorStop(.7, "rgba(170,120,90,.18)"); g.addColorStop(1, "rgba(170,120,90,0)");
     c.fillStyle = g; c.fillRect(0, hz - u * 4, W, u * 8.5);         /* the haze that lies along the water */
     // the near hills of Saint Frane at either hand, the bay open between them
-    [[[48, 30, 66], 1.1, 7, 3], [[18, 12, 28], 1.6, 13, 5]].forEach(([col, scale, rise, off], L) => {
+    [[[34, 24, 26], 1.1, 7, 3], [[11, 9, 11], 1.6, 13, 5]].forEach(([col, scale, rise, off], L) => {
       const edge = (x) => Math.pow(Math.abs(x / W - .5) * 2, 1.6);
       const top = (x) => H - (u * rise * (.35 + edge(x)) + (nz(x / (u * 16) + off, off) - .3) * u * 6) * (L ? 1 : .9) - (L ? 0 : u * 3);
       c.fillStyle = rgb(col); c.beginPath(); c.moveTo(0, H); for (let x = 0; x <= W; x += u * .5) c.lineTo(x, top(x)); c.lineTo(W, H); c.fill();
@@ -107,7 +124,7 @@
         if (L === 0 && rnd() < .4) { c.fillStyle = `rgba(255,196,150,${.4 + rnd() * .4})`; c.fillRect(x - w * .2, gnd - h * (.3 + rnd() * .4), Math.max(1, u * .14), Math.max(1, u * .2)); c.fillStyle = rgb(col); }
       }
       // rim light: where the sun catches the tops of the near hills
-      c.strokeStyle = L ? "rgba(230,130,120,.18)" : "rgba(230,140,130,.25)"; c.lineWidth = Math.max(1, u * .12);
+      c.strokeStyle = L ? "rgba(220,120,70,.16)" : "rgba(220,130,80,.22)"; c.lineWidth = Math.max(1, u * .12);
       c.beginPath(); for (let x = 0; x <= W; x += u * .5) { const y = top(x); x ? c.lineTo(x, y) : c.moveTo(x, y); } c.stroke();
     });
     // a fine grain over all, so it reads as paint rather than glass
@@ -135,7 +152,7 @@
     c.globalCompositeOperation = "lighter";
     for (const m of motes) {
       m.y -= m.v * k; m.p += .02; m.x += Math.sin(m.p) * .3 * k; if (m.y < -4) { m.y = H + 4; m.x = Math.random() * W; }
-      c.fillStyle = `rgba(255,200,180,${.15 + .35 * (.5 + .5 * Math.sin(m.p * 2))})`; c.beginPath(); c.arc(m.x, m.y, m.r * k * 1.3, 0, 7); c.fill();
+      c.fillStyle = `rgba(230,190,160,${.1 + .3 * (.5 + .5 * Math.sin(m.p * 2))})`; c.beginPath(); c.arc(m.x, m.y, m.r * k * 1.3, 0, 7); c.fill();
     }
     c.globalCompositeOperation = "source-over";
   }
@@ -257,7 +274,7 @@
     main.innerHTML = `<section class="poster" aria-label="Half Life">
         <h1 class="poster-title">Half <em>Life</em></h1>
         <div class="poster-rule" aria-hidden="true"></div>
-        <p class="epigraph">Being a record kept in Saint Frane, in the last age of the sun</p>
+        <p class="epigraph">A record kept in Saint Frane, beneath the old sun, by one who forgets nothing</p>
         <div class="portrait" role="img" aria-label="Chris, drawn in ink and smoke"></div>
         ${p ? `<p class="latest">Lately set down: <a href="#/post/${esc(p.file)}">${esc(p.title)}</a></p>` : ""}
       </section>`;
@@ -341,19 +358,20 @@
   /* ------------------------------------------------------------------ the realm ------------------------------- */
   // A gazetteer of the Chronicler's world, in the manner of the old almanacs: each entry a heading and a few lines.
   const REALM = [
-    ["The Sun", "Old, swollen and the colour of spilled wine, the sun hangs low and is not to be trusted. Now and then it gutters like a lamp short of oil, and every soul in the city pauses mid-word to see whether it will return. So far it has. The almanac-makers have given up predicting its end and now sell instead small medallions which, worn at the throat, are said to make the matter less upsetting."],
-    ["Saint Frane", "A city of seven hills on the last coast, older than its own records. Its towers were raised by people who understood what they built; their descendants understand only that the towers are tall and that certain of the doors still open. Streets climb and fall like a wave stopped mid-motion. The inhabitants are courteous, superstitious, and fond of argument, in roughly that order."],
-    ["The Grey Water", "The bay below the city, wide and cold, with an island in its middle where a fortress of the old age keeps its silence. Fishermen work the shallows at dusk, which here lasts most of the day. They say the deep water holds things that remember being fish and resent having changed. The Chronicler has caught several and found them, on the whole, reasonable."],
-    ["The Fog Wall", "Each morning a pale wall walks in from the sea and swallows the western hills. Those who go into it come back, as a rule, though occasionally a day or two later than they left, and with opinions they did not previously hold."],
-    ["The Broken Span", "A great red bridge once leapt the mouth of the bay. Its two towers stand yet; the road between them fell long ago into the sea. Pilgrims climb the southern tower to watch the sun set through the cables, and to throw small offerings into the gap, for luck, or for spite."],
-    ["The Isle of Rest", "Far across the western ocean, reached by airship, lies an island of warm water, long afternoons and drinks served in vessels the size of a thimble beneath little paper canopies. It is said to restore the body and correct the opinions. The Chronicler has been, and intends to go again."],
-    ["Magic", "There is magic still, though no one now alive could invent a spell. The great formulae were written ages ago and are hoarded, traded and stolen like jewels; a magician holds only a few in mind at once, and each, once spoken, is gone until it is learned again. Most practitioners are therefore careful, and the careless ones are brief."],
-    ["Curiosities", "The realm teems with oddities: the cat who sits upon the Chronicler's shoulders and will not say from where it came; mirrors that show yesterday; plants which, properly flattered, flower out of season; and the fish of the Grey Water, catalogued with some pride and released with some relief."],
-    ["The Chronicler", "Of no fixed occupation, the Chronicler goes about the city in black with jade at the ear and an unreasonable number of plans. He keeps this record of what he sees, catches, grows and photographs, on the principle that the sun may go out at any moment and someone ought to have written it down."]
+    ["The Old Sun", "I set down first the sun, because everything else is lit by it. It is old, larger than the books say it once was, and the colour of a coal that has been some while out of the fire; at midday the brighter stars still show beside it. Now and then it falters, and for the space of a breath the whole city goes still. I have seen men cross themselves at it and others laugh, and I have noticed that it is the same men."],
+    ["Saint Frane", "The city is older than its records and larger than anyone has walked. It climbs seven hills above the Grey Water and spills down their sides in streets so steep that the houses lean on one another like old soldiers. I was not born to it, but I have lived in it long enough to lose my way in it with confidence, which is all that any citizen can claim."],
+    ["The Citadel", "On the northern hill stand the towers: smooth, windowed, of a dark metal no smith now living could work, round as columns and narrowing to points, with great fins about their feet. The learned say they were raised to stand; the very old say they were made to fly, and came here from somewhere else, and stayed. I have touched the metal at dusk. It is never cold."],
+    ["The Grey Water", "The bay is wide and the colour of a knife, and in its midst an island holds a prison of the old age that no longer has prisoners, or does not admit to them. I fish it at the hour when the sun lies along the water like a dropped coin. What I bring up I record faithfully, for a thing set down cannot afterwards be said not to have happened."],
+    ["The Wall", "Westward a wall of white walks in from the sea each morning and takes the hills, and behind it, they say, is the true wall, of stone, that runs the length of the coast and was built against something no one now remembers. I have gone into the white and come out again. Of the other I have only the word of travellers, who are paid in drink and tell it accordingly."],
+    ["The Broken Span", "Two red towers stand at the mouth of the bay, joined once by a road through the air. The road is gone. Its cables hang from the towers like the rigging of a ship that has sunk beneath them, and pilgrims climb at sunset to look through them at the light. I have gone up once, and found the view worth the climb, and the climb not worth repeating."],
+    ["The Isle of Rest", "Beyond the western sea, a voyage of some days by airship, lies an island where the water is warm and the hours are long and drinks are brought beneath small canopies of coloured paper. It is said to mend both the body and the opinions. I have been there once and mean to go again, in good company, for I have found that the island gives most to those who do not go alone."],
+    ["On Memory", "It is my peculiarity, or my affliction, that I forget nothing; or so I tell myself, and the telling is itself a kind of remembering. This record is how I keep faith with what I have seen. Read it as you would the account of any traveller: with patience, with suspicion, and with the understanding that the sun may go out before you reach the end."],
+    ["The Familiar", "A cat attends me. It came I do not know from where, sits upon my shoulders as though it held some office, and regards strangers with the expression of an exultant inspecting a petitioner. Whether it is a cat in fact, or something older that has found the shape convenient, I have not asked. One does not."],
+    ["The Chronicler", "I go about the city in fuligin, which is the colour darker than black, with jade at my ear, carrying more plans than I can carry out. I have no office but this one: to see, to catch, to grow, to photograph, and to write it all down while there is light to write by."]
   ];
   function showRealm() {
     nav("realm"); document.title = "The Realm · Half Life";
-    main.innerHTML = `<article class="sheet realm"><p class="kicker">A gazetteer of the last age</p><h1>The Realm</h1><p class="when">Saint Frane and its surroundings, as the Chronicler has found them</p>${FLOURISH}
+    main.innerHTML = `<article class="sheet realm"><p class="kicker">Set down by the Chronicler, who forgets nothing</p><h1>The Realm</h1><p class="when">Saint Frane and what lies about it, under the old sun</p>${FLOURISH}
       ${REALM.map(([t, b], i) => `<section class="entry"><h2><span class="n">${roman(i + 1)}</span>${esc(t)}</h2><p>${esc(b)}</p></section>`).join("")}</article>`;
   }
 
