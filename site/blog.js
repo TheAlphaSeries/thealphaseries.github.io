@@ -1,6 +1,6 @@
 /* HALF LIFE: how the page works.
-   1. The ground: pale blue paper, washes of blue laid on it, silver-white ribbons and fine ink lines, painted by
-      paintLeaf on the canvas behind everything, a little differently each visit.
+   1. The ground: white paper, violet washes, gold leaf and gold filigree, white silk ribbons and fine purple ink,
+      after Amano's Final Fantasy art; painted by paintLeaf on the canvas behind everything, a little differently each visit.
    2. The words: posts.json (made from the editor's files by scripts/build-index.mjs) is read once, then the address
       after # picks the page: #/ the poster, #/posts, #/post/<file> (one post), #/photos,
       #/about. The side menu leads to each, as an old game's menu would (see "the menu" below).
@@ -41,7 +41,7 @@
         const qx = px - Math.sin(pa) * off, qy = py + Math.cos(pa) * off;
         i ? c.lineTo(qx, qy) : c.moveTo(qx, qy);
       });
-      c.strokeStyle = edge ? `rgba(122,132,150,${.35 + rnd() * .2})` : `rgba(252,251,247,${.16 + rnd() * .22})`;
+      c.strokeStyle = edge ? `rgba(150,120,200,${.3 + rnd() * .2})` : `rgba(255,253,252,${.22 + rnd() * .28})`;
       c.lineWidth = edge ? .7 : 1.2 + rnd() * 2.2; c.stroke();
     }
   }
@@ -52,34 +52,57 @@
     for (let i = 0; i < n; i++) { a += (nz(x / W * 3, y / H * 3) - .5) * .7; x += Math.cos(a) * 7; y += Math.sin(a) * 7; c.lineTo(x, y); }
     const turn = rnd() < .5 ? 1 : -1;
     for (let t = 0, r = 10 + rnd() * 16; t < 9; t += .25) { a += turn * .35; r *= .95; x += Math.cos(a) * r * .25; y += Math.sin(a) * r * .25; c.lineTo(x, y); }
-    c.strokeStyle = `rgba(30,28,36,${.35 + rnd() * .3})`; c.lineWidth = .6 + rnd() * .8; c.stroke();
+    c.strokeStyle = `rgba(58,30,92,${.25 + rnd() * .25})`; c.lineWidth = .6 + rnd() * .7; c.stroke();
   }
-  // Washes: where the noise is high, a pale blue laid on like watercolour, its edges ragged, its surface mottled
-  // where the pigment pooled. Worked out pixel by pixel at half size, then laid on.
-  function gild(c, W, H, nz, s, cover, bias) {
-    const k = 2, w = Math.ceil(W / k), h = Math.ceil(H / k), img = new ImageData(w, h), d = img.data, sk = s / k;
-    const edge = .055, t0 = 1 - cover;
+  // A wash laid where the noise runs high: ragged edges where the pigment gathered, a mottled surface. col is the
+  // colour, alpha its strength; metal adds the shimmer of leaf. Worked out pixel by pixel at half size, then laid on.
+  function wash(c, W, H, nz, { col, alpha, cover, edge = .055, scale = 2.4, off = 3, metal = 0, bias = null }) {
+    const k = metal ? 1 : 2, w = Math.ceil(W / k), h = Math.ceil(H / k); if (w < 2 || h < 2) return;   /* leaf at full size, so its edges stay sharp */
+    const img = new ImageData(w, h), d = img.data, t0 = 1 - cover;
     for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-      const fx = x / w, fy = y / h, m = nz(fx * 2.4 + 3, fy * 2.4 * (H / W) * 1.6) + (bias ? bias(fx, fy) : 0) + (nz(fx * 22, fy * 22) - .5) * .08;
+      const fx = x / w, fy = y / h, m = nz(fx * scale + off, fy * scale * (H / W) * 1.6 + off * .7) + (bias ? bias(fx, fy) : 0) + (nz(fx * 22 + off, fy * 22) - .5) * .08;
       if (m < t0) continue;
-      const a = Math.min(1, (m - t0) / edge), sheen = nz(fx * 5 + 9, fy * 5) - .5, flake = nz(fx * 60, fy * 60) - .5;
-      const i = (y * w + x) * 4, lum = 1 + sheen * .14 + flake * .05, edgeDark = a < 1 ? .93 : 1;   // pigment gathers at a wash's edge
-      d[i] = Math.min(255, 186 * lum * edgeDark); d[i + 1] = Math.min(255, 207 * lum * edgeDark); d[i + 2] = Math.min(255, 230 * lum); d[i + 3] = 150 * a;
+      const a = Math.min(1, (m - t0) / edge), sheen = nz(fx * 5 + 9 + off, fy * 5) - .5, flake = nz(fx * 70 + off, fy * 70) - .5;
+      const lum = 1 + sheen * (.14 + metal * .5) + flake * (.05 + metal * .25) + (metal ? Math.max(0, sheen - .15) * 1.2 : 0), rim = a < 1 ? (metal ? .75 : .9) : 1, i = (y * w + x) * 4;
+      d[i] = Math.min(255, col[0] * lum * rim); d[i + 1] = Math.min(255, col[1] * lum * rim); d[i + 2] = Math.min(255, col[2] * lum * rim); d[i + 3] = 255 * alpha * a;
     }
     const tmp = document.createElement("canvas"); tmp.width = w; tmp.height = h; tmp.getContext("2d").putImageData(img, 0, 0);
     c.imageSmoothingEnabled = true; c.drawImage(tmp, 0, 0, W, H);
   }
+  // Gold filigree: a flowing line that swells and thins, curling in on itself at both ends, with small spirals
+  // budding off it, as in the flourishes about Amano's Final Fantasy titles.
+  function filigree(c, W, H, rnd, nz, x0, y0, size) {
+    const curl = (x, y, a, turn, r0) => { const pts = []; for (let t = 0, r = r0; t < 11; t += .22) { a += turn * .32; r *= .955; x += Math.cos(a) * r * .22; y += Math.sin(a) * r * .22; pts.push([x, y]); } return pts; };
+    let x = x0, y = y0, a = rnd() * 6.3; const body = [[x, y]], n = 30 + rnd() * 60;
+    for (let i = 0; i < n; i++) { a += (nz(x / W * 3 + 5, y / H * 3) - .5) * .5; x += Math.cos(a) * size * .5; y += Math.sin(a) * size * .5; body.push([x, y]); }
+    const line = curl(x0, y0, a + Math.PI, rnd() < .5 ? 1 : -1, size * 2).reverse().concat(body, curl(x, y, a, rnd() < .5 ? 1 : -1, size * 2.4));
+    const g = c.createLinearGradient(x0 - size * 20, y0, x + size * 20, y); g.addColorStop(0, "#9a7428"); g.addColorStop(.35, "#e9cd7c"); g.addColorStop(.6, "#c39a3e"); g.addColorStop(1, "#f3dc94");
+    c.lineCap = "round"; c.lineJoin = "round";
+    for (let i = 1; i < line.length; i++) {
+      const t = i / line.length, wdt = Math.max(.8, size * .2 * Math.pow(Math.sin(Math.PI * t), .6));
+      c.strokeStyle = g; c.lineWidth = wdt; c.globalAlpha = .85; c.beginPath(); c.moveTo(line[i - 1][0], line[i - 1][1]); c.lineTo(line[i][0], line[i][1]); c.stroke();
+    }
+    for (let k = 0; k < 2; k++) {                            // spirals budding off the line
+      const [bx, by] = body[Math.floor(rnd() * body.length)], sp = curl(bx, by, rnd() * 6.3, rnd() < .5 ? 1 : -1, size * (1 + rnd()));
+      c.lineWidth = Math.max(.6, size * .07); c.beginPath(); c.moveTo(bx, by); sp.forEach(([px, py]) => c.lineTo(px, py)); c.stroke();
+    }
+    c.globalAlpha = 1;
+  }
   function paintLeaf(cv, seed, opts = {}) {
     const W = cv.width, H = cv.height, c = cv.getContext("2d"), rnd = dice(seed), nz = noise(rnd);
-    c.fillStyle = "#eef3f8"; c.fillRect(0, 0, W, H);
-    for (let i = 0; i < 26; i++) {                         // blue-grey and sepia washes, soaked into the paper
-      const x = rnd() * W, y = rnd() * H, r = Math.max(W, H) * (.08 + rnd() * .22), cool = rnd() < .6;
-      const g = c.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, cool ? `rgba(138,160,190,${.1 + rnd() * .12})` : `rgba(170,160,200,${.06 + rnd() * .06})`); g.addColorStop(1, "rgba(238,243,248,0)");
+    c.fillStyle = "#fcfaf7"; c.fillRect(0, 0, W, H);
+    for (let i = 0; i < 30; i++) {                         // violet and lavender soaked into the white paper
+      const x = rnd() * W, y = rnd() * H, r = Math.max(W, H) * (.06 + rnd() * .22), deep = rnd() < .45;
+      const g = c.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, deep ? `rgba(122,74,186,${.1 + rnd() * .12})` : `rgba(196,170,232,${.12 + rnd() * .14})`); g.addColorStop(1, "rgba(252,250,247,0)");
       c.fillStyle = g; c.fillRect(x - r, y - r, r * 2, r * 2);
     }
-    gild(c, W, H, nz, opts.leaf || Math.max(48, Math.min(96, W / 16)), opts.cover ?? .5, opts.bias);
-    for (let i = 0, n = opts.ribbons ?? Math.round(W / 220); i < n; i++) ribbon(c, W, H, rnd, nz, rnd() * W, rnd() * H, 50 + rnd() * 120, (14 + rnd() * 40) * (opts.scale || 1));
-    for (let i = 0, n = opts.ink ?? Math.round(W / 140); i < n; i++) inkLine(c, W, H, rnd, nz, rnd() * W, rnd() * H);
+    const s = opts.leaf || Math.max(48, Math.min(96, W / 16));
+    wash(c, W, H, nz, { col: [168, 128, 222], alpha: .62, cover: opts.cover ?? .52, bias: opts.bias });                        // lavender
+    wash(c, W, H, nz, { col: [104, 56, 168], alpha: .5, cover: (opts.cover ?? .52) * .45, off: 11, scale: 3, bias: opts.bias }); // deep violet pools
+    wash(c, W, H, nz, { col: [226, 188, 100], alpha: .95, cover: .26, off: 23, scale: 3.4, edge: .008, metal: 1.4, bias: opts.bias });   // gold leaf
+    for (let i = 0, n = opts.ribbons ?? Math.round(W / 240); i < n; i++) ribbon(c, W, H, rnd, nz, rnd() * W, rnd() * H, 50 + rnd() * 120, (14 + rnd() * 40) * (opts.scale || 1));
+    for (let i = 0, n = opts.gold ?? Math.round(W / 260) + 2; i < n; i++) filigree(c, W, H, rnd, nz, rnd() * W, rnd() * H, s * (.18 + rnd() * .14));
+    for (let i = 0, n = opts.ink ?? Math.round(W / 220); i < n; i++) inkLine(c, W, H, rnd, nz, rnd() * W, rnd() * H);
   }
 
   const leaf = $("#leaf"); let leafSize = "";
