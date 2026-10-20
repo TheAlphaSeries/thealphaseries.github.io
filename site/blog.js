@@ -85,14 +85,15 @@
   const leaf = $("#leaf"); let leafSize = "";
   function setLeaf() {
     const k = Math.min(devicePixelRatio || 1, 1.5), W = Math.round(innerWidth * k), H = Math.round(innerHeight * k);
-    if (leafSize === W + "x" + H) return; leafSize = W + "x" + H;
-    leaf.width = W; leaf.height = H;
+    if (W < 8 || H < 8 || leafSize === W + "x" + H) return;   // a window with no size yet (a hidden tab): paint when it has one
+    leafSize = W + "x" + H; leaf.width = W; leaf.height = H;
     const wide = innerWidth > 860, menuEdge = 300 / innerWidth;   // on a wide screen, keep the washes off the menu's side, fading in beyond it
     const t0 = performance.now();
-    paintLeaf(leaf, (Math.random() * 2 ** 31) | 0, { bias: wide ? (fx) => Math.min(0, (fx - menuEdge * 1.1) * 1.6) : null });
+    try { paintLeaf(leaf, (Math.random() * 2 ** 31) | 0, { bias: wide ? (fx) => Math.min(0, (fx - menuEdge * 1.1) * 1.6) : null }); } catch (e) { leafSize = ""; }   /* the painting must never stop the page */
     leaf.dataset.ms = Math.round(performance.now() - t0);
   }
   let resized = 0;
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) setLeaf(); });
   addEventListener("resize", () => { clearTimeout(resized); resized = setTimeout(() => { setLeaf(); if ($("canvas.sketch")) sketch($("canvas.sketch")); }, 250); });
 
   /* ------------------------------------------------------------------ the portrait ---------------------------- */
