@@ -183,7 +183,7 @@
   // On a phone there is room for one place only, behind the tower: it shows the English, then the Cantonese.
   // They sway a little, each line on its own, and are drawn after the glow so the letters stay sharp.
   const deck = (window.HL_QUOTES || []).filter((q) => q && q.text).sort(() => Math.random() - .5);
-  let dealt = 0, saying = null, sayAt = 0, reserved = 0;   // reserved: how much of the right edge the Cantonese is using, kept clear of callouts
+  let dealt = 0, saying = null, sayAt = 0, reserved = 0, blocked = null;   // blocked: the stretch of the left side the English uses, kept clear of callouts   // reserved: how much of the right edge the Cantonese is using, kept clear of callouts
   const HOLD = 18, FADE = 2.4;   // seconds each saying stays, and how long it takes to fade in or out
   const INK = "rgb(226,214,255)", INK_ALPHA = .5;   // a pale violet-white, crisp and unglowing
   const fade = (age, hold) => clamp(age / FADE) * clamp((hold - age) / FADE);
@@ -204,6 +204,7 @@
       c.fillText(("\u2014 " + q.from).toUpperCase(), 0, lines.length * lh + size * .25);
     }
     c.restore();
+    return lines.length * lh + (q.from ? size * .8 : 0);   // how tall it came out
   }
   // the Cantonese: characters stacked top to bottom, columns running right to left
   function cantonese(q, right, top, height, size, alpha, t, ph) {
@@ -217,7 +218,7 @@
     c.restore();
   }
   function sayings() {
-    reserved = 0;
+    reserved = 0; blocked = null;
     const show = clamp((V.dim - .6) / .35) * intro; if (show < .01 || !deck.length) return;
     if (!saying || clock - sayAt > HOLD) { saying = deck[dealt++ % deck.length]; sayAt = clock; }
     const age = clock - sayAt, t = still ? 0 : clock, gap = 32 * S;
@@ -234,7 +235,10 @@
     }
     const a = show * fade(age, HOLD) * INK_ALPHA; if (a < .01) return;
     const lx = V.x0 * W + 40 * S, lw = Math.min(400 * S, (V.cx - V.R * 1.25 - gap) - lx);
-    if (lw > 150 * S) english(saying, lx, V.top + V.h * .22, lw, Math.min(26 * S, Math.max(17 * S, lw / 15)), "left", a, t, 0);
+    if (lw > 150 * S) {
+      const y = V.top + V.h * .22, size = Math.min(26 * S, Math.max(17 * S, lw / 15)), tall = english(saying, lx, y, lw, size, "left", a, t, 0);
+      blocked = { y0: y - size - lw * .08 - 14 * S, y1: y + tall + 18 * S };   // the slant lifts the far end of each line a little
+    }
     const rr = V.x1 * W - 44 * S, rl = V.cx + V.R * 1.3 + gap;
     if (saying.yue && rr - rl > 90 * S) {
       const size = Math.min(26 * S, Math.max(18 * S, V.h / 22));
@@ -343,7 +347,15 @@
     for (const side of ["l", "r"]) {
       const colW = room[side]; if (colW < 120 * S) continue;
       const list = placed[side].sort((a, b) => a.y - b.y);
-      for (let i = 1; i < list.length; i++) list[i].y = Math.max(list[i].y, list[i - 1].y + fs * 3.1);   // keep labels from overlapping
+      // on the left, a label that would land on the English saying moves below it (or above, if there is no room below)
+      if (side === "l" && blocked) for (const L of list) if (L.y + fs * 2 > blocked.y0 && L.y - fs < blocked.y1)
+        L.y = blocked.y1 + fs * 1.2 <= lowest.l ? blocked.y1 + fs * 1.2 : Math.max(40 * S, blocked.y0 - fs * 2.4);
+      list.sort((a, b) => a.y - b.y);
+      const inBlock = (y) => side === "l" && blocked && y + fs * 2 > blocked.y0 && y - fs < blocked.y1;
+      for (let i = 1; i < list.length; i++) {                                // keep labels from overlapping each other, and the saying
+        list[i].y = Math.max(list[i].y, list[i - 1].y + fs * 3.1);
+        if (inBlock(list[i].y)) list[i].y = Math.max(blocked.y1 + fs * 1.2, list[i - 1].y + fs * 3.1);
+      }
       for (let i = list.length - 2; i >= 0; i--) if (list[i + 1].y > lowest[side]) { list[i + 1].y = lowest[side]; list[i].y = Math.min(list[i].y, list[i + 1].y - fs * 3.1); }
       for (const L of list) {
         const edge = side === "l" ? V.cx - V.R * 1.15 - 20 * S : V.cx + V.R * 1.15 + 20 * S;
