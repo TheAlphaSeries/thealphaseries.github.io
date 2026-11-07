@@ -63,7 +63,7 @@
     here = [route, file]; placeTower(route, file);
   }
   function menuEntries() {
-    $("#entries").innerHTML = DATA.posts.slice(0, 5).map((p) => `<li><a href="#/post/${esc(p.file)}" data-file="${esc(p.file)}" data-say="${esc(lede(p.body, 16))}"><span class="d">${esc(when(p.date))}</span>${esc(p.title)}</a></li>`).join("");
+    $("#entries").innerHTML = DATA.posts.slice(0, 3).map((p) => `<li><a href="#/post/${esc(p.file)}" data-file="${esc(p.file)}" data-say="${esc(lede(p.body, 16))}"><span class="d">${esc(when(p.date))}</span>${esc(p.title)}</a></li>`).join("");
     $("#postcount").textContent = DATA.posts.length || ""; $("#photocount").textContent = allPhotos().length || "";
     menuItems().forEach((a) => { a.addEventListener("mouseenter", () => choose(a)); a.addEventListener("focus", () => choose(a)); a.addEventListener("click", () => blip("pick")); });
   }
@@ -127,7 +127,7 @@
   // the page (on a wide screen) or stays behind it, dimmed, with the post being read unwound and glowing.
   function placeTower(route, file) {
     if (!window.Tower) return;
-    const wide = innerWidth > 1100, mid = innerWidth > 860, side = mid ? 300 / innerWidth : 0;
+    const wide = innerWidth > 1100, mid = innerWidth > 860, side = mid ? 240 / innerWidth : 0;   /* 240: --side in blog.css */
     if (route === "home") Tower.view({ x0: side, x1: 1, dim: 1, focus: null });
     else if (wide) { const sheet = Math.min(760, innerWidth * .55) / innerWidth; Tower.view({ x0: side, x1: 1 - sheet, dim: .55, focus: file || null }); }
     else Tower.view({ x0: side, x1: 1, dim: .16, focus: file || null });

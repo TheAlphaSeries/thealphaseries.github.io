@@ -108,7 +108,7 @@
     // Room is kept clear above for the header (and on a phone the readout under it), and below for the line naming
     // the newest post, plus on a phone the callout strip. The tower fills what is left, its floor included.
     const free = (T.x1 - T.x0) * W, narrow = W < 700, home = T.dim > .9;
-    const top = (narrow ? 150 : 56) * S, below = (narrow ? (home ? 120 : 40) : 44) * S;
+    const top = (narrow ? 150 : 56) * S, below = (narrow ? (home ? 205 : 40) : 44) * S;   // a phone keeps a band under the tower for the saying and the callout
     const R = Math.max(40 * S, Math.min(free * (narrow ? .3 : .19), H * .2, (H - top - below) * .3));
     const to = { cx: (T.x0 + T.x1) / 2 * W, top, h: Math.max(80 * S, (H - top - below - R * .62) / 1.06), R };
     for (const k in to) V[k] = snap ? to[k] : ease(V[k], to[k], 3.5, snap === 0 ? 0 : 1 / 60);
@@ -177,58 +177,70 @@
     }
   }
   /* ------------------------------------------------------------------ the sayings ------------------------------ */
-  // Sayings from site/quotes.js drift faintly behind the tower, set on a slant like the film's calligraphy walls. Each
-  // place on the screen shows one for a while, fades it, and takes the next from a deck shuffled fresh on every visit,
-  // so no two places ever show the same one. They sway a little, and each line shimmers on its own.
+  // Sayings from site/quotes.js stand in the dark beside the tower, one at a time: the English on the left, on a slant
+  // like the film's calligraphy walls, and the same saying in Cantonese on the right, read top to bottom in columns
+  // from the right. After a while it fades and the next takes its place, from a deck shuffled fresh on every visit.
+  // On a phone there is room for one place only, behind the tower: it shows the English, then the Cantonese.
+  // They sway a little, each line on its own, and are drawn after the glow so the letters stay sharp.
   const deck = (window.HL_QUOTES || []).filter((q) => q && q.text).sort(() => Math.random() - .5);
-  let dealt = 0;
-  const slots = [{ ph: 0, q: null, t0: 0 }, { ph: 2.1, q: null, t0: 0 }];
-  const HOLD = 17, FADE = 2.6;   // seconds each saying stays, and how long it takes to fade in or out
-  function deal(slot, now) {
-    if (!deck.length) return;
-    const showing = slots.map((x) => x.q);
-    for (let k = 0; k < deck.length; k++) { const q = deck[dealt++ % deck.length]; if (!showing.includes(q) || deck.length < 3) { slot.q = q; break; } }
-    slot.t0 = now;
-  }
-  // where each place is: beside the tower on a wide screen (left high, right low), behind it on a phone
-  function slotBox(k) {
-    const narrow = W < 700, gap = 28 * S;
-    if (narrow) return k ? null : { x: 22 * S, w: W - 44 * S, y: V.top + V.h * .42, size: 17 * S, align: "center" };
-    const left = { x: V.x0 * W + 40 * S, w: (V.cx - V.R * 1.25 - gap) - (V.x0 * W + 40 * S), y: V.top + V.h * .2 };
-    const right = { x: V.cx + V.R * 1.3 + gap, w: (V.x1 * W - 40 * S) - (V.cx + V.R * 1.3 + gap), y: V.top + V.h * .68 };
-    const b = k ? right : left;
-    b.w = Math.min(b.w, 420 * S); if (k) b.x = Math.max(b.x, V.x1 * W - 40 * S - b.w);
-    b.size = Math.min(26 * S, Math.max(17 * S, b.w / 15)); b.align = k ? "right" : "left";
-    return b.w > 150 * S ? b : null;
-  }
+  let dealt = 0, saying = null, sayAt = 0, reserved = 0;   // reserved: how much of the right edge the Cantonese is using, kept clear of callouts
+  const HOLD = 18, FADE = 2.4;   // seconds each saying stays, and how long it takes to fade in or out
+  const INK = "rgb(226,214,255)", INK_ALPHA = .5;   // a pale violet-white, crisp and unglowing
+  const fade = (age, hold) => clamp(age / FADE) * clamp((hold - age) / FADE);
   function wrap(text, width) {
     const lines = []; let line = "";
     for (const w of text.split(" ")) { const t = line ? line + " " + w : w; if (line && c.measureText(t).width > width) { lines.push(line); line = w; } else line = t; }
     if (line) lines.push(line); return lines;
   }
+  // the English: a few slanted lines, and the small line saying where it was heard
+  function english(q, x, y, w, size, align, alpha, t, ph) {
+    c.save(); c.translate(x + Math.sin(t * .21 + ph) * 8 * S, y + Math.sin(t * .16 + ph * 2) * 5 * S); c.transform(1, -.07 + Math.sin(t * .09 + ph) * .02, -.16, 1, 0, 0);
+    c.textAlign = align; c.textBaseline = "alphabetic"; c.fillStyle = INK;
+    c.font = `italic 500 ${size}px "Cormorant Garamond", Georgia, serif`;
+    const lines = wrap("\u201c" + q.text + "\u201d", w), lh = size * 1.22;
+    lines.forEach((line, j) => { c.globalAlpha = alpha; c.fillText(line, still ? 0 : Math.sin(t * .6 + j * 1.7 + ph) * 1.6 * S, j * lh); });
+    if (q.from) {
+      c.font = `500 ${Math.max(9 * S, size * .42)}px "IBM Plex Mono", ui-monospace, monospace`; c.globalAlpha = alpha * .7;
+      c.fillText(("\u2014 " + q.from).toUpperCase(), 0, lines.length * lh + size * .25);
+    }
+    c.restore();
+  }
+  // the Cantonese: characters stacked top to bottom, columns running right to left
+  function cantonese(q, right, top, height, size, alpha, t, ph) {
+    const chars = [...q.yue], per = Math.max(4, Math.floor(height / (size * 1.12)));
+    c.save(); c.textAlign = "center"; c.textBaseline = "top"; c.fillStyle = INK;
+    c.font = `500 ${size}px "Noto Serif TC", "Songti TC", "PMingLiU", "Noto Serif CJK TC", serif`;
+    for (let k = 0; k * per < chars.length; k++) {
+      const x = right - size * .5 - k * size * 1.45 + Math.sin(t * .19 + ph + k * .9) * 3 * S, y0 = top + k * size * .5 + Math.sin(t * .14 + ph + k * 1.3) * 4 * S;
+      chars.slice(k * per, (k + 1) * per).forEach((ch, j) => { c.globalAlpha = alpha; c.fillText(ch, x, y0 + j * size * 1.12); });
+    }
+    c.restore();
+  }
   function sayings() {
+    reserved = 0;
     const show = clamp((V.dim - .6) / .35) * intro; if (show < .01 || !deck.length) return;
-    slots.forEach((slot, k) => {
-      const b = slotBox(k); if (!b) return;
-      if (!slot.q) deal(slot, clock - (k ? HOLD / 2 : 0));            // the two places change at different moments
-      let age = clock - slot.t0; if (age > HOLD) { deal(slot, clock); age = 0; }
-      const a = show * clamp(age / FADE) * clamp((HOLD - age) / FADE);
+    if (!saying || clock - sayAt > HOLD) { saying = deck[dealt++ % deck.length]; sayAt = clock; }
+    const age = clock - sayAt, t = still ? 0 : clock, gap = 32 * S;
+    c.globalCompositeOperation = "source-over";
+    if (W < 700) {                                                       // a phone: the English, then the Cantonese
+      const half = saying.yue ? HOLD / 2 : HOLD, cant = saying.yue && age > half, a = show * fade(cant ? age - half : age, half) * .55;
       if (a < .01) return;
-      const t = still ? 0 : clock, dx = Math.sin(t * .21 + slot.ph) * 9 * S, dy = Math.sin(t * .16 + slot.ph * 2) * 6 * S, lean = Math.sin(t * .09 + slot.ph) * .025;
-      c.save(); c.translate(b.x + (b.align === "right" ? b.w : b.align === "center" ? b.w / 2 : 0) + dx, b.y + dy); c.transform(1, -.07 + lean, -.16, 1, 0, 0);
-      c.textAlign = b.align; c.textBaseline = "alphabetic";
-      c.font = `italic 500 ${b.size}px "Cormorant Garamond", Georgia, serif`;
-      const lines = wrap("\u201c" + slot.q.text + "\u201d", b.w), lh = b.size * 1.22;
-      lines.forEach((line, j) => {
-        const shimmer = still ? 0 : Math.sin(t * .6 + j * 1.7 + slot.ph) * 1.8 * S;
-        c.globalAlpha = a * (W < 700 ? .13 : .3); c.fillStyle = "rgb(244,238,255)"; c.fillText(line, shimmer, j * lh);
-      });
-      if (slot.q.from) {
-        c.font = `500 ${Math.max(9 * S, b.size * .42)}px "IBM Plex Mono", ui-monospace, monospace`; c.globalAlpha = a * .22;
-        c.fillText(("\u2014 " + slot.q.from).toUpperCase(), 0, lines.length * lh + b.size * .2);
-      }
-      c.restore();
-    });
+      if (cant) { c.save(); c.textAlign = "center"; c.fillStyle = INK; c.globalAlpha = a; c.font = `500 ${17 * S}px "Noto Serif TC", "Songti TC", serif`;
+        const per = Math.floor((W - 60 * S) / (17 * S * 1.05)), ch = [...saying.yue];
+        for (let k = 0; k * per < ch.length; k++) c.fillText(ch.slice(k * per, (k + 1) * per).join(""), W / 2 + Math.sin(t * .2 + k) * 3 * S, H - 178 * S + k * 17 * S * 1.5);
+        c.restore(); }
+      else english(saying, W / 2, H - 172 * S, W - 60 * S, 16 * S, "center", a, t, 0);
+      return;
+    }
+    const a = show * fade(age, HOLD) * INK_ALPHA; if (a < .01) return;
+    const lx = V.x0 * W + 40 * S, lw = Math.min(400 * S, (V.cx - V.R * 1.25 - gap) - lx);
+    if (lw > 150 * S) english(saying, lx, V.top + V.h * .22, lw, Math.min(26 * S, Math.max(17 * S, lw / 15)), "left", a, t, 0);
+    const rr = V.x1 * W - 44 * S, rl = V.cx + V.R * 1.3 + gap;
+    if (saying.yue && rr - rl > 90 * S) {
+      const size = Math.min(26 * S, Math.max(18 * S, V.h / 22));
+      const cols = Math.ceil([...saying.yue].length / Math.max(4, Math.floor(V.h * .62 / (size * 1.12))));
+      if (cols * size * 1.45 < rr - rl) { cantonese(saying, rr, V.top + V.h * .1, V.h * .62, size, a, t, 1.3); reserved = W - rr + cols * size * 1.45 + 20 * S; }
+    }
   }
   // the chamber: a lattice of teal points circling the foot of the tower, and lights on the floor
   function chamber(front) {
@@ -251,7 +263,6 @@
     c.globalCompositeOperation = "source-over"; c.globalAlpha = 1; c.clearRect(0, 0, W, H);
     const bg = c.createRadialGradient(V.cx, H * .55, 0, V.cx, H * .55, Math.max(W, H) * .7);
     bg.addColorStop(0, chamberCols[0]); bg.addColorStop(.5, chamberCols[1]); bg.addColorStop(1, chamberCols[2]);
-    sayings(); c.globalAlpha = 1;
     c.globalCompositeOperation = "lighter";
     chamber(false);
     // the axis: a faint thread of light down the middle, and a bright tick at the top
@@ -293,6 +304,7 @@
     }
     glow();
     c.globalCompositeOperation = "destination-over"; c.fillStyle = bg; c.fillRect(0, 0, W, H); c.globalCompositeOperation = "source-over";
+    sayings(); c.globalAlpha = 1; c.globalCompositeOperation = "source-over";
     labels();
   }
   // the glow: the picture drawn again at a quarter and a tenth of its size, then laid back over itself
@@ -318,7 +330,7 @@
     if (W < 700) return strip();
     const fs = 12 * S, room = {                                              // how wide each side's labels may be
       l: Math.min(300 * S, (V.cx - V.R * 1.15 - 20 * S) - (V.x0 * W + 16 * S)),
-      r: Math.min(300 * S, (V.x1 * W - 16 * S) - (V.cx + V.R * 1.15 + 20 * S)) };
+      r: Math.min(300 * S, (V.x1 * W - 16 * S - reserved) - (V.cx + V.R * 1.15 + 20 * S)) };
     // labels stay clear of the header above, the line at the foot, and on the right the readout in the corner
     const lowest = { l: H - 50 * S, r: H - 170 * S };
     const placed = { l: [], r: [] };
