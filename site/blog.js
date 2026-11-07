@@ -48,7 +48,7 @@
   const imgTag = (src, alt, dir) => `<img src="${esc(sized(src, dir))}" data-full="${esc(src)}" alt="${esc(alt)}" loading="lazy" decoding="async" onerror="if(this.src!==this.dataset.full)this.src=this.dataset.full">`;
   // a rule in the film's manner: a thin line with ticks, and a bright mark at its left
   const FLOURISH = '<svg class="flourish" viewBox="0 0 600 14" preserveAspectRatio="none" aria-hidden="true"><path d="M0 7 H600 M0 2 V12 M150 4 V10 M300 4 V10 M450 4 V10 M600 2 V12"/><rect class="tick" x="0" y="5" width="40" height="4"/></svg>';
-  const num = (n) => String(n).padStart(3, "0");   /* entry numbers as the record keeps them: 004 */
+  const num = (n) => String(n);   /* entry numbers, plainly: 1, 2, 3 */
   const wordsIn = (src) => plain(src).split(" ").filter(Boolean).length;
 
   let DATA = { posts: [], albums: [], about: "" };
@@ -149,7 +149,7 @@
     for (let k = 11; k >= 0; k--) { const d = new Date(now.getFullYear(), now.getMonth() - k, 1); months.push(posts.filter((p) => p.date.startsWith(d.toISOString().slice(0, 7))).length); }
     const top = Math.max(1, ...months), latest = posts[0], age = latest ? Math.max(0, (Date.now() - Date.parse(latest.date + "T12:00:00")) / 864e5) : 0;
     const life = latest ? Math.round(100 * Math.pow(.5, age / 30)) : 0;
-    $("#readout").innerHTML = `<p class="rt"><span lang="zh-Hant">記錄</span> Record</p>
+    $("#readout").innerHTML = `<p class="rt">Record</p>
       <dl>
         <div><dt>Entries</dt><dd class="spark" aria-hidden="true">${months.map((m) => `<i style="height:${Math.max(8, m / top * 100)}%" class="${m ? "on" : ""}"></i>`).join("")}</dd><dd>${posts.length}</dd></div>
         <div><dt>Photos</dt><dd class="bar"><i style="width:${Math.min(100, allPhotos().length * 4)}%"></i></dd><dd>${allPhotos().length}</dd></div>

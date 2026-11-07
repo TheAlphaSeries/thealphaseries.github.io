@@ -64,7 +64,8 @@ if (existsSync("posts")) {
     if (!name.endsWith(".md")) continue;
     const { meta, body } = parse(readFileSync("posts/" + name, "utf8"));
     const first = /!\[[^\]]*\]\(([^)\s]+)/.exec(body);
-    posts.push({ file: name.replace(/\.md$/, ""), title: str(meta.title) || name.replace(/\.md$/, ""), date: isoDay(meta.date) || isoDay(name),
+    // "Entry 000005" is shown as "Entry 5": entries are numbered plainly
+    posts.push({ file: name.replace(/\.md$/, ""), title: (str(meta.title) || name.replace(/\.md$/, "")).replace(/^(entry\s+)0+(?=\d)/i, "$1"), date: isoDay(meta.date) || isoDay(name),
       cover: photo(meta.cover) || (first ? first[1] : ""), body });
   }
 }

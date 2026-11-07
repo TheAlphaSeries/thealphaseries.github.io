@@ -1,5 +1,5 @@
 ---
-title: Entry 000001
+title: Entry 1
 date: 2026-10-02
 ---
 Hello,
