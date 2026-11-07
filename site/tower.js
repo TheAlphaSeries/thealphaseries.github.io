@@ -108,7 +108,7 @@
     // Room is kept clear above for the header (and on a phone the readout under it), and below for the line naming
     // the newest post, plus on a phone the callout strip. The tower fills what is left, its floor included.
     const free = (T.x1 - T.x0) * W, narrow = W < 700, home = T.dim > .9;
-    const top = (narrow ? 150 : 56) * S, below = (narrow ? (home ? 178 : 40) : 100) * S;
+    const top = (narrow ? 150 : 56) * S, below = (narrow ? (home ? 120 : 40) : 44) * S;
     const R = Math.max(40 * S, Math.min(free * (narrow ? .3 : .19), H * .2, (H - top - below) * .3));
     const to = { cx: (T.x0 + T.x1) / 2 * W, top, h: Math.max(80 * S, (H - top - below - R * .62) / 1.06), R };
     for (const k in to) V[k] = snap ? to[k] : ease(V[k], to[k], 3.5, snap === 0 ? 0 : 1 / 60);
@@ -250,7 +250,7 @@
   function paint() {
     c.globalCompositeOperation = "source-over"; c.globalAlpha = 1; c.clearRect(0, 0, W, H);
     const bg = c.createRadialGradient(V.cx, H * .55, 0, V.cx, H * .55, Math.max(W, H) * .7);
-    bg.addColorStop(0, "#170c28"); bg.addColorStop(.5, "#0c0716"); bg.addColorStop(1, "#05030a");
+    bg.addColorStop(0, chamberCols[0]); bg.addColorStop(.5, chamberCols[1]); bg.addColorStop(1, chamberCols[2]);
     sayings(); c.globalAlpha = 1;
     c.globalCompositeOperation = "lighter";
     chamber(false);
@@ -320,7 +320,7 @@
       l: Math.min(300 * S, (V.cx - V.R * 1.15 - 20 * S) - (V.x0 * W + 16 * S)),
       r: Math.min(300 * S, (V.x1 * W - 16 * S) - (V.cx + V.R * 1.15 + 20 * S)) };
     // labels stay clear of the header above, the line at the foot, and on the right the readout in the corner
-    const lowest = { l: H - 110 * S, r: H - 170 * S };
+    const lowest = { l: H - 50 * S, r: H - 170 * S };
     const placed = { l: [], r: [] };
     for (const co of callouts) {
       const s = co.seg, p = pointOn(s, s.a0 + s.len / 2 + s.ring.phase), side = p.x < V.cx ? "l" : "r";
@@ -357,7 +357,7 @@
   function strip() {
     const co = callouts[callouts.length - 1], s = co.seg, p = pointOn(s, s.a0 + s.len / 2 + s.ring.phase);
     const age = clock - co.t0, alpha = clamp(age / .3) * clamp((co.ttl - age) / 1.4) * clamp((V.dim - .25) * 2);
-    const fs = 11 * S, x = 18 * S, w = W - 36 * S, y = H - 150 * S;
+    const fs = 11 * S, x = 18 * S, w = W - 36 * S, y = H - 82 * S;
     c.textBaseline = "alphabetic"; c.globalCompositeOperation = "source-over"; c.globalAlpha = alpha;
     c.font = `500 ${fs}px "IBM Plex Mono", ui-monospace, monospace`;
     let lines = wrap(co.title || s.text, w);
@@ -409,8 +409,12 @@
   }
 
   /* ------------------------------------------------------------------ 6. running ------------------------------ */
+  // the chamber's colours come from the page's style (--chamber-1..3 in blog.css), so a theme there changes them here
+  let chamberCols = ["#170c28", "#0c0716", "#05030a"];
+  function readTheme() { const css = getComputedStyle(document.documentElement); chamberCols = chamberCols.map((v, i) => css.getPropertyValue("--chamber-" + (i + 1)).trim() || v); }
   function size() {
     if (!cv) return;
+    readTheme();
     S = Math.min(devicePixelRatio || 1, coarse ? 1.5 : 1.75);
     W = Math.round(innerWidth * S); H = Math.round(innerHeight * S);
     cv.width = W; cv.height = H; c = cv.getContext("2d");

@@ -7,7 +7,12 @@
 :root {
   color-scheme: dark;
   --black: #0a0612;        /* the chamber: a violet so deep it reads as black */
-  --glass: rgba(14, 9, 24, .88);
+  --glass: rgba(var(--panel), .88);
+  --shade: 10, 6, 18;      /* the dark behind the menu and the readout, as red, green, blue */
+  --panel: 14, 9, 24;      /* the dark inside panels and the reading page */
+  --chamber-1: #170c28;    /* the chamber's glow behind the tower, centre to edge (site/tower.js reads these) */
+  --chamber-2: #0c0716;
+  --chamber-3: #05030a;
   --ink: #ffffff;          /* the writing: white */
   --ink-soft: #e4ddf2;     /* dates, captions: white with a breath of violet */
   --ink-dim: rgba(240, 232, 255, .68);   /* the small labels */
@@ -56,7 +61,7 @@ img { max-width: 100%; display: block; }
 .side {
   position: fixed; z-index: 5; left: 0; top: 0; bottom: 0; width: var(--side); overflow-y: auto; scrollbar-width: none;
   display: flex; flex-direction: column; padding: clamp(26px, 5vh, 48px) 26px 26px 32px;
-  background: linear-gradient(90deg, rgba(10, 6, 18, .82) 0%, rgba(10, 6, 18, .55) 75%, rgba(10, 6, 18, 0) 100%);
+  background: linear-gradient(90deg, rgba(var(--shade), .82) 0%, rgba(var(--shade), .55) 75%, rgba(var(--shade), 0) 100%);
 }
 .mark { display: grid; justify-items: start; gap: 4px; text-decoration: none; color: var(--ink); }
 .mark-en { font: 400 1.7rem/1 var(--caps); letter-spacing: .2em; text-transform: uppercase; color: var(--ink); text-shadow: 0 0 18px rgba(189, 148, 255, .45); }
@@ -64,7 +69,7 @@ img { max-width: 100%; display: block; }
 /* The menu, as an old game's: one thing chosen at a time, an arrowhead that slides to it and bobs, the latest posts,
    and a line at the foot that types out what the chosen thing does (blog.js: arrow keys and Enter work it too). */
 .menu { margin-top: clamp(24px, 5vh, 52px); display: grid; gap: 12px; }
-.menuwin { position: relative; padding: 12px 14px 12px 34px; background: rgba(16, 10, 28, .55); border: 1px solid var(--line); }
+.menuwin { position: relative; padding: 12px 14px 12px 34px; background: rgba(var(--panel), .55); border: 1px solid var(--line); }
 .menuwin::before { content: ""; position: absolute; left: -1px; top: -1px; width: 10px; height: 10px; border-left: 1px solid var(--accent); border-top: 1px solid var(--accent); }
 .menuwin::after { content: ""; position: absolute; right: -1px; bottom: -1px; width: 10px; height: 10px; border-right: 1px solid var(--accent); border-bottom: 1px solid var(--accent); }
 .menu ol { list-style: none; margin: 0; padding: 0; }
@@ -92,19 +97,15 @@ img { max-width: 100%; display: block; }
 .soundtoggle { background: none; border: 0; padding: 2px 0; font: 500 .6rem/1.4 var(--mono); letter-spacing: .2em; text-transform: uppercase; color: var(--ink-soft); cursor: pointer; }
 .soundtoggle span { color: var(--ink); }
 
-/* ---- home: the tower is the page. A line at the foot names the newest post. ---- */
+/* ---- home: the tower is the page ---- */
 main { position: relative; z-index: 2; min-height: 100vh; outline: none; }
 .loading { padding: 40vh 0 0; text-align: center; font: 500 .7rem/1 var(--mono); letter-spacing: .3em; text-transform: uppercase; color: var(--ink-dim); }
 body.home main { pointer-events: none; }
 .hall { position: fixed; left: var(--side); right: 0; bottom: max(22px, env(safe-area-inset-bottom)); text-align: center; pointer-events: none; }
-.hall .latest { margin: 0; font: italic 400 1.15rem/1.4 var(--title); color: var(--ink); pointer-events: auto; display: inline-block; }
-.hall .latest .k { font: 500 .6rem/1 var(--mono); font-style: normal; letter-spacing: .22em; text-transform: uppercase; color: var(--ink-dim); margin-right: .6em; vertical-align: .2em; }
-@media (min-width: 861px) and (max-width: 1300px) { .hall { right: 270px; } }   /* keep clear of the readout */
-.hall .hint { margin: 4px 0 0; font: 500 .58rem/1.4 var(--mono); letter-spacing: .2em; text-transform: uppercase; color: var(--ink-dim); }
 
 /* the card that appears beside a band of the tower when it is pointed at (made by tower.js) */
 .pin { position: fixed; z-index: 6; width: 230px; display: grid; gap: 4px; padding: 12px 14px; text-decoration: none; color: var(--ink);
-  background: rgba(14, 9, 24, .86); border: 1px solid var(--accent-dim); box-shadow: 0 0 30px -8px rgba(189, 148, 255, .35);
+  background: rgba(var(--panel), .86); border: 1px solid var(--accent-dim); box-shadow: 0 0 30px -8px rgba(189, 148, 255, .35);
   opacity: 0; transform: translateY(6px); pointer-events: none; transition: opacity .25s, transform .3s var(--ease); }
 .pin.on { opacity: 1; transform: none; pointer-events: auto; }
 body:not(.home) .pin { display: none; }
@@ -114,7 +115,7 @@ body:not(.home) .pin { display: none; }
 .pin .po { margin-top: 4px; font: 500 .6rem/1.4 var(--mono); letter-spacing: .18em; text-transform: uppercase; color: var(--ink); }
 
 /* ---- the readout in the lower right, after the film's system monitor ---- */
-.readout { position: fixed; z-index: 4; right: 22px; bottom: 20px; width: 240px; pointer-events: none; padding: 8px 10px; background: rgba(10, 6, 18, .62); font: 500 .6rem/1.5 var(--mono); color: var(--ink); letter-spacing: .08em; }
+.readout { position: fixed; z-index: 4; right: 22px; bottom: 20px; width: 240px; pointer-events: none; padding: 8px 10px; background: rgba(var(--shade), .62); font: 500 .6rem/1.5 var(--mono); color: var(--ink); letter-spacing: .08em; }
 body:not(.home) .readout { display: none; }
 .readout .rt { margin: 0 0 6px; padding-bottom: 4px; border-bottom: 1px solid var(--line); letter-spacing: .2em; text-transform: uppercase; color: var(--ink-dim); }
 .readout dl { margin: 0; display: grid; gap: 3px; }
@@ -177,7 +178,7 @@ hr.fleuron { border: 0; height: 18px; margin: 2em 0; background: radial-gradient
 
 /* the photographs */
 .gallery { columns: 3 220px; column-gap: 14px; }
-.gallery button { display: block; width: 100%; margin: 0 0 14px; padding: 0; border: 1px solid var(--line); background: #140c22; cursor: zoom-in; break-inside: avoid; }
+.gallery button { display: block; width: 100%; margin: 0 0 14px; padding: 0; border: 1px solid var(--line); background: rgb(var(--panel)); cursor: zoom-in; break-inside: avoid; }
 .gallery img { width: 100%; height: auto; transition: opacity .3s, filter .3s; filter: saturate(.9); }
 .gallery button:hover img { filter: saturate(1.05) brightness(1.06); }
 
@@ -187,7 +188,7 @@ hr.fleuron { border: 0; height: 18px; margin: 2em 0; background: radial-gradient
 .about blockquote p { margin: 0 0 1em; }
 
 /* the photograph viewer */
-.viewer { position: fixed; inset: 0; z-index: 80; display: grid; grid-template-columns: 64px minmax(0, 1fr) 64px; align-items: center; background: rgba(8, 5, 14, .96); animation: fade .35s var(--ease); }
+.viewer { position: fixed; inset: 0; z-index: 80; display: grid; grid-template-columns: 64px minmax(0, 1fr) 64px; align-items: center; background: rgba(var(--shade), .96); animation: fade .35s var(--ease); }
 .viewer[hidden] { display: none; }
 @keyframes fade { from { opacity: 0; } }
 .viewer figure { margin: 0; grid-column: 2; display: grid; justify-items: center; padding: 40px 0; }
@@ -199,9 +200,9 @@ hr.fleuron { border: 0; height: 18px; margin: 2em 0; background: radial-gradient
 
 /* ---- the neon: soft violet glow on the words and the panels ---- */
 body { text-shadow: var(--glow-text); }
-.mark-en, .sheet h1, .prose h2, .prose h3, .contents .t, .pin .pt, .postnav .t, .hall .latest a, .cmds a.sel .name, .cmds a[aria-current="page"] .name,
+.mark-en, .sheet h1, .prose h2, .prose h3, .contents .t, .pin .pt, .postnav .t, .cmds a.sel .name, .cmds a[aria-current="page"] .name,
 .entries li a.sel, .entries li a[aria-current="page"], .viewer button { text-shadow: var(--glow); }
-.menu .name, .entries li a, #say, .kicker, .wintitle, .count, .readout, .pin .pk, .pin .po, .postnav .k, .contents .n, .contents .d, .hall .k, .hall .hint, .soundtoggle, .menutoggle { text-shadow: var(--glow-soft); }
+.menu .name, .entries li a, #say, .kicker, .wintitle, .count, .readout, .pin .pk, .pin .po, .postnav .k, .contents .n, .contents .d, .soundtoggle, .menutoggle { text-shadow: var(--glow-soft); }
 a:hover { text-shadow: var(--glow); }
 .menuwin, .pin, .readout, .menutoggle { box-shadow: var(--glow-box); }
 .sheet { box-shadow: -1px 0 30px -8px rgba(189, 148, 255, .45); }
@@ -211,15 +212,22 @@ a:hover { text-shadow: var(--glow); }
 .flourish { filter: drop-shadow(0 0 4px rgba(189, 148, 255, .6)); }
 hr.fleuron { filter: drop-shadow(0 0 4px rgba(189, 148, 255, .6)); }
 
+/* ---- blackout: the same site with the violet dark taken down to true black; the neon stays.
+   Turned on by class="blackout" on the <html> tag in index.html. ---- */
+html.blackout {
+  --black: #000; --glass: rgba(0, 0, 0, .9); --shade: 0, 0, 0; --panel: 4, 2, 8;
+  --chamber-1: #0a0510; --chamber-2: #020103; --chamber-3: #000;
+}
+
 /* ---- phones and narrow windows: the menu folds into a bar at the top ---- */
 @media (max-width: 860px) {
   :root { --side: 0px; }
   .side { position: fixed; bottom: auto; width: 100%; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-between;
-    padding: max(14px, env(safe-area-inset-top)) 16px 12px; background: linear-gradient(180deg, rgba(10, 6, 18, .92), rgba(10, 6, 18, .6) 70%, rgba(10, 6, 18, 0)); max-height: 100vh; }
+    padding: max(14px, env(safe-area-inset-top)) 16px 12px; background: linear-gradient(180deg, rgba(var(--shade), .92), rgba(var(--shade), .6) 70%, rgba(var(--shade), 0)); max-height: 100vh; }
   .mark-en { font-size: 1.25rem; }
-  .menutoggle { display: block; background: rgba(16, 10, 28, .6); border: 1px solid var(--accent-dim); padding: 7px 14px; font: 500 .66rem/1 var(--mono); letter-spacing: .22em; text-transform: uppercase; color: var(--ink); }
+  .menutoggle { display: block; background: rgba(var(--panel), .6); border: 1px solid var(--accent-dim); padding: 7px 14px; font: 500 .66rem/1 var(--mono); letter-spacing: .22em; text-transform: uppercase; color: var(--ink); }
   .menu { display: none; width: 100%; margin-top: 14px; }
-  .side.open { bottom: 0; background: rgba(10, 6, 18, .94); align-content: flex-start; }
+  .side.open { bottom: 0; background: rgba(var(--shade), .94); align-content: flex-start; }
   .side.open .menu { display: grid; }
   .saywin { min-height: 0; }
   body:not(.home) main { margin-left: 0; }

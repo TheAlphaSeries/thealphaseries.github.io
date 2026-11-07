@@ -116,15 +116,10 @@
     if (kind === "pick") { tone(880, t, .09, .05); tone(1320, t + .07, .14, .045); } else tone(660, t, .05, .035);
   }
 
-  // Home is the tower itself; the menu and the readout frame it, and a line at the foot names the newest post.
+  // Home is the tower itself; the menu and the readout frame it.
   function showHome() {
     nav("home"); document.title = "Half Life";
-    const p = DATA.posts[0];
-    main.innerHTML = `<section class="hall" aria-label="Half Life">
-        <h1 class="sr">Half Life</h1>
-        ${p ? `<p class="latest"><span class="k">Lately set down</span> <a href="#/post/${esc(p.file)}">${esc(p.title)}</a></p>` : ""}
-        <p class="hint">${matchMedia("(pointer: coarse)").matches ? "Tap a band of the tower to choose a post" : "Point at a band of the tower to choose a post"}</p>
-      </section>`;
+    main.innerHTML = `<section class="hall" aria-label="Half Life"><h1 class="sr">Half Life</h1></section>`;
   }
 
   /* ------------------------------------------------------------------ the tower's place on each page ---------- */
@@ -201,7 +196,7 @@
 
   function showAbout() {
     nav("about"); document.title = "About · Half Life";
-    main.innerHTML = `<article class="sheet about"><p class="kicker"><b>Keeper</b> · concerning the one who keeps this record</p><h1>About</h1>${FLOURISH}<figure class="portrait"><img src="/site/portrait-5.webp?v=3" alt="Chris, drawn in ink and smoke" onerror="this.parentNode.remove()"></figure>${markdown(DATA.about) || '<p class="empty">This remains to be set down.</p>'}</article>`;
+    main.innerHTML = `<article class="sheet about"><p class="kicker"><b>About</b> · the person behind Half Life</p><h1>About</h1>${FLOURISH}<figure class="portrait"><img src="/site/portrait-5.webp?v=3" alt="Chris, drawn in ink and smoke" onerror="this.parentNode.remove()"></figure>${markdown(DATA.about) || '<p class="empty">This remains to be set down.</p>'}</article>`;
   }
 
   function route() {
