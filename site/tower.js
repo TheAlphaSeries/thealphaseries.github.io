@@ -34,9 +34,10 @@
   const rgb = (c, a = 1) => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${a})`;
   const clip = (s, n) => (s.length > n ? s.slice(0, n - 1).trimEnd() + "…" : s);
 
-  // The colours, from the film: amber-gold for the record, cream-white where it is being read, crimson where it was
-  // just written, bronze where it has cooled with age. Teal belongs to the chamber only, never to the posts.
-  const COL = { gold: [238, 178, 76], cream: [255, 243, 214], orange: [255, 138, 44], crimson: [255, 46, 60], bronze: [150, 92, 36], teal: [92, 226, 204] };
+  // The colours: the film's, turned violet. The names are the film's roles: "gold" is the record's own colour (violet),
+  // "cream" where it is being read (near-white), "crimson" where it was just written (magenta), "orange" and "bronze"
+  // where it has cooled with age (orchid, then deep indigo). Teal belongs to the chamber only, never to the posts.
+  const COL = { gold: [178, 132, 255], cream: [245, 238, 255], orange: [222, 120, 255], crimson: [255, 78, 168], bronze: [96, 66, 178], teal: [92, 226, 204] };
 
   /* ------------------------------------------------------------------ 1. posts into rings --------------------- */
   // A post's words, broken into the pieces that become arcs: sentences, headings, photographs, ornaments.
@@ -179,7 +180,7 @@
   function paintVerse() {
     verse = document.createElement("canvas"); verse.width = W; verse.height = H; if (W < 900) return;
     const v = verse.getContext("2d"), cols = ["逝者如斯夫", "不舍晝夜"], sz = Math.round(Math.min(H * .055, 52 * S));
-    v.font = `${sz}px "Noto Serif TC", "Songti TC", "Noto Serif CJK TC", serif`; v.textAlign = "center"; v.fillStyle = "rgba(214,150,60,.11)";
+    v.font = `${sz}px "Noto Serif TC", "Songti TC", "Noto Serif CJK TC", serif`; v.textAlign = "center"; v.fillStyle = "rgba(170,130,240,.12)";
     const right = W - sz * 1.4;
     cols.forEach((col, k) => [...col].forEach((ch, j) => v.fillText(ch, right - k * sz * 1.25, H * .1 + sz + j * sz * 1.12 + k * sz * .6)));
   }
@@ -229,7 +230,7 @@
       const lines = wrap("\u201c" + slot.q.text + "\u201d", b.w), lh = b.size * 1.22;
       lines.forEach((line, j) => {
         const shimmer = still ? 0 : Math.sin(t * .6 + j * 1.7 + slot.ph) * 1.8 * S;
-        c.globalAlpha = a * (W < 700 ? .17 : .3); c.fillStyle = "rgb(226,162,72)"; c.fillText(line, shimmer, j * lh);
+        c.globalAlpha = a * (W < 700 ? .17 : .3); c.fillStyle = "rgb(198,166,255)"; c.fillText(line, shimmer, j * lh);
       });
       if (slot.q.from) {
         c.font = `500 ${Math.max(9 * S, b.size * .42)}px "IBM Plex Mono", ui-monospace, monospace`; c.globalAlpha = a * .22;
@@ -258,7 +259,7 @@
   function paint() {
     c.globalCompositeOperation = "source-over"; c.globalAlpha = 1;
     const bg = c.createRadialGradient(V.cx, H * .55, 0, V.cx, H * .55, Math.max(W, H) * .7);
-    bg.addColorStop(0, "#130c06"); bg.addColorStop(.5, "#090604"); bg.addColorStop(1, "#040302");
+    bg.addColorStop(0, "#170c28"); bg.addColorStop(.5, "#0c0716"); bg.addColorStop(1, "#05030a");
     c.fillStyle = bg; c.fillRect(0, 0, W, H);
     if (verse) { c.globalAlpha = clamp((V.dim - .6) / .4); c.drawImage(verse, 0, 0); c.globalAlpha = 1; }
     sayings(); c.globalAlpha = 1;
@@ -352,8 +353,8 @@
         c.font = `500 ${fs}px "IBM Plex Mono", ui-monospace, monospace`; c.fillStyle = rgb(COL.gold); c.fillText(line1, tx, L.y);
         c.font = `500 ${fs * .78}px "IBM Plex Mono", ui-monospace, monospace`;
         const tag = L.co.kind + "  ", tw = measure(tag, fs * .78, 500);
-        if (side === "l") { c.fillStyle = rgb(COL.gold, .62); c.fillText(clip(line2, chars - 6), tx, L.y + fs * 1.45); const lw = measure(clip(line2, chars - 6), fs * .78, 500); c.fillStyle = rgb(kindCol); c.fillText(tag, tx - lw, L.y + fs * 1.45); }
-        else { c.fillStyle = rgb(kindCol); c.fillText(tag, tx, L.y + fs * 1.45); c.fillStyle = rgb(COL.gold, .62); c.fillText(clip(line2, chars - 6), tx + tw, L.y + fs * 1.45); }
+        if (side === "l") { c.fillStyle = rgb(COL.gold, .82); c.fillText(clip(line2, chars - 6), tx, L.y + fs * 1.45); const lw = measure(clip(line2, chars - 6), fs * .78, 500); c.fillStyle = rgb(kindCol); c.fillText(tag, tx - lw, L.y + fs * 1.45); }
+        else { c.fillStyle = rgb(kindCol); c.fillText(tag, tx, L.y + fs * 1.45); c.fillStyle = rgb(COL.gold, .82); c.fillText(clip(line2, chars - 6), tx + tw, L.y + fs * 1.45); }
       }
     }
     c.globalAlpha = 1;
@@ -375,7 +376,7 @@
     const ty = y + lines.length * fs * 1.4 + fs * .2, kindCol = co.kind === "NEW" ? COL.crimson : co.kind === "VIEW" ? COL.teal : COL.cream;
     c.font = `500 ${fs * .82}px "IBM Plex Mono", ui-monospace, monospace`; const tag = co.kind + "  ";
     c.fillStyle = rgb(kindCol); c.fillText(tag, x, ty);
-    c.fillStyle = rgb(COL.gold, .62); c.fillText(clip(`${s.chars ? s.chars + " ch  " : ""}${s.band.title}`, 34), x + c.measureText(tag).width, ty);
+    c.fillStyle = rgb(COL.gold, .82); c.fillText(clip(`${s.chars ? s.chars + " ch  " : ""}${s.band.title}`, 34), x + c.measureText(tag).width, ty);
     c.globalAlpha = 1;
   }
   const measure = (t, fs, w = 500) => { c.font = `${w} ${fs}px "IBM Plex Mono", ui-monospace, monospace`; return c.measureText(t).width; };
