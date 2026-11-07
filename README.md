@@ -23,6 +23,9 @@ The site updates itself a minute or two after saving.
    photos in `thumbs/` and `large/`. Both run by themselves (`.github/workflows/build-index.yml`).
 3. Cloudflare publishes the result (`wrangler.jsonc`, `scripts/worker.js`).
 
-The page itself is `index.html`, `site/blog.css` (the look: colours at the top) and `site/blog.js` (the gold leaf,
-silver washes and ink painted behind everything, a little differently each visit, and the pages). The portrait on the
-home page is `site/portrait.jpg`; until it exists a stand-in is drawn.
+The page itself is `index.html`, `site/blog.css` (the look: colours at the top), `site/blog.js` (the pages, the menu
+and the readout) and `site/tower.js` (the tower). The tower draws every post as a band of glowing rings, after the
+security tower in *Ghost in the Shell 2: Innocence* and [gits-file-visualizer](https://github.com/iliabaranov/gits-file-visualizer)
+(Apache-2.0), which draws a computer's files that way: each sentence is an arc, each paragraph a ring, the newest post at
+the top. Nothing about it needs updating by hand; a new post simply appears in it. The portrait is on the About page,
+`site/portrait-5.webp`.
