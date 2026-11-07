@@ -95,6 +95,7 @@ body.home main { pointer-events: none; }
 .hall { position: fixed; left: var(--side); right: 0; bottom: max(22px, env(safe-area-inset-bottom)); text-align: center; pointer-events: none; }
 .hall .latest { margin: 0; font: italic 400 1.15rem/1.4 var(--title); color: var(--ink); pointer-events: auto; display: inline-block; }
 .hall .latest .k { font: 500 .6rem/1 var(--mono); font-style: normal; letter-spacing: .22em; text-transform: uppercase; color: var(--gold-dim); margin-right: .6em; vertical-align: .2em; }
+@media (min-width: 861px) and (max-width: 1300px) { .hall { right: 270px; } }   /* keep clear of the readout */
 .hall .hint { margin: 4px 0 0; font: 500 .58rem/1.4 var(--mono); letter-spacing: .2em; text-transform: uppercase; color: rgba(230, 174, 76, .3); }
 
 /* the card that appears beside a band of the tower when it is pointed at (made by tower.js) */
@@ -109,7 +110,7 @@ body:not(.home) .pin { display: none; }
 .pin .po { margin-top: 4px; font: 500 .6rem/1.4 var(--mono); letter-spacing: .18em; text-transform: uppercase; color: var(--gold); }
 
 /* ---- the readout in the lower right, after the film's system monitor ---- */
-.readout { position: fixed; z-index: 4; right: 22px; bottom: 20px; width: 240px; pointer-events: none; font: 500 .6rem/1.5 var(--mono); color: var(--gold); letter-spacing: .08em; }
+.readout { position: fixed; z-index: 4; right: 22px; bottom: 20px; width: 240px; pointer-events: none; padding: 8px 10px; background: rgba(7, 5, 4, .62); font: 500 .6rem/1.5 var(--mono); color: var(--gold); letter-spacing: .08em; }
 body:not(.home) .readout { display: none; }
 .readout .rt { margin: 0 0 6px; padding-bottom: 4px; border-bottom: 1px solid var(--line); letter-spacing: .2em; text-transform: uppercase; color: var(--gold-dim); }
 .readout .rt span { font-family: "Noto Serif TC", "Songti TC", serif; letter-spacing: .1em; color: var(--gold); margin-right: .5em; }

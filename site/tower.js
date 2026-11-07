@@ -104,8 +104,12 @@
   const V = { x0: 0, x1: 1, dim: 1, cx: 0, top: 0, h: 0, R: 0 }, T = { x0: 0, x1: 1, dim: 1 };
   let W = 0, H = 0, S = 1, cv = null, c = null, focusFile = null, hoverBand = null, onOpen = () => {};
   function aim(snap) {
-    const free = (T.x1 - T.x0) * W, narrow = W < 700;
-    const to = { cx: (T.x0 + T.x1) / 2 * W, top: H * (narrow ? .16 : .1), h: H * (narrow ? .62 : .74), R: Math.min(free * (narrow ? .3 : .19), H * .2) * (narrow ? 1 : 1.05) };
+    // Room is kept clear above for the header (and on a phone the readout under it), and below for the line naming
+    // the newest post, plus on a phone the callout strip. The tower fills what is left, its floor included.
+    const free = (T.x1 - T.x0) * W, narrow = W < 700, home = T.dim > .9;
+    const top = (narrow ? 150 : 56) * S, below = (narrow ? (home ? 178 : 40) : 100) * S;
+    const R = Math.max(40 * S, Math.min(free * (narrow ? .3 : .19), H * .2, (H - top - below) * .3));
+    const to = { cx: (T.x0 + T.x1) / 2 * W, top, h: Math.max(80 * S, (H - top - below - R * .62) / 1.06), R };
     for (const k in to) V[k] = snap ? to[k] : ease(V[k], to[k], 3.5, snap === 0 ? 0 : 1 / 60);
   }
   // A ring's centre on screen, and how open its ellipse is: the camera looks down on the tower from above, so the
@@ -123,7 +127,7 @@
   function read(seg, kind = seg.kind === "photo" ? "VIEW" : "READ") {
     seg.litAt = clock; seg.ring.boost = .5;
     if (T.dim > .9) callouts.push({ seg, kind, t0: clock, ttl: 7 + Math.random() * 3 });   // callouts only on the tower's own page
-    const max = W < 700 ? 2 : 7; while (callouts.length > max) callouts.shift();
+    const max = W < 700 ? 1 : 7; while (callouts.length > max) callouts.shift();
     const p = pointOn(seg, seg.a0 + seg.len / 2 + seg.ring.phase); probe.tx = p.x; probe.ty = p.y; probe.on = 1;
   }
   function pickPassage() {
@@ -174,14 +178,65 @@
   let verse = null;   // the faint calligraphy behind the tower, drawn once per window size
   function paintVerse() {
     verse = document.createElement("canvas"); verse.width = W; verse.height = H; if (W < 900) return;
-    const v = verse.getContext("2d"), cols = ["逝者如斯夫", "不舍晝夜"], sz = Math.round(Math.min(H * .07, 64 * S));
+    const v = verse.getContext("2d"), cols = ["逝者如斯夫", "不舍晝夜"], sz = Math.round(Math.min(H * .055, 52 * S));
     v.font = `${sz}px "Noto Serif TC", "Songti TC", "Noto Serif CJK TC", serif`; v.textAlign = "center"; v.fillStyle = "rgba(214,150,60,.11)";
     const right = W - sz * 1.4;
-    cols.forEach((col, k) => [...col].forEach((ch, j) => v.fillText(ch, right - k * sz * 1.25, H * .2 + j * sz * 1.15 + k * sz * .6)));
-    v.save(); v.translate(W * .3, H * .28); v.transform(1, -.08, -.18, 1, 0, 0);
-    v.font = `italic ${Math.round(sz * .42)}px "Cormorant Garamond", Georgia, serif`; v.fillStyle = "rgba(214,150,60,.12)"; v.textAlign = "left";
-    ["Everything is already changing.", "One may as well", "go see what it becomes."].forEach((line, j) => v.fillText(line, 0, j * sz * .55));
-    v.restore();
+    cols.forEach((col, k) => [...col].forEach((ch, j) => v.fillText(ch, right - k * sz * 1.25, H * .1 + sz + j * sz * 1.12 + k * sz * .6)));
+  }
+
+  /* ------------------------------------------------------------------ the sayings ------------------------------ */
+  // Sayings from site/quotes.js drift faintly behind the tower, set on a slant like the film's calligraphy walls. Each
+  // place on the screen shows one for a while, fades it, and takes the next from a deck shuffled fresh on every visit,
+  // so no two places ever show the same one. They sway a little, and each line shimmers on its own.
+  const deck = (window.HL_QUOTES || []).filter((q) => q && q.text).sort(() => Math.random() - .5);
+  let dealt = 0;
+  const slots = [{ ph: 0, q: null, t0: 0 }, { ph: 2.1, q: null, t0: 0 }];
+  const HOLD = 17, FADE = 2.6;   // seconds each saying stays, and how long it takes to fade in or out
+  function deal(slot, now) {
+    if (!deck.length) return;
+    const showing = slots.map((x) => x.q);
+    for (let k = 0; k < deck.length; k++) { const q = deck[dealt++ % deck.length]; if (!showing.includes(q) || deck.length < 3) { slot.q = q; break; } }
+    slot.t0 = now;
+  }
+  // where each place is: beside the tower on a wide screen (left high, right low), behind it on a phone
+  function slotBox(k) {
+    const narrow = W < 700, gap = 28 * S;
+    if (narrow) return k ? null : { x: 22 * S, w: W - 44 * S, y: V.top + V.h * .42, size: 17 * S, align: "center" };
+    const left = { x: V.x0 * W + 40 * S, w: (V.cx - V.R * 1.25 - gap) - (V.x0 * W + 40 * S), y: V.top + V.h * .2 };
+    const right = { x: V.cx + V.R * 1.3 + gap, w: (V.x1 * W - 40 * S) - (V.cx + V.R * 1.3 + gap), y: V.top + V.h * .68 };
+    const b = k ? right : left;
+    b.w = Math.min(b.w, 420 * S); if (k) b.x = Math.max(b.x, V.x1 * W - 40 * S - b.w);
+    b.size = Math.min(26 * S, Math.max(17 * S, b.w / 15)); b.align = k ? "right" : "left";
+    return b.w > 150 * S ? b : null;
+  }
+  function wrap(text, width) {
+    const lines = []; let line = "";
+    for (const w of text.split(" ")) { const t = line ? line + " " + w : w; if (line && c.measureText(t).width > width) { lines.push(line); line = w; } else line = t; }
+    if (line) lines.push(line); return lines;
+  }
+  function sayings() {
+    const show = clamp((V.dim - .6) / .35) * intro; if (show < .01 || !deck.length) return;
+    slots.forEach((slot, k) => {
+      const b = slotBox(k); if (!b) return;
+      if (!slot.q) deal(slot, clock - (k ? HOLD / 2 : 0));            // the two places change at different moments
+      let age = clock - slot.t0; if (age > HOLD) { deal(slot, clock); age = 0; }
+      const a = show * clamp(age / FADE) * clamp((HOLD - age) / FADE);
+      if (a < .01) return;
+      const t = still ? 0 : clock, dx = Math.sin(t * .21 + slot.ph) * 9 * S, dy = Math.sin(t * .16 + slot.ph * 2) * 6 * S, lean = Math.sin(t * .09 + slot.ph) * .025;
+      c.save(); c.translate(b.x + (b.align === "right" ? b.w : b.align === "center" ? b.w / 2 : 0) + dx, b.y + dy); c.transform(1, -.07 + lean, -.16, 1, 0, 0);
+      c.textAlign = b.align; c.textBaseline = "alphabetic";
+      c.font = `italic 500 ${b.size}px "Cormorant Garamond", Georgia, serif`;
+      const lines = wrap("\u201c" + slot.q.text + "\u201d", b.w), lh = b.size * 1.22;
+      lines.forEach((line, j) => {
+        const shimmer = still ? 0 : Math.sin(t * .6 + j * 1.7 + slot.ph) * 1.8 * S;
+        c.globalAlpha = a * (W < 700 ? .17 : .3); c.fillStyle = "rgb(226,162,72)"; c.fillText(line, shimmer, j * lh);
+      });
+      if (slot.q.from) {
+        c.font = `500 ${Math.max(9 * S, b.size * .42)}px "IBM Plex Mono", ui-monospace, monospace`; c.globalAlpha = a * .22;
+        c.fillText(("\u2014 " + slot.q.from).toUpperCase(), 0, lines.length * lh + b.size * .2);
+      }
+      c.restore();
+    });
   }
   // the chamber: a lattice of teal points circling the foot of the tower, and lights on the floor
   function chamber(front) {
@@ -206,6 +261,7 @@
     bg.addColorStop(0, "#130c06"); bg.addColorStop(.5, "#090604"); bg.addColorStop(1, "#040302");
     c.fillStyle = bg; c.fillRect(0, 0, W, H);
     if (verse) { c.globalAlpha = clamp((V.dim - .6) / .4); c.drawImage(verse, 0, 0); c.globalAlpha = 1; }
+    sayings(); c.globalAlpha = 1;
     c.globalCompositeOperation = "lighter";
     chamber(false);
     // the axis: a faint thread of light down the middle, and a bright tick at the top
@@ -265,22 +321,29 @@
   // The callouts: a leader line from the arc being read out to a label at the side, naming the passage and its post.
   function labels() {
     if (V.dim < .25 || !callouts.length) return;
-    const narrow = W < 700, fs = (narrow ? 10 : 12) * S, colW = narrow ? Math.max(70 * S, (V.cx - V.R * 1.05) - 14 * S) : 300 * S;
+    if (W < 700) return strip();
+    const fs = 12 * S, room = {                                              // how wide each side's labels may be
+      l: Math.min(300 * S, (V.cx - V.R * 1.15 - 20 * S) - (V.x0 * W + 16 * S)),
+      r: Math.min(300 * S, (V.x1 * W - 16 * S) - (V.cx + V.R * 1.15 + 20 * S)) };
+    // labels stay clear of the header above, the line at the foot, and on the right the readout in the corner
+    const lowest = { l: H - 110 * S, r: H - 170 * S };
     const placed = { l: [], r: [] };
     for (const co of callouts) {
       const s = co.seg, p = pointOn(s, s.a0 + s.len / 2 + s.ring.phase), side = p.x < V.cx ? "l" : "r";
       const age = clock - co.t0, alpha = clamp(age / .3) * clamp((co.ttl - age) / 1.4) * clamp((V.dim - .25) * 2);
-      placed[side].push({ co, p, side, alpha, y: p.y - 10 * S });
+      placed[side].push({ co, p, side, alpha, y: clamp(p.y - 10 * S, 40 * S, lowest[side]) });
     }
     c.textBaseline = "alphabetic"; c.globalCompositeOperation = "source-over";
     for (const side of ["l", "r"]) {
+      const colW = room[side]; if (colW < 120 * S) continue;
       const list = placed[side].sort((a, b) => a.y - b.y);
       for (let i = 1; i < list.length; i++) list[i].y = Math.max(list[i].y, list[i - 1].y + fs * 3.1);   // keep labels from overlapping
+      for (let i = list.length - 2; i >= 0; i--) if (list[i + 1].y > lowest[side]) { list[i + 1].y = lowest[side]; list[i].y = Math.min(list[i].y, list[i + 1].y - fs * 3.1); }
       for (const L of list) {
-        const edge = side === "l" ? Math.max(V.x0 * W + colW + 8 * S, V.cx - V.R * 1.15 - 20 * S) : Math.min(V.x1 * W - colW - 8 * S, V.cx + V.R * 1.15 + 20 * S);
+        const edge = side === "l" ? V.cx - V.R * 1.15 - 20 * S : V.cx + V.R * 1.15 + 20 * S;
         const chars = Math.max(10, Math.floor(colW / (fs * .62)));
         const line1 = clip(L.co.title || L.co.seg.text, chars), kindCol = L.co.kind === "NEW" ? COL.crimson : L.co.kind === "VIEW" ? COL.teal : COL.cream;
-        const line2 = narrow ? (L.co.seg.chars ? L.co.seg.chars + " ch" : "") : `${L.co.seg.chars ? L.co.seg.chars + " ch  " : ""}${L.co.seg.band.title}`;
+        const line2 = `${L.co.seg.chars ? L.co.seg.chars + " ch  " : ""}${L.co.seg.band.title}`;
         c.globalAlpha = L.alpha;
         c.strokeStyle = rgb(COL.gold, .7); c.lineWidth = .8 * S; c.beginPath(); c.moveTo(L.p.x, L.p.y); c.lineTo(edge, L.y + 4 * S);
         c.lineTo(side === "l" ? edge - Math.min(colW, measure(line1, fs) + 4 * S) : edge + Math.min(colW, measure(line1, fs) + 4 * S), L.y + 4 * S); c.stroke();
@@ -289,10 +352,30 @@
         c.font = `500 ${fs}px "IBM Plex Mono", ui-monospace, monospace`; c.fillStyle = rgb(COL.gold); c.fillText(line1, tx, L.y);
         c.font = `500 ${fs * .78}px "IBM Plex Mono", ui-monospace, monospace`;
         const tag = L.co.kind + "  ", tw = measure(tag, fs * .78, 500);
-        if (side === "l") { c.fillStyle = rgb(COL.gold, .62); c.fillText(clip(line2, chars), tx, L.y + fs * 1.45); const lw = measure(clip(line2, chars), fs * .78, 500); c.fillStyle = rgb(kindCol); c.fillText(tag, tx - lw, L.y + fs * 1.45); }
+        if (side === "l") { c.fillStyle = rgb(COL.gold, .62); c.fillText(clip(line2, chars - 6), tx, L.y + fs * 1.45); const lw = measure(clip(line2, chars - 6), fs * .78, 500); c.fillStyle = rgb(kindCol); c.fillText(tag, tx - lw, L.y + fs * 1.45); }
         else { c.fillStyle = rgb(kindCol); c.fillText(tag, tx, L.y + fs * 1.45); c.fillStyle = rgb(COL.gold, .62); c.fillText(clip(line2, chars - 6), tx + tw, L.y + fs * 1.45); }
       }
     }
+    c.globalAlpha = 1;
+  }
+  // On a phone there is no room beside the tower, so the latest callout sits in a strip under it, the whole passage
+  // over two lines, with its leader line running up to the arc being read.
+  function strip() {
+    const co = callouts[callouts.length - 1], s = co.seg, p = pointOn(s, s.a0 + s.len / 2 + s.ring.phase);
+    const age = clock - co.t0, alpha = clamp(age / .3) * clamp((co.ttl - age) / 1.4) * clamp((V.dim - .25) * 2);
+    const fs = 11 * S, x = 18 * S, w = W - 36 * S, y = H - 150 * S;
+    c.textBaseline = "alphabetic"; c.globalCompositeOperation = "source-over"; c.globalAlpha = alpha;
+    c.font = `500 ${fs}px "IBM Plex Mono", ui-monospace, monospace`;
+    let lines = wrap(co.title || s.text, w);
+    if (lines.length > 2) lines = [lines[0], clip(lines.slice(1).join(" "), Math.floor(w / (fs * .6)))];
+    const anchorX = clamp(p.x, x, x + w);
+    c.strokeStyle = rgb(COL.gold, .6); c.lineWidth = .8 * S; c.beginPath(); c.moveTo(p.x, p.y); c.lineTo(anchorX, y - fs * 1.6); c.lineTo(anchorX < W / 2 ? x : x + w, y - fs * 1.6); c.stroke();
+    c.fillStyle = rgb(COL.cream); c.beginPath(); c.arc(p.x, p.y, 1.8 * S, 0, TAU); c.fill();
+    c.textAlign = "left"; c.fillStyle = rgb(COL.gold); lines.forEach((l, j) => c.fillText(l, x, y + j * fs * 1.4));
+    const ty = y + lines.length * fs * 1.4 + fs * .2, kindCol = co.kind === "NEW" ? COL.crimson : co.kind === "VIEW" ? COL.teal : COL.cream;
+    c.font = `500 ${fs * .82}px "IBM Plex Mono", ui-monospace, monospace`; const tag = co.kind + "  ";
+    c.fillStyle = rgb(kindCol); c.fillText(tag, x, ty);
+    c.fillStyle = rgb(COL.gold, .62); c.fillText(clip(`${s.chars ? s.chars + " ch  " : ""}${s.band.title}`, 34), x + c.measureText(tag).width, ty);
     c.globalAlpha = 1;
   }
   const measure = (t, fs, w = 500) => { c.font = `${w} ${fs}px "IBM Plex Mono", ui-monospace, monospace`; return c.measureText(t).width; };
@@ -356,7 +439,7 @@
   window.Tower = {
     start(canvas, posts, opts = {}) {
       cv = canvas; onOpen = opts.onOpen || onOpen; build(posts || []); stack(); size(); hook(); writeIn();
-      if (still) { intro = 1; for (const s of segs) s.grow = 1; }
+      if (still) { intro = 1; for (const s of segs) s.grow = 1; setInterval(poke, 4000); }   // held still, but the sayings still change
       if (document.fonts) document.fonts.ready.then(() => { paintVerse(); poke(); });
       poke();
     },
