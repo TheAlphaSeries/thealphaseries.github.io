@@ -3,8 +3,6 @@
   "name": "thealphaseries-github-io",
   "main": "scripts/worker.js",
   "compatibility_date": "2026-09-01",
-  // Keep variables set by hand in the Cloudflare dashboard when the site is republished (secrets are always kept).
-  "keep_vars": true,
   // Everything in this folder is the website, except what .assetsignore lists.
   "assets": { "directory": ".", "binding": "ASSETS" },
   // The small database that holds petitions to join a quest (see scripts/worker.js).
