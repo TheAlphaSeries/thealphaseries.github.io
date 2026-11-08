@@ -221,7 +221,7 @@
       try {
         const r = await fetch("/api/subscribe", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email, website: f.website.value }) });
         const d = await r.json().catch(() => ({}));
-        if (r.ok && d.ok) { blip("pick"); f.classList.add("done"); msg.textContent = d.already ? "You're already on the list." : d.welcomed ? "You're on the list. A welcome email is on its way." : "You're on the list."; f.email.value = ""; }
+        if (r.ok && d.ok) { blip("pick"); f.classList.add("done"); msg.textContent = d.already ? "You're already in." : "You're in. New entries only, never spam."; f.email.value = ""; }
         else msg.textContent = d.error || "That didn't work. Try again in a moment.";
       } catch (err) { msg.textContent = "That didn't work. Check your connection and try again."; }
       btn.disabled = false;
