@@ -455,7 +455,8 @@
     }
     pin.querySelector(".pt").textContent = b.title;
     const mid = ringAt((b.y0 + b.y1) / 2).cy / S, right = (V.cx + V.R * 1.25) / S, w = 230;
-    const x = right + w + 16 < V.x1 * W / S ? right + 10 : Math.max(8, (V.cx - V.R * 1.25) / S - w - 10);
+    // beside the tower if there is room; while reading (the tower in its narrow strip) the card sits over the tower
+    const x = T.dim < .9 ? V.cx / S - w / 2 : right + w + 16 < V.x1 * W / S ? right + 10 : Math.max(8, (V.cx - V.R * 1.25) / S - w - 10);
     pin.style.left = Math.min(x, innerWidth - w - 8) + "px"; pin.style.top = clamp(mid - 40, 70, innerHeight - 140) + "px";
     pin.classList.add("on");
   }
