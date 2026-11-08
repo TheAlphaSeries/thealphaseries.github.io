@@ -231,11 +231,11 @@ html.blackout {
    Turned on by class="aurora" on the <html> tag in index.html; take the word out to go back to plain black. ---- */
 .aurora-light { display: none; }
 html.aurora .aurora-light { display: block; position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; background: var(--black); }
-html.aurora .aurora-light i { position: absolute; width: 55vmax; height: 55vmax; border-radius: 50%; filter: blur(50px); will-change: transform; }
+html.aurora .aurora-light i { position: absolute; width: 40vmax; height: 40vmax; border-radius: 50%; filter: blur(46px); will-change: transform; }
 /* smaller, brighter pools on black, so most of the screen stays black and the moving light is easy to see */
-html.aurora .aurora-light i:nth-child(1) { left: 5vw; top: -15vmax; background: radial-gradient(circle, rgba(124, 58, 237, .28), rgba(124, 58, 237, 0) 62%); animation: drift-a 21s ease-in-out infinite alternate; }
-html.aurora .aurora-light i:nth-child(2) { right: -10vmax; top: 20vh; background: radial-gradient(circle, rgba(192, 38, 211, .16), rgba(192, 38, 211, 0) 62%); animation: drift-b 27s ease-in-out infinite alternate; }
-html.aurora .aurora-light i:nth-child(3) { left: 25vw; bottom: -25vmax; background: radial-gradient(circle, rgba(67, 56, 202, .24), rgba(67, 56, 202, 0) 62%); animation: drift-c 24s ease-in-out infinite alternate; }
+html.aurora .aurora-light i:nth-child(1) { left: 5vw; top: -15vmax; background: radial-gradient(circle, rgba(124, 58, 237, .17), rgba(124, 58, 237, 0) 60%); animation: drift-a 21s ease-in-out infinite alternate; }
+html.aurora .aurora-light i:nth-child(2) { right: -10vmax; top: 20vh; background: radial-gradient(circle, rgba(192, 38, 211, .09), rgba(192, 38, 211, 0) 60%); animation: drift-b 27s ease-in-out infinite alternate; }
+html.aurora .aurora-light i:nth-child(3) { left: 25vw; bottom: -25vmax; background: radial-gradient(circle, rgba(67, 56, 202, .15), rgba(67, 56, 202, 0) 60%); animation: drift-c 24s ease-in-out infinite alternate; }
 @keyframes drift-a { 33% { transform: translate(30vw, 18vh) scale(1.2); } 66% { transform: translate(8vw, 42vh) scale(.9); } to { transform: translate(48vw, 8vh) scale(1.1); } }
 @keyframes drift-b { 33% { transform: translate(-28vw, 30vh) scale(.85); } 66% { transform: translate(-50vw, -10vh) scale(1.15); } to { transform: translate(-18vw, 40vh) scale(1); } }
 @keyframes drift-c { 33% { transform: translate(-20vw, -30vh) scale(1.15); } 66% { transform: translate(30vw, -45vh) scale(.9); } to { transform: translate(10vw, -20vh) scale(1.2); } }
