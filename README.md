@@ -37,7 +37,8 @@ published, each of them gets one short email with its title, its opening lines a
 anything. Every email has a link to stop them.
 
 - The addresses are kept in the site's Cloudflare database (table `subscribers`), never shown on the site.
-- `scripts/worker.js` takes sign-ups, removes people who unsubscribe, and sends the emails through Resend.
+- `scripts/worker.js` takes sign-ups, removes people who unsubscribe, and sends the emails through Cloudflare's own Email Sending.
 - `.github/workflows/alert.yml` notices a new file in `posts/`, waits until it is live, then asks the site to send.
-- It needs `RESEND_API_KEY` and `NOTIFY_SECRET` set in Cloudflare, and the same `NOTIFY_SECRET` saved in GitHub.
+- It needs the Workers paid plan with halflife.studio onboarded to Email Sending, the `send_email` binding named
+  `EMAIL` in `wrangler.jsonc`, and `NOTIFY_SECRET` set in Cloudflare and saved in GitHub.
 

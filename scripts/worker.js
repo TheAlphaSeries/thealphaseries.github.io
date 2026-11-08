@@ -8,17 +8,18 @@
 //      POST /api/notify        called by GitHub (.github/workflows/alert.yml) when a NEW post file appears in posts/,
 //                              never when a post is edited; sends one email per address
 //    The addresses live in the site's own Cloudflare database (QUESTS_DB, table "subscribers") and are never shown
-//    anywhere on the site. Emails are sent through Resend (resend.com) from entries@halflife.studio.
+//    anywhere on the site. Emails are sent by Cloudflare's own Email Sending (the EMAIL binding in wrangler.jsonc)
+//    from entries@halflife.studio; that needs the Workers paid plan and halflife.studio onboarded under
+//    Compute > Email Service > Email Sending. Until the binding is there, sign-ups are kept and nothing is sent.
 //
-//    It needs two secrets, set in Cloudflare (Workers > thealphaseries-github-io > Settings > Variables and Secrets):
-//      RESEND_API_KEY   the key from Resend
+//    It needs one secret, set in Cloudflare (Workers > thealphaseries-github-io > Settings > Variables and Secrets):
 //      NOTIFY_SECRET    a long random password; the same one is saved in GitHub so only GitHub can trigger a send
 //
 // The game that used to live here (quests, sign-ups, remarks) moved to its own repository, halflife-game. What
 // people sent to it is still kept in the QUESTS_DB database, untouched; nothing on this site reads or writes it now.
 
 const SITE = "https://halflife.studio";
-const FROM = "Half Life <entries@halflife.studio>";
+const FROM = { email: "entries@halflife.studio", name: "Half Life" };
 
 export default {
   async fetch(request, env) {
@@ -50,18 +51,19 @@ function token() { const b = new Uint8Array(18); crypto.getRandomValues(b); retu
 // Both sides of a comparison take the same time, so the secret cannot be guessed a letter at a time.
 function same(a, b) { a = String(a || ""); b = String(b || ""); if (!a || a.length !== b.length) return false; let d = 0; for (let i = 0; i < a.length; i++) d |= a.charCodeAt(i) ^ b.charCodeAt(i); return d === 0; }
 
-async function resend(env, emails) {
-  if (!env.RESEND_API_KEY) return { ok: false, error: "RESEND_API_KEY is not set" };
-  let sent = 0;
-  for (let i = 0; i < emails.length; i += 100) {                         // Resend takes up to 100 emails per request
-    const r = await fetch("https://api.resend.com/emails/batch", {
-      method: "POST", headers: { authorization: "Bearer " + env.RESEND_API_KEY, "content-type": "application/json" },
-      body: JSON.stringify(emails.slice(i, i + 100))
-    });
-    if (!r.ok) return { ok: false, sent, error: "Resend said " + r.status + ": " + (await r.text()).slice(0, 300) };
-    sent += Math.min(100, emails.length - i);
+// Sends each email through Cloudflare, one at a time (each friend gets their own, with their own unsubscribe link).
+// If Cloudflare refuses the unsubscribe headers, that email is sent again without them.
+async function send(env, emails) {
+  if (!env.EMAIL) return { ok: false, error: "Email sending is not switched on yet (no EMAIL binding)" };
+  let sent = 0; const failed = [];
+  for (const e of emails) {
+    try { await env.EMAIL.send(e); sent++; }
+    catch (err) {
+      try { const { headers, ...plain } = e; await env.EMAIL.send(plain); sent++; }
+      catch (err2) { failed.push(e.to + ": " + (err2.code || err2.message || err2)); }
+    }
   }
-  return { ok: true, sent };
+  return failed.length ? { ok: sent > 0, sent, failed: failed.slice(0, 20), error: sent ? undefined : failed[0] } : { ok: true, sent };
 }
 
 /* ------------------------------------------------------------------ the emails --------------------------------- */
@@ -96,7 +98,7 @@ async function subscribe(request, env) {
   await env.QUESTS_DB.prepare("INSERT INTO subscribers (email, token, created) VALUES (?, ?, ?)").bind(email, t, Date.now()).run();
   // a short welcome, so they know it worked and where the alerts will come from
   const unsub = `${SITE}/api/unsubscribe?t=${t}`;
-  const welcome = await resend(env, [{ from: FROM, to: email, subject: "You're on the list · Half Life",
+  const welcome = await send(env, [{ from: FROM, to: email, subject: "You're on the list · Half Life",
     headers: { "List-Unsubscribe": `<${unsub}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" },
     html: shell(`<tr><td style="font:400 26px/1.3 Georgia,serif;color:#fff;padding-bottom:14px">You're on the list.</td></tr>
 <tr><td style="font:17px/1.7 Georgia,serif;color:#e4ddf2;padding-bottom:36px">When a new entry is set down, you'll get one short email with a link to it. Nothing else, and never for small edits.</td></tr>`, unsub),
@@ -146,7 +148,7 @@ async function notify(request, env) {
       text: `New entry · ${when}\n\n${p.title}\n\n${lede}\n\nRead it: ${link}\n\nStop these emails: ${unsub}` };
   });
   if (!emails.length) { await env.QUESTS_DB.prepare("INSERT OR IGNORE INTO alerts_sent (file, sent) VALUES (?, ?)").bind(file, Date.now()).run(); return json({ ok: true, sent: 0 }); }
-  const r = await resend(env, emails);
+  const r = await send(env, emails);
   if (r.ok) await env.QUESTS_DB.prepare("INSERT OR IGNORE INTO alerts_sent (file, sent) VALUES (?, ?)").bind(file, Date.now()).run();
   return json(r, r.ok ? 200 : 502);
 }
