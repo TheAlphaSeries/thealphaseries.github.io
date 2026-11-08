@@ -181,16 +181,20 @@ function hashOf(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) h = 
 const monthOf = (iso) => new Date(iso + "T12:00:00Z").toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
 
 async function quests(env) {
-  if (!env.QUEST_CALENDAR) return json({ quests: [] });
+  // "note" says plainly what happened, so opening /api/quests in a browser shows whether the calendar is connected
+  if (!env.QUEST_CALENDAR) return json({ quests: [], note: "No calendar connected: the QUEST_CALENDAR secret is not set on this site." });
   const cache = typeof caches !== "undefined" ? caches.default : null, key = new Request("https://halflife.studio/api/quests#cache");
   if (cache) { const hit = await cache.match(key); if (hit) return hit; }
-  let list = [];
+  let list = [], note = "", scanned = 0, failed = false;
   try {
-    const r = await fetch(env.QUEST_CALENDAR, { headers: { "user-agent": "halflife.studio" } });
-    if (!r.ok) throw new Error("calendar " + r.status);
+    const r = await fetch(String(env.QUEST_CALENDAR).trim().replace(/^webcal:/i, "https:"), { headers: { "user-agent": "halflife.studio" } });
+    if (!r.ok) throw new Error("Google answered " + r.status + (r.status === 404 ? " (the calendar address is wrong or was reset)" : ""));
     const today = new Date().toISOString().slice(0, 10), from = new Date(Date.now() - 2 * 365 * 864e5).toISOString().slice(0, 10), to = new Date(Date.now() + 400 * 864e5).toISOString().slice(0, 10);
     const seen = new Set();
-    for (const e of events(await r.text())) {
+    const body = await r.text();
+    if (!/BEGIN:VCALENDAR/.test(body)) throw new Error("the calendar address did not return a calendar (is it the 'Secret address in iCal format'?)");
+    const all = events(body); scanned = all.length;
+    for (const e of all) {
       const m = /^\s*quest\s*:\s*(.+)$/i.exec(e.summary);
       if (!m || !e.start || e.status === "CANCELLED" || e.start < from || e.start > to || seen.has(e.uid + e.start)) continue;
       seen.add(e.uid + e.start);
@@ -202,10 +206,12 @@ async function quests(env) {
         ? { id, over: true, title: m[1].trim().slice(0, 80), date: e.start, end }
         : { id, over: false, title: (veil || VEILS[hashOf(e.uid) % VEILS.length]).trim().slice(0, 80), month: monthOf(e.start), date: e.start.slice(0, 7) + "-01" });
     }
-  } catch (err) { list = []; }
+    note = `Calendar read: ${scanned} events checked, ${list.length} quest${list.length === 1 ? "" : "s"} found.`;
+  } catch (err) { list = []; failed = true; note = "Could not read the calendar: " + (err.message || err); }
   list.sort((a, b) => b.date.localeCompare(a.date));
-  const res = new Response(JSON.stringify({ quests: list }), { headers: { "content-type": "application/json", "cache-control": "public, max-age=600" } });
-  if (cache) await cache.put(key, res.clone());
+  // a good answer is kept for 10 minutes; a failed one is not kept, so the next visit tries again
+  const res = new Response(JSON.stringify({ quests: list, note }), { headers: { "content-type": "application/json", "cache-control": failed ? "no-store" : "public, max-age=600" } });
+  if (cache && !failed) await cache.put(key, res.clone());
   return res;
 }
 

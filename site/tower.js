@@ -506,6 +506,13 @@
       if (document.fonts) document.fonts.ready.then(poke);
       poke();
     },
+    // add (or replace) the gold quest rings once they arrive; the posts' rings keep their place in the drawing
+    quests(posts, list) {
+      const keep = new Map(segs.map((s) => [s.band.file + "|" + s.a0, s]));
+      build(posts || [], list || []);
+      for (const s of segs) { const old = keep.get(s.band.file + "|" + s.a0); if (old) { s.grow = old.grow; s.red = old.red; } }
+      hoverBand = null; stack(); poke();
+    },
     view(v = {}) {
       if (v.x0 != null) T.x0 = v.x0; if (v.x1 != null) T.x1 = v.x1; if (v.dim != null) T.dim = v.dim;
       if ("focus" in v) focusFile = v.focus;
