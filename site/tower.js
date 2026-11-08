@@ -62,7 +62,8 @@
   function build(posts, quests = []) {
     bands = []; rings = []; segs = [];
     const items = [...posts.map((p, k) => ({ kind: "post", p, date: p.date, entry: posts.length - k })), ...quests.map((q) => ({ kind: "quest", q, date: q.date }))]
-      .sort((a, b) => String(b.date).localeCompare(String(a.date)));
+      // quests still to come always sit above every post, whatever their month; everything else goes by date
+      .sort((a, b) => { const key = (x) => (x.kind === "quest" && !x.q.over ? "9" : "0") + String(x.date); return key(b).localeCompare(key(a)); });
     const n = items.length, now = Date.now();
     items.forEach((it, i) => {
       if (it.kind === "quest") return questBand(it.q, i, n);
