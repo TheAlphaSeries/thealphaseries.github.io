@@ -60,7 +60,7 @@
   let bands = [], rings = [], segs = [];
   // Posts and quests are laid into one tower by date, newest at the top; quests still to come crown it.
   function build(posts, quests = []) {
-    bands = []; rings = []; segs = [];
+    bands = []; rings = []; segs = []; questOrder = 0;
     const items = [...posts.map((p, k) => ({ kind: "post", p, date: p.date, entry: posts.length - k })), ...quests.map((q) => ({ kind: "quest", q, date: q.date }))]
       // quests still to come always sit above every post, whatever their month; everything else goes by date
       .sort((a, b) => { const key = (x) => (x.kind === "quest" && !x.q.over ? "9" : "0") + String(x.date); return key(b).localeCompare(key(a)); });
@@ -85,7 +85,7 @@
       for (const piece of pieces(p.body)) {
         const len = piece.kind === "head" ? TAU * .74 : piece.kind === "rule" ? TAU * .9 : piece.kind === "photo" ? 1.05 : Math.min(1.5, .16 + .13 * Math.log(1 + piece.chars));
         if (!ring || piece.kind === "head" || piece.kind === "rule" || (piece.fresh && fill > TAU * .3) || fill + len > TAU * .66) open(piece.kind === "head");
-        const seg = { ring, band, a0: fill, len, kind: piece.kind, text: piece.text, chars: piece.chars, lit: 0, litAt: -1e9, red: 0, grow: 1 };
+        const seg = { ring, band, a0: fill, len, kind: piece.kind, text: piece.text, chars: piece.chars, lit: 0, litAt: -1e9, red: 0, grow: 1, tc: null };
         ring.segs.push(seg); segs.push(seg); fill += len + .05 + rnd() * .1;
         if (piece.kind === "head" || piece.kind === "rule") ring = null;
       }
@@ -95,6 +95,7 @@
   }
   // A quest: a band of three gold rings, each a few long arcs. One still to come is drawn dashed, as if not yet solid.
   const QUEST_GOLD = [255, 194, 82];
+  let questAt = .35, questOrder = 0;   // when the gold arcs start drawing in: early in the opening, or the moment they arrive
   function questBand(q, i, n) {
     const rnd = dice(hash("quest" + q.id + q.date));
     const band = { i, kind: "quest", quest: q, file: "quest:" + q.id, title: q.title, date: q.date, age: 0, col: q.over ? QUEST_GOLD : mix(QUEST_GOLD, COL.cream, .15), rings: [], unwind: 1, unwindTo: 1,
@@ -104,7 +105,9 @@
       const ring = { band, r: radius * (1.02 + k * .03), phase: rnd() * TAU, turn: (k % 2 ? -1 : 1) * (.05 + rnd() * .08), boost: 0, heavy: k === 1, segs: [], u: 0, y: 0 };
       let fill = rnd() * .4;
       for (let a = 0; a < 3 && fill < TAU * .9; a++) {
-        const len = TAU * (.18 + rnd() * .14), seg = { ring, band, a0: fill, len, kind: q.over ? "quest" : "veiled", text: q.title, chars: 0, lit: 0, litAt: -1e9, red: 0, grow: 1 };
+        // gold arcs draw themselves in, one after another, like a new file in the original
+        const tc = questAt + (questOrder++) * .09;
+        const len = TAU * (.18 + rnd() * .14), seg = { ring, band, a0: fill, len, kind: q.over ? "quest" : "veiled", text: q.title, chars: 0, lit: 0, litAt: -1e9, red: 0, grow: 0, tc };
         ring.segs.push(seg); segs.push(seg); fill += len + .25 + rnd() * .3;
       }
       band.rings.push(ring); rings.push(ring);
@@ -149,6 +152,7 @@
 
   /* ------------------------------------------------------------------ 3. what happens ------------------------- */
   let clock = 0, nextRead = 2, intro = still ? 1 : 0;
+  const GROW = 1.5;   // seconds for an arc to grow along its ring (the original's create.grow)
   const callouts = [], probe = { x: 0, y: 0, tx: 0, ty: 0, on: 0 };
   function read(seg, kind = seg.kind === "photo" ? "VIEW" : "READ") {
     seg.litAt = clock; seg.ring.boost = .5;
@@ -168,7 +172,7 @@
   function writeIn() {
     const b = bands.find((x) => x.kind === "post"); if (!b || b.age > 30 || still) return;
     const list = b.rings.flatMap((r) => r.segs);
-    list.forEach((s, k) => { s.grow = 0; s.red = .9; s.growAt = 1.2 + k * Math.min(.06, 6 / list.length); });
+    list.forEach((s, k) => { s.grow = 0; s.red = .9; s.tc = 1.2 + k * Math.min(.06, 6 / list.length); });
     const first = list.find((s) => s.kind === "head") || list[0];
     if (first) setTimeout(() => callouts.push({ seg: first, kind: "NEW", t0: clock, ttl: 11, title: b.title }), 1300);
   }
@@ -184,7 +188,7 @@
     stack();
     if (!still) for (const r of rings) { r.phase += (r.turn * (1 + r.boost * 6)) * dt; r.boost = ease(r.boost, 0, .6, dt); }
     for (const s of segs) {
-      if (s.grow < 1 && clock > s.growAt) s.grow = Math.min(1, s.grow + dt * 1.6);
+      if (s.tc != null) { const g = clamp((clock - s.tc) / GROW); s.grow = g * g * (3 - 2 * g); if (g >= 1) s.tc = null; }
       if (s.red > 0 && s.grow >= 1) s.red = Math.max(0, s.red - dt / 18);
       const t = clock - s.litAt; s.lit = t < 0 ? 0 : Math.min(1, t / .18) * Math.exp(-t / 4.2);
     }
@@ -319,8 +323,10 @@
         // two faint lines just under it, so the packed rings merge into the drum's fine striations
         c.lineWidth = .8 * S; arc(V.cx, cy + 2.2 * S, rx * .995, ry, a, a + len, near * .34, far * .4);
         arc(V.cx, cy + 4.4 * S, rx * .99, ry, a + .03, a + len - .03, near * .14, far * .2);
-        if (s.grow < 1) {                                                        // the bright tip of an arc being written
-          const p = pointOn(s, a + len); c.globalAlpha = show; c.fillStyle = rgb(COL.cream); c.beginPath(); c.arc(p.x, p.y, 2.2 * S, 0, TAU); c.fill();
+        if (s.grow < 1) {                                                        // the bright tip of an arc being written, fading as it completes
+          const p = pointOn(s, a + len), k = 1 - s.grow, tip = c.createRadialGradient(p.x, p.y, 0, p.x, p.y, 9 * S);
+          tip.addColorStop(0, rgb(COL.cream, show)); tip.addColorStop(.3, rgb(b.kind === "quest" ? QUEST_GOLD : COL.gold, .7 * show * k)); tip.addColorStop(1, rgb(COL.cream, 0));
+          c.globalAlpha = 1; c.fillStyle = tip; c.fillRect(p.x - 9 * S, p.y - 9 * S, 18 * S, 18 * S);
         }
         if ((s.kind === "photo" || s.kind === "head" || s.lit > .3) && !still) {   // white cards standing on the near side, like index tabs
           const p = pointOn(s, a + len / 2);
@@ -503,16 +509,20 @@
   window.Tower = {
     start(canvas, posts, opts = {}) {
       cv = canvas; onOpen = opts.onOpen || onOpen; build(posts || [], opts.quests || []); stack(); size(); hook(); writeIn();
-      if (still) { intro = 1; for (const s of segs) s.grow = 1; setInterval(poke, 4000); }   // held still, but the sayings still change
+      if (still) { intro = 1; for (const s of segs) { s.grow = 1; s.tc = null; } setInterval(poke, 4000); }   // held still, but the sayings still change
       if (document.fonts) document.fonts.ready.then(poke);
       poke();
     },
     // add (or replace) the gold quest rings once they arrive; the posts' rings keep their place in the drawing
     questList() { return bands.filter((b) => b.kind === "quest").map((b) => b.quest); },
     quests(posts, list) {
-      const keep = new Map(segs.map((s) => [s.band.file + "|" + s.a0, s]));
-      build(posts || [], list || []);
-      for (const s of segs) { const old = keep.get(s.band.file + "|" + s.a0); if (old) { s.grow = old.grow; s.red = old.red; } }
+      const key = (s) => s.band.file + "|" + s.a0, keep = new Map(segs.map((s) => [key(s), s]));
+      const phases = new Map(rings.map((r) => [r.band.file + "|" + r.band.rings.indexOf(r), r.phase]));
+      questAt = clock + .1; build(posts || [], list || []);
+      for (const s of segs) { const old = keep.get(key(s)); if (old && s.band.kind === "post") Object.assign(s, { grow: old.grow, tc: old.tc, red: old.red, lit: old.lit, litAt: old.litAt }); }
+      for (const r of rings) { const ph = phases.get(r.band.file + "|" + r.band.rings.indexOf(r)); if (ph != null) r.phase = ph; }   // no jump in the spin
+      for (const co of callouts) co.seg = segs.find((s) => key(s) === key(co.seg)) || co.seg;
+      if (still) for (const s of segs) { s.grow = 1; s.tc = null; }
       hoverBand = null; stack(); poke();
     },
     hush(on) { hush = !!on; poke(); },

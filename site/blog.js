@@ -345,19 +345,20 @@
   viewer.addEventListener("touchend", (e) => { if (x0 == null) return; const dx = e.changedTouches[0].clientX - x0; if (Math.abs(dx) > 50) show(vk + (dx < 0 ? 1 : -1)); x0 = null; });
 
   /* ------------------------------------------------------------------ begin ----------------------------------- */
-  // Quests come from Chris's calendar through the site (scripts/worker.js). The tower is drawn at once from the posts,
-  // and the gold quest rings are added the moment they arrive, however long the calendar takes.
+  // Quests come from Chris's calendar through the site (scripts/worker.js). The tower waits up to 1.2 seconds for them,
+  // so the gold rings draw themselves in as part of the opening; if the calendar is slower than that, the tower opens
+  // without them and the gold rings grow in at the top the moment they arrive.
   const questsArrive = fetch("/api/quests").then((r) => (r.ok ? r.json() : { quests: [] })).then((d) => (Array.isArray(d.quests) ? d.quests : [])).catch(() => []);
-  fetch("/posts.json", { cache: "no-cache" }).then((r) => r.json()).then((d) => {
+  const questsSoon = Promise.race([questsArrive, new Promise((ok) => setTimeout(() => ok(null), 1200))]);
+  Promise.all([fetch("/posts.json", { cache: "no-cache" }).then((r) => r.json()), questsSoon]).then(([d, early]) => {
     DATA = { posts: Array.isArray(d.posts) ? d.posts : [], albums: Array.isArray(d.albums) ? d.albums : [], about: d.about || "" };
     DATA.albums.forEach((a) => { a.photos = Array.isArray(a.photos) ? a.photos : []; a.captions = Array.isArray(a.captions) ? a.captions : []; });
     DATA.posts.forEach((p) => { p.body = p.body || ""; p.cover = p.cover || ""; });
     menuEntries(); readout();
-    // the tower is drawn from the posts, with quests as gold rings among them; clicking a post's band opens it
-    if (window.Tower) {
-      Tower.start($("#tower"), DATA.posts, { onOpen: (file) => { blip("pick"); location.hash = "#/post/" + encodeURIComponent(file); } });
-      questsArrive.then((quests) => { QUESTS = quests; if (quests.length) Tower.quests(DATA.posts, quests); if (/^#\/quest\//.test(location.hash)) route(); });
-    }
+    if (early) QUESTS = early;
+    // the tower is drawn from the posts, with quests as gold rings among them; clicking a band opens that post or quest
+    if (window.Tower) Tower.start($("#tower"), DATA.posts, { quests: early || [], onOpen: (file) => { blip("pick"); location.hash = "#/post/" + encodeURIComponent(file); } });
+    if (!early) questsArrive.then((quests) => { QUESTS = quests; if (quests.length && window.Tower) Tower.quests(DATA.posts, quests); if (/^#\/quest\//.test(location.hash)) route(); });
     route();
   }).catch(() => { main.innerHTML = '<p class="empty">The pages could not be fetched. Try again in a moment.</p>'; });
 })();
