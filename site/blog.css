@@ -2,7 +2,7 @@
    A dark chamber, violet-black. The posts are the violet tower drawn behind everything by site/tower.js. The menu
    and the readout are thin-lined panels in the film's system type (a small monospace); the writing itself is set in
    a book face, pale lilac on near-black, on a sheet of dark glass. Violet for the record, white where it is lit,
-   magenta for the newest, teal for the chamber only.
+   magenta for the newest, blue for the chamber only.
    Colours live in :root. */
 :root {
   color-scheme: dark;
@@ -26,7 +26,7 @@
   --accent-dim: rgba(189, 148, 255, .6);
   --line: rgba(189, 148, 255, .28);
   --new: #ff5aae;          /* the newest: magenta */
-  --teal: #5ce2cc;
+  --blue: #5c84ff;
   --title: "Cormorant Garamond", "Iowan Old Style", Georgia, serif;
   --text: "EB Garamond", "Iowan Old Style", Georgia, serif;
   --caps: "Cinzel", "Trajan Pro", Georgia, serif;
@@ -214,7 +214,7 @@ hr.fleuron { filter: drop-shadow(0 0 4px rgba(189, 148, 255, .6)); }
    Turned on by class="blackout" on the <html> tag in index.html. ---- */
 html.blackout {
   --black: #000; --glass: rgba(0, 0, 0, .9); --shade: 0, 0, 0; --panel: 4, 2, 8;
-  --chamber-1: #0a0510; --chamber-2: #020103; --chamber-3: #000;
+  --chamber-1: #050208; --chamber-2: #010002; --chamber-3: #000;
 }
 
 /* ---- phones and narrow windows: the menu folds into a bar at the top ---- */

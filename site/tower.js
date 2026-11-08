@@ -36,8 +36,8 @@
 
   // The colours: the film's, turned violet. The names are the film's roles: "gold" is the record's own colour (violet),
   // "cream" where it is being read (near-white), "crimson" where it was just written (magenta), "orange" and "bronze"
-  // where it has cooled with age (orchid, then deep indigo). Teal belongs to the chamber only, never to the posts.
-  const COL = { gold: [178, 132, 255], cream: [245, 238, 255], orange: [222, 120, 255], crimson: [255, 78, 168], bronze: [96, 66, 178], teal: [92, 226, 204] };
+  // where it has cooled with age (orchid, then deep indigo). Blue belongs to the chamber only, never to the posts.
+  const COL = { gold: [178, 132, 255], cream: [245, 238, 255], orange: [222, 120, 255], crimson: [255, 78, 168], bronze: [96, 66, 178], blue: [92, 132, 255] };
 
   /* ------------------------------------------------------------------ 1. posts into rings --------------------- */
   // A post's words, broken into the pieces that become arcs: sentences, headings, photographs, ornaments.
@@ -246,20 +246,20 @@
       if (cols * size * 1.45 < rr - rl) { cantonese(saying, rr, V.top + V.h * .1, V.h * .62, size, a, t, 1.3); reserved = W - rr + cols * size * 1.45 + 20 * S; }
     }
   }
-  // the chamber: a lattice of teal points circling the foot of the tower, and lights on the floor
+  // the chamber: a lattice of blue points circling the foot of the tower, and lights on the floor
   function chamber(front) {
     const { cy } = ringAt(1.06), R = V.R * 1.75, tilt = .34, n = W < 700 ? 90 : 170;
     for (let k = 0; k < n; k++) {
       const a = k / n * TAU + clock * .01, sn = Math.sin(a); if ((sn > 0) !== front) continue;
       for (const strand of [0, 1]) {
         const wob = Math.sin(a * 9 + strand * Math.PI + clock * .3) * 5 * S, x = V.cx + R * Math.cos(a), y = cy + R * tilt * sn + wob;
-        c.fillStyle = rgb(COL.teal, (front ? .55 : .2) * V.dim * intro); c.fillRect(x - S, y - S, 1.6 * S, 1.6 * S);
+        c.fillStyle = rgb(COL.blue, (front ? .55 : .2) * V.dim * intro); c.fillRect(x - S, y - S, 1.6 * S, 1.6 * S);
       }
     }
     for (let k = 0; k < 7; k++) {
       const a = k / 7 * TAU + .4, sn = Math.sin(a); if ((sn > 0) !== front) continue;
       const x = V.cx + V.R * 1.4 * Math.cos(a), y = ringAt(1.02).cy + V.R * 1.4 * .34 * sn, r = (front ? 18 : 11) * S;
-      const g = c.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, rgb([220, 255, 245], .9 * V.dim * intro)); g.addColorStop(.25, rgb(COL.teal, .45 * V.dim * intro)); g.addColorStop(1, rgb(COL.teal, 0));
+      const g = c.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, rgb([214, 226, 255], .85 * V.dim * intro)); g.addColorStop(.25, rgb(COL.blue, .45 * V.dim * intro)); g.addColorStop(1, rgb(COL.blue, 0));
       c.fillStyle = g; c.fillRect(x - r, y - r, r * 2, r * 2);
     }
   }
@@ -281,9 +281,14 @@
         if (s.grow <= 0) continue;
         const heat = Math.max(s.lit, b.glow * .55), col = mix(mix(b.col, COL.crimson, s.red * (1 - heat)), COL.cream, heat);
         const near = show * (.6 + .4 * heat), far = near * .26, a = s.a0 + r.phase, len = s.len * s.grow;
-        c.strokeStyle = rgb(col); c.lineWidth = (s.kind === "head" ? 2.4 : r.heavy ? 2 : 1.15) * S * (1 + heat * .5);
+        const lw = (s.kind === "head" ? 2.4 : r.heavy ? 2 : 1.15) * S * (1 + heat * .5);
         if (s.kind === "photo" || s.kind === "rule") c.setLineDash(s.kind === "photo" ? [4 * S, 4 * S] : [1 * S, 5 * S]);
-        arc(V.cx, cy, rx, ry, a, a + len, near, far);
+        // soft neon, drawn the way a lit glass tube looks: a wide faint halo of its colour, the tube, then a pale core
+        c.strokeStyle = rgb(col); c.lineWidth = lw * 5; arc(V.cx, cy, rx, ry, a, a + len, near * .1, far * .05);
+        c.lineWidth = lw * 2.4; arc(V.cx, cy, rx, ry, a, a + len, near * .22, far * .1);
+        c.lineWidth = lw; arc(V.cx, cy, rx, ry, a, a + len, near * .85, far);
+        c.strokeStyle = rgb(mix(col, COL.cream, .7)); c.lineWidth = Math.max(.6 * S, lw * .4); arc(V.cx, cy, rx, ry, a, a + len, near * .55, far * .5);
+        c.strokeStyle = rgb(col);
         c.setLineDash([]);
         // two faint lines just under it, so the packed rings merge into the drum's fine striations
         c.lineWidth = .8 * S; arc(V.cx, cy + 2.2 * S, rx * .995, ry, a, a + len, near * .34, far * .4);
@@ -314,7 +319,7 @@
   // the glow: the picture drawn again at a quarter and a tenth of its size, then laid back over itself
   // Three sizes, each softer and wider than the last: a close glow, a halo, and a faint wash of neon around it all.
   // The light is drawn on a clear canvas, so only the light itself glows; the dark chamber is laid in behind after.
-  const GLOW = [[4, .9], [10, .95], [26, .85]];   // [how many times smaller, how strongly it is laid back]
+  const GLOW = [[4, .75], [10, .55], [26, .28]];   // [how many times smaller, how strongly it is laid back]
   let glows = null;
   function glow() {
     if (!glows) glows = GLOW.map(() => document.createElement("canvas"));
@@ -360,7 +365,7 @@
       for (const L of list) {
         const edge = side === "l" ? V.cx - V.R * 1.15 - 20 * S : V.cx + V.R * 1.15 + 20 * S;
         const chars = Math.max(10, Math.floor(colW / (fs * .62)));
-        const line1 = clip(L.co.title || L.co.seg.text, chars), kindCol = L.co.kind === "NEW" ? COL.crimson : L.co.kind === "VIEW" ? COL.teal : COL.cream;
+        const line1 = clip(L.co.title || L.co.seg.text, chars), kindCol = L.co.kind === "NEW" ? COL.crimson : L.co.kind === "VIEW" ? COL.blue : COL.cream;
         const line2 = `${L.co.seg.chars ? L.co.seg.chars + " ch  " : ""}${L.co.seg.band.title}`;
         c.globalAlpha = L.alpha;
         c.strokeStyle = rgb(COL.gold, .7); c.lineWidth = .8 * S; c.beginPath(); c.moveTo(L.p.x, L.p.y); c.lineTo(edge, L.y + 4 * S);
@@ -390,7 +395,7 @@
     c.strokeStyle = rgb(COL.gold, .6); c.lineWidth = .8 * S; c.beginPath(); c.moveTo(p.x, p.y); c.lineTo(anchorX, y - fs * 1.6); c.lineTo(anchorX < W / 2 ? x : x + w, y - fs * 1.6); c.stroke();
     c.fillStyle = rgb(COL.cream); c.beginPath(); c.arc(p.x, p.y, 1.8 * S, 0, TAU); c.fill();
     c.textAlign = "left"; c.fillStyle = "#fff"; lines.forEach((l, j) => c.fillText(l, x, y + j * fs * 1.4));
-    const ty = y + lines.length * fs * 1.4 + fs * .2, kindCol = co.kind === "NEW" ? COL.crimson : co.kind === "VIEW" ? COL.teal : COL.cream;
+    const ty = y + lines.length * fs * 1.4 + fs * .2, kindCol = co.kind === "NEW" ? COL.crimson : co.kind === "VIEW" ? COL.blue : COL.cream;
     c.font = `500 ${fs * .82}px "IBM Plex Mono", ui-monospace, monospace`; const tag = co.kind + "  ";
     c.fillStyle = rgb(kindCol); c.fillText(tag, x, ty);
     c.fillStyle = "rgba(255,255,255,.72)"; c.fillText(clip(`${s.chars ? s.chars + " ch  " : ""}${s.band.title}`, 34), x + c.measureText(tag).width, ty);
