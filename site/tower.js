@@ -38,7 +38,7 @@
   // "cream" where it is being read (near-white), "crimson" where it was just written (magenta), "orange" and "bronze"
   // where it has cooled with age (orchid, then deep indigo). Blue belongs to the chamber only, never to the posts.
   const PINK = [255, 120, 210];   // a band glows this soft neon pink while it is pointed at
-  const COL = { gold: [178, 132, 255], cream: [245, 238, 255], orange: [222, 120, 255], crimson: [255, 78, 168], bronze: [96, 66, 178], blue: [92, 132, 255] };
+  const COL = { gold: [196, 108, 255], cream: [248, 238, 255], orange: [214, 90, 255], crimson: [255, 78, 168], bronze: [136, 82, 240], blue: [92, 132, 255] };
 
   /* ------------------------------------------------------------------ 1. posts into rings --------------------- */
   // A post's words, broken into the pieces that become arcs: sentences, headings, photographs, ornaments.
@@ -65,7 +65,7 @@
       const rnd = dice(hash(p.file || p.title || String(i)));
       const age = Math.max(0, (now - Date.parse(p.date + "T12:00:00")) / 864e5) || 0;
       const cool = 1 - Math.exp(-age / 120);                                   // 0 when new, toward 1 as it ages
-      const col = mix(mix(COL.gold, COL.cream, .22 * (1 - cool)), mix(COL.orange, COL.bronze, .55), cool * .7);
+      const col = mix(mix(COL.gold, COL.cream, .22 * (1 - cool)), mix(COL.orange, COL.bronze, .55), cool * .45);   // older posts cool only a little, so the whole tower stays neon
       const band = { i, file: p.file, title: p.title || "Untitled", date: p.date, age, col, rings: [], unwind: 1, unwindTo: 1, glow: 0, glowTo: 0,
         month: String(p.date || "").slice(0, 7), words: String(p.body || "").split(/\s+/).filter(Boolean).length, fade: .78 + .22 * Math.exp(-age / 200) };
       // the newest post narrowest, at the top; each older one a little further out
@@ -285,9 +285,9 @@
         const lw = (s.kind === "head" ? 2.4 : r.heavy ? 2 : 1.15) * S * (1 + heat * .5);
         if (s.kind === "photo" || s.kind === "rule") c.setLineDash(s.kind === "photo" ? [4 * S, 4 * S] : [1 * S, 5 * S]);
         // soft neon, drawn the way a lit glass tube looks: a wide faint halo of its colour, the tube, then a pale core
-        c.strokeStyle = rgb(col); c.lineWidth = lw * 5; arc(V.cx, cy, rx, ry, a, a + len, near * .1, far * .05);
-        c.lineWidth = lw * 2.4; arc(V.cx, cy, rx, ry, a, a + len, near * .22, far * .1);
-        c.lineWidth = lw; arc(V.cx, cy, rx, ry, a, a + len, near * .85, far);
+        c.strokeStyle = rgb(col); c.lineWidth = lw * 5; arc(V.cx, cy, rx, ry, a, a + len, near * .15, far * .06);
+        c.lineWidth = lw * 2.4; arc(V.cx, cy, rx, ry, a, a + len, near * .32, far * .12);
+        c.lineWidth = lw; arc(V.cx, cy, rx, ry, a, a + len, Math.min(1, near * 1.05), far);
         c.strokeStyle = rgb(mix(col, COL.cream, .7)); c.lineWidth = Math.max(.6 * S, lw * .4); arc(V.cx, cy, rx, ry, a, a + len, near * .55, far * .5);
         c.strokeStyle = rgb(col);
         c.setLineDash([]);
