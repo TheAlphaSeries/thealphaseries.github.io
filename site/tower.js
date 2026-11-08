@@ -360,8 +360,9 @@
     c.globalAlpha = 1; c.globalCompositeOperation = "source-over";
   }
   // The callouts: a leader line from the arc being read out to a label at the side, naming the passage and its post.
+  let hush = false;   // set while the notification question is open on a phone, so nothing is drawn behind it
   function labels() {
-    if (V.dim < .25 || !callouts.length) return;
+    if (V.dim < .25 || !callouts.length || (hush && W < 700)) return;
     if (W < 700) return strip();
     const fs = 12 * S, room = {                                              // how wide each side's labels may be
       l: Math.min(300 * S, (V.cx - V.R * 1.15 - 20 * S) - (V.x0 * W + 16 * S)),
@@ -513,6 +514,7 @@
       for (const s of segs) { const old = keep.get(s.band.file + "|" + s.a0); if (old) { s.grow = old.grow; s.red = old.red; } }
       hoverBand = null; stack(); poke();
     },
+    hush(on) { hush = !!on; poke(); },
     view(v = {}) {
       if (v.x0 != null) T.x0 = v.x0; if (v.x1 != null) T.x1 = v.x1; if (v.dim != null) T.dim = v.dim;
       if ("focus" in v) focusFile = v.focus;

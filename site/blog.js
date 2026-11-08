@@ -119,6 +119,7 @@
   // Home is the tower itself; the menu and the readout frame it, and the email alerts box sits at the foot.
   function showHome() {
     nav("home"); document.title = "Half Life";
+    if (window.Tower) Tower.hush(false);
     main.innerHTML = `<section class="hall" aria-label="Half Life"><h1 class="sr">Half Life</h1>${ALERTS}</section>`;
     hookAlerts();
   }
@@ -209,9 +210,12 @@
         <button type="submit">Notify me</button></div>
       <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
       <p class="amsg" role="status" aria-live="polite"></p>
+      <div class="apush" aria-live="polite" hidden></div>
     </form>`;
   function hookAlerts() {
     const f = main.querySelector(".alerts"); if (!f) return;
+    // opened from an iPhone home screen (or as an installed app): offer notifications straight away
+    if (DEVICE.standalone && DEVICE.push) pushedHere().then((on) => { let no = ""; try { no = localStorage.getItem("hl-push"); } catch (e) {} if (!on && no !== "no") pushPanel(f.querySelector(".apush")); });
     const msg = f.querySelector(".amsg"), btn = f.querySelector("button");
     f.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -221,11 +225,65 @@
       try {
         const r = await fetch("/api/subscribe", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email, website: f.website.value }) });
         const d = await r.json().catch(() => ({}));
-        if (r.ok && d.ok) { blip("pick"); f.classList.add("done"); msg.textContent = d.already ? "You're already in." : "You're in. New entries only, never spam."; f.email.value = ""; }
+        if (r.ok && d.ok) {
+          blip("pick"); f.classList.add("done"); msg.textContent = d.already ? "You're already in." : "You're in. New entries only, never spam."; f.email.value = "";
+          f.querySelector(".arow").hidden = true; f.querySelector("label").hidden = true;
+          if (!(await pushedHere())) pushPanel(f.querySelector(".apush"));   // then offer a notification on this device too
+        }
         else msg.textContent = d.error || "That didn't work. Try again in a moment.";
       } catch (err) { msg.textContent = "That didn't work. Check your connection and try again."; }
       btn.disabled = false;
     });
+  }
+
+  /* ------------------------------------------------------------------ push notifications ------------------- */
+  // After someone signs up for email, they're asked whether they want a notification on this device too, with a
+  // few words of help that suit the device: on an iPhone, the site has to be added to the home screen first (Apple's
+  // rule), so they get the three taps for that; elsewhere the browser simply asks. sw.js shows the notifications.
+  const ua = navigator.userAgent;
+  const DEVICE = {
+    ios: /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1),
+    android: /Android/i.test(ua),
+    inApp: /Instagram|FBAN|FBAV|Line\/|Snapchat|TikTok|LinkedInApp|GSA\//i.test(ua),   // browsers inside other apps can't
+    standalone: matchMedia("(display-mode: standalone)").matches || navigator.standalone === true,
+    push: "serviceWorker" in navigator && "PushManager" in window && "Notification" in window
+  };
+  const iosVersion = () => { const m = /OS (\d+)_(\d+)/.exec(ua); return m ? +m[1] + +m[2] / 100 : 0; };
+  const fromB64u = (s) => Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((s.length + 3) % 4)), (c) => c.charCodeAt(0));
+  async function pushedHere() {
+    try { if (!DEVICE.push) return false; const reg = await navigator.serviceWorker.getRegistration(); return !!(reg && (await reg.pushManager.getSubscription())); } catch (e) { return false; }
+  }
+  function pushPanel(box) {
+    const say = (html) => { box.innerHTML = html; box.hidden = false; if (window.Tower) Tower.hush(true); };
+    if (DEVICE.inApp) return say(`<p>To get notifications, open <b>halflife.studio</b> in Safari or Chrome.</p>`);
+    if (DEVICE.ios && !DEVICE.standalone) {
+      const v = iosVersion();
+      if (v && v < 16.4) return say(`<p>Notifications need iOS 16.4 or newer. Email has you covered.</p>`);
+      return say(`<p class="aq">Want a notification on your iPhone too?</p>
+        <ol class="steps"><li>Tap <b>Share</b> at the bottom of Safari</li><li>Tap <b>Add to Home Screen</b></li><li>Open Half Life from your home screen and tap <b>Turn on notifications</b></li></ol>`);
+    }
+    if (!DEVICE.push) return say(`<p>This browser can't show notifications. Email has you covered.</p>`);
+    if (Notification.permission === "denied") return say(`<p>${DEVICE.ios ? "Notifications are off for Half Life. Turn them on in Settings → Notifications → Half Life."
+      : DEVICE.android ? "Notifications are blocked. Tap the icon left of the address, then Permissions → Notifications → Allow."
+      : "Notifications are blocked. Click the icon left of the address bar and allow notifications."}</p>`);
+    const hint = DEVICE.ios ? "Tap Allow when your iPhone asks." : DEVICE.android ? "Tap Allow when your phone asks." : "Click Allow when your browser asks.";
+    say(`<p class="aq">Want a notification on this device too?</p>
+      <div class="abtns"><button type="button" class="yes">${DEVICE.standalone ? "Turn on notifications" : "Yes, notify me"}</button><button type="button" class="no">No thanks</button></div>
+      <p class="ahint">${hint}</p>`);
+    box.querySelector(".no").onclick = () => { try { localStorage.setItem("hl-push", "no"); } catch (e) {} say(`<p>No problem. Email has you covered.</p>`); };
+    box.querySelector(".yes").onclick = async () => {
+      try {
+        const perm = await Notification.requestPermission();   // first, inside the tap: iPhones insist on that
+        if (perm !== "granted") return pushPanel(box);            // declined: show how to allow it, or ask again
+        say(`<p>Turning on…</p>`);
+        const reg = await navigator.serviceWorker.register("/sw.js"); await navigator.serviceWorker.ready;
+        const { key } = await (await fetch("/api/push/key")).json();
+        const sub = (await reg.pushManager.getSubscription()) || (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: fromB64u(key) }));
+        const r = await fetch("/api/push/subscribe", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(sub) });
+        if (!r.ok) throw new Error("not saved");
+        blip("pick"); say(`<p>Done. You'll get a notification when a new entry is set down.</p>`);
+      } catch (e) { say(`<p>That didn't work. Try again in a moment.</p>`); }
+    };
   }
 
   /* ------------------------------------------------------------------ closing a page ------------------------ */

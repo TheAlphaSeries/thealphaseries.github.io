@@ -14,6 +14,14 @@
 //    Compute > Email Service > Email Sending. Until the binding is there, sign-ups are kept and nothing is sent.
 
 //
+// 2b. Push notifications, for friends who want one on their phone or computer as well as (or instead of) email:
+//      GET  /api/push/key        the site's public push key (made once, the first time anyone asks, and kept in the
+//                                database's settings table; nothing to set up by hand)
+//      POST /api/push/subscribe  a device that said yes leaves its push address (no name, no email)
+//      GET  /api/push/latest     what the notification says: the newest entry's title and opening words. A push
+//                                carries no words itself; the phone fetches them from here when it arrives.
+//    The same every-5-minutes check that sends the emails sends one push per new entry, never for edits.
+//
 // 3. Quests: GET /api/quests reads Chris's Google Calendar (its private iCal address, saved in Cloudflare as the
 //    secret QUEST_CALENDAR) and passes on ONLY events whose title starts with "Quest:". Nothing else in the calendar
 //    ever leaves this program: no locations, no notes, no other events. A quest still to come is veiled: just a
@@ -34,6 +42,9 @@ export default {
     if (path === "/api/subscribe" && request.method === "POST") return subscribe(request, env);
     if (path === "/api/unsubscribe") return unsubscribe(url, env);
     if (path === "/api/quests") return quests(env);
+    if (path === "/api/push/key") return json({ key: (await vapid(env)).pub });
+    if (path === "/api/push/subscribe" && request.method === "POST") return pushSubscribe(request, env);
+    if (path === "/api/push/latest") return pushLatest(env);
     if (path.startsWith("/api/")) return text("Gone.", 410);
 
     const r = await env.ASSETS.fetch(request), type = r.headers.get("content-type") || "";
@@ -136,6 +147,8 @@ async function checkForNewPosts(env) {
   const fresh = posts.filter((p) => !seen.has(p.file)).reverse();   // oldest first, if several arrived at once
   const out = [];
   for (const p of fresh) { const r = await sendFor(env, p); if (r.ok) await remember(p.file); out.push({ file: p.file, ...r }); }
+  // one push for the newest new entry (a phone shows one notification, even if two entries arrived together)
+  if (fresh.length) out.push({ push: await pushOnce(env, fresh[fresh.length - 1].file) });
   return { ok: true, sent: out };
 }
 
@@ -213,5 +226,62 @@ async function quests(env) {
   const res = new Response(JSON.stringify({ quests: list, note }), { headers: { "content-type": "application/json", "cache-control": failed ? "no-store" : "public, max-age=600" } });
   if (cache && !failed) await cache.put(key, res.clone());
   return res;
+}
+
+/* ------------------------------------------------------------------ push notifications ------------------------- */
+const b64u = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+// The site's push key pair (VAPID): made once and kept, so devices that subscribed keep working.
+async function vapid(env) {
+  await env.QUESTS_DB.prepare("CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)").run();
+  const get = async () => { const row = await env.QUESTS_DB.prepare("SELECT value FROM settings WHERE key = 'push_vapid'").first(); return row ? JSON.parse(row.value) : null; };
+  const have = await get(); if (have) return have;
+  const kp = await crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign", "verify"]);
+  const v = { jwk: await crypto.subtle.exportKey("jwk", kp.privateKey), pub: b64u(await crypto.subtle.exportKey("raw", kp.publicKey)) };
+  await env.QUESTS_DB.prepare("INSERT OR IGNORE INTO settings (key, value) VALUES ('push_vapid', ?)").bind(JSON.stringify(v)).run();
+  return get();   // if two visitors asked at the same moment, both get the one that was kept
+}
+// The signed note each push carries to prove it came from halflife.studio.
+async function vapidAuth(v, endpoint) {
+  const enc = (o) => b64u(new TextEncoder().encode(JSON.stringify(o)));
+  const unsigned = enc({ typ: "JWT", alg: "ES256" }) + "." + enc({ aud: new URL(endpoint).origin, exp: Math.floor(Date.now() / 1000) + 12 * 3600, sub: "https://halflife.studio" });
+  const key = await crypto.subtle.importKey("jwk", v.jwk, { name: "ECDSA", namedCurve: "P-256" }, false, ["sign"]);
+  const sig = await crypto.subtle.sign({ name: "ECDSA", hash: "SHA-256" }, key, new TextEncoder().encode(unsigned));
+  return `vapid t=${unsigned}.${b64u(sig)}, k=${v.pub}`;
+}
+async function pushTable(env) { await env.QUESTS_DB.prepare("CREATE TABLE IF NOT EXISTS push_subs (endpoint TEXT PRIMARY KEY, created INTEGER NOT NULL)").run(); }
+
+async function pushSubscribe(request, env) {
+  let sub = {};
+  try { sub = await request.json(); } catch (e) { return json({ ok: false }, 400); }
+  const endpoint = String(sub.endpoint || "");
+  if (!/^https:\/\/[^\s]+$/.test(endpoint) || endpoint.length > 1000) return json({ ok: false, error: "That isn't a push address." }, 400);
+  await pushTable(env);
+  await env.QUESTS_DB.prepare("INSERT OR IGNORE INTO push_subs (endpoint, created) VALUES (?, ?)").bind(endpoint, Date.now()).run();
+  return json({ ok: true });
+}
+
+async function pushLatest(env) {
+  const p = ((await (await env.ASSETS.fetch(new Request(SITE + "/posts.json"))).json()).posts || [])[0];
+  if (!p) return json({ title: "Half Life", body: "A new entry has been set down.", url: "/" });
+  return json({ title: p.title, body: plainBody(p.body, 18), url: "/#/post/" + encodeURIComponent(p.file) });
+}
+
+// Sends one push to every device, once per entry (remembered in settings as push_last). Devices that have since
+// turned notifications off answer 404 or 410, and are forgotten.
+async function pushOnce(env, file) {
+  await pushTable(env);
+  const last = await env.QUESTS_DB.prepare("SELECT value FROM settings WHERE key = 'push_last'").first().catch(() => null);
+  if (last && last.value === file) return { skipped: "already pushed" };
+  const { results } = await env.QUESTS_DB.prepare("SELECT endpoint FROM push_subs").all();
+  const v = await vapid(env); let sent = 0, gone = 0;
+  for (const { endpoint } of results || []) {
+    try {
+      const r = await fetch(endpoint, { method: "POST", headers: { authorization: await vapidAuth(v, endpoint), ttl: "86400", urgency: "normal" }, body: "" });
+      if (r.status === 404 || r.status === 410) { await env.QUESTS_DB.prepare("DELETE FROM push_subs WHERE endpoint = ?").bind(endpoint).run(); gone++; }
+      else if (r.ok) sent++;
+    } catch (e) {}
+  }
+  await env.QUESTS_DB.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES ('push_last', ?)").bind(file).run();
+  return { sent, gone };
 }
 

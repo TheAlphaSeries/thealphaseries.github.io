@@ -221,6 +221,17 @@ hr.fleuron { border: 0; height: 18px; margin: 2em 0; background: radial-gradient
 .alerts .amsg { margin: 0; min-height: 1.1em; font: 400 .68rem/1.4 var(--mono); color: var(--ink-soft); text-align: center; }
 .alerts .amsg:empty { display: none; }
 .alerts.done .amsg { color: var(--ink); }
+/* the follow-up after signing up: a notification on this device too, with help that suits the device */
+.alerts [hidden] { display: none !important; }   /* the email row and label step aside once signed up */
+.hall .alerts:has(.apush:not([hidden])) { padding: 14px 16px; background: rgba(0, 0, 0, .94); border: 1px solid var(--line); box-shadow: var(--glow-box); }
+.apush { display: grid; gap: 8px; justify-items: center; text-align: center; font: 400 .74rem/1.5 var(--mono); color: var(--ink-soft); }
+.apush p { margin: 0; }
+.apush .aq { font: italic 400 1.02rem/1.3 var(--title); color: var(--ink); }
+.apush b { color: var(--ink); font-weight: 500; }
+.apush .steps { justify-self: stretch; margin: 0; padding: 0 0 0 1.4em; text-align: left; display: grid; gap: 3px; }
+.apush .abtns { display: flex; gap: 8px; }
+.apush .abtns button.no { border-color: var(--line); box-shadow: none; color: var(--ink-soft); }
+.apush .ahint { font-size: .66rem; color: var(--ink-dim); }
 @media (min-width: 861px) and (max-width: 1300px) { .hall { right: 270px; } }   /* keep clear of the readout */
 
 /* ---- the neon: soft violet glow on the words and the panels ---- */

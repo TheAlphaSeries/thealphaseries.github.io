@@ -52,3 +52,12 @@ Nothing else from the calendar ever reaches the site: no other events, no locati
 `scripts/worker.js` (`/api/quests`) reads the calendar through its private iCal address, saved in Cloudflare as the
 secret `QUEST_CALENDAR`, and checks it again at most every ten minutes.
 
+## Push notifications
+
+After signing up for email, friends are asked whether they want a notification on that device too, with a few words
+of help that suit it. On an iPhone the site must first be added to the home screen (Share, then Add to Home Screen),
+then opened from there; Android phones and computers just ask. `sw.js` shows the notifications, `manifest.webmanifest`
+and `site/icon-*.png` let the site live on a home screen, and `scripts/worker.js` keeps the devices that said yes and
+sends one notification per new entry, never for edits. Nothing needs setting up: the site makes its own push key the
+first time it is needed.
+

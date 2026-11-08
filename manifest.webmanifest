@@ -1,0 +1,15 @@
+{
+  "name": "Half Life",
+  "short_name": "Half Life",
+  "description": "Thoughts and photographs, kept while everything changes.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "icons": [
+    { "src": "/site/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/site/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/site/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
