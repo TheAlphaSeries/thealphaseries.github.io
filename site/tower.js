@@ -37,6 +37,7 @@
   // The colours: the film's, turned violet. The names are the film's roles: "gold" is the record's own colour (violet),
   // "cream" where it is being read (near-white), "crimson" where it was just written (magenta), "orange" and "bronze"
   // where it has cooled with age (orchid, then deep indigo). Blue belongs to the chamber only, never to the posts.
+  const PINK = [255, 120, 210];   // a band glows this soft neon pink while it is pointed at
   const COL = { gold: [178, 132, 255], cream: [245, 238, 255], orange: [222, 120, 255], crimson: [255, 78, 168], bronze: [96, 66, 178], blue: [92, 132, 255] };
 
   /* ------------------------------------------------------------------ 1. posts into rings --------------------- */
@@ -253,13 +254,13 @@
       const a = k / n * TAU + clock * .01, sn = Math.sin(a); if ((sn > 0) !== front) continue;
       for (const strand of [0, 1]) {
         const wob = Math.sin(a * 9 + strand * Math.PI + clock * .3) * 5 * S, x = V.cx + R * Math.cos(a), y = cy + R * tilt * sn + wob;
-        c.fillStyle = rgb(COL.blue, (front ? .55 : .2) * V.dim * intro); c.fillRect(x - S, y - S, 1.6 * S, 1.6 * S);
+        c.fillStyle = rgb(COL.blue, (front ? .85 : .35) * V.dim * intro); c.fillRect(x - S, y - S, 1.8 * S, 1.8 * S);
       }
     }
     for (let k = 0; k < 7; k++) {
       const a = k / 7 * TAU + .4, sn = Math.sin(a); if ((sn > 0) !== front) continue;
-      const x = V.cx + V.R * 1.4 * Math.cos(a), y = ringAt(1.02).cy + V.R * 1.4 * .34 * sn, r = (front ? 18 : 11) * S;
-      const g = c.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, rgb([214, 226, 255], .85 * V.dim * intro)); g.addColorStop(.25, rgb(COL.blue, .45 * V.dim * intro)); g.addColorStop(1, rgb(COL.blue, 0));
+      const x = V.cx + V.R * 1.4 * Math.cos(a), y = ringAt(1.02).cy + V.R * 1.4 * .34 * sn, r = (front ? 28 : 17) * S;
+      const g = c.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, rgb([236, 242, 255], V.dim * intro)); g.addColorStop(.18, rgb([150, 180, 255], .9 * V.dim * intro)); g.addColorStop(.45, rgb(COL.blue, .45 * V.dim * intro)); g.addColorStop(1, rgb(COL.blue, 0));
       c.fillStyle = g; c.fillRect(x - r, y - r, r * 2, r * 2);
     }
   }
@@ -279,7 +280,7 @@
       if (show < .01) continue;
       for (const s of r.segs) {
         if (s.grow <= 0) continue;
-        const heat = Math.max(s.lit, b.glow * .55), col = mix(mix(b.col, COL.crimson, s.red * (1 - heat)), COL.cream, heat);
+        const heat = Math.max(s.lit, b.glow * .45), col = mix(mix(mix(b.col, COL.crimson, s.red * (1 - b.glow)), PINK, b.glow * .9), COL.cream, s.lit);
         const near = show * (.6 + .4 * heat), far = near * .26, a = s.a0 + r.phase, len = s.len * s.grow;
         const lw = (s.kind === "head" ? 2.4 : r.heavy ? 2 : 1.15) * S * (1 + heat * .5);
         if (s.kind === "photo" || s.kind === "rule") c.setLineDash(s.kind === "photo" ? [4 * S, 4 * S] : [1 * S, 5 * S]);
