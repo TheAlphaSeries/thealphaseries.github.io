@@ -73,7 +73,7 @@
       let ring = null, fill = 0;
       const open = (heavy) => {
         const shell = rnd() < .2 ? .84 : 1;                                      // now and then a ring set further in: shells within shells
-        ring = { band, r: radius * shell * (1 + (rnd() - .5) * .07), phase: rnd() * TAU, turn: (rnd() < .5 ? -1 : 1) * (.025 + rnd() * .055), boost: 0, heavy, segs: [], u: 0, y: 0 };
+        ring = { band, r: radius * shell * (1 + (rnd() - .5) * .07), phase: rnd() * TAU, turn: (rnd() < .5 ? -1 : 1) * (.065 + rnd() * .13), boost: 0, heavy, segs: [], u: 0, y: 0 };
         band.rings.push(ring); rings.push(ring); fill = rnd() * .5;
       };
       for (const piece of pieces(p.body)) {
