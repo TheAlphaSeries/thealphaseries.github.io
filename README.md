@@ -42,3 +42,13 @@ anything. Every email has a link to stop them.
 - It needs the Workers paid plan with halflife.studio onboarded to Email Sending, the `send_email` binding named
   `EMAIL` in `wrangler.jsonc`, and `NOTIFY_SECRET` set in Cloudflare and saved in GitHub.
 
+## Quests
+
+Gold rings in the tower are quests: events in Chris's Google Calendar whose title starts with `Quest:`. They are
+placed by date among the posts; ones still to come sit at the top, dashed, and show only a veiled name and the month
+(put `Veil: …` in the event's description to choose that name). Once a quest is over, its real title and dates show.
+Nothing else from the calendar ever reaches the site: no other events, no locations, no notes.
+
+`scripts/worker.js` (`/api/quests`) reads the calendar through its private iCal address, saved in Cloudflare as the
+secret `QUEST_CALENDAR`, and checks it again at most every ten minutes.
+

@@ -58,15 +58,20 @@
   }
 
   let bands = [], rings = [], segs = [];
-  function build(posts) {
+  // Posts and quests are laid into one tower by date, newest at the top; quests still to come crown it.
+  function build(posts, quests = []) {
     bands = []; rings = []; segs = [];
-    const n = posts.length, now = Date.now();
-    posts.forEach((p, i) => {
+    const items = [...posts.map((p, k) => ({ kind: "post", p, date: p.date, entry: posts.length - k })), ...quests.map((q) => ({ kind: "quest", q, date: q.date }))]
+      .sort((a, b) => String(b.date).localeCompare(String(a.date)));
+    const n = items.length, now = Date.now();
+    items.forEach((it, i) => {
+      if (it.kind === "quest") return questBand(it.q, i, n);
+      const p = it.p;
       const rnd = dice(hash(p.file || p.title || String(i)));
       const age = Math.max(0, (now - Date.parse(p.date + "T12:00:00")) / 864e5) || 0;
       const cool = 1 - Math.exp(-age / 120);                                   // 0 when new, toward 1 as it ages
       const col = mix(mix(COL.gold, COL.cream, .22 * (1 - cool)), mix(COL.orange, COL.bronze, .55), cool * .45);   // older posts cool only a little, so the whole tower stays neon
-      const band = { i, file: p.file, title: p.title || "Untitled", date: p.date, age, col, rings: [], unwind: 1, unwindTo: 1, glow: 0, glowTo: 0,
+      const band = { i, kind: "post", entry: it.entry, file: p.file, title: p.title || "Untitled", date: p.date, age, col, rings: [], unwind: 1, unwindTo: 1, glow: 0, glowTo: 0,
         month: String(p.date || "").slice(0, 7), words: String(p.body || "").split(/\s+/).filter(Boolean).length, fade: .78 + .22 * Math.exp(-age / 200) };
       // the newest post narrowest, at the top; each older one a little further out
       const radius = n > 1 ? .46 + .54 * Math.pow(i / (n - 1), .75) : .72;
@@ -86,6 +91,24 @@
       if (!band.rings.length) open(false);
       bands.push(band);
     });
+  }
+  // A quest: a band of three gold rings, each a few long arcs. One still to come is drawn dashed, as if not yet solid.
+  const QUEST_GOLD = [255, 194, 82];
+  function questBand(q, i, n) {
+    const rnd = dice(hash("quest" + q.id + q.date));
+    const band = { i, kind: "quest", quest: q, title: q.title, date: q.date, age: 0, col: q.over ? QUEST_GOLD : mix(QUEST_GOLD, COL.cream, .15), rings: [], unwind: 1, unwindTo: 1,
+      glow: 0, glowTo: 0, month: String(q.date || "").slice(0, 7), words: 0, fade: 1 };
+    const radius = n > 1 ? .46 + .54 * Math.pow(i / (n - 1), .75) : .72;
+    for (let k = 0; k < 3; k++) {
+      const ring = { band, r: radius * (1.02 + k * .03), phase: rnd() * TAU, turn: (k % 2 ? -1 : 1) * (.05 + rnd() * .08), boost: 0, heavy: k === 1, segs: [], u: 0, y: 0 };
+      let fill = rnd() * .4;
+      for (let a = 0; a < 3 && fill < TAU * .9; a++) {
+        const len = TAU * (.18 + rnd() * .14), seg = { ring, band, a0: fill, len, kind: q.over ? "quest" : "veiled", text: q.title, chars: 0, lit: 0, litAt: -1e9, red: 0, grow: 1 };
+        ring.segs.push(seg); segs.push(seg); fill += len + .25 + rnd() * .3;
+      }
+      band.rings.push(ring); rings.push(ring);
+    }
+    bands.push(band);
   }
 
   // Where each ring sits from top (0) to bottom (1). An unwound band takes more room; a gap parts one post from the
@@ -134,14 +157,15 @@
   }
   function pickPassage() {
     // newer posts are read more often than old ones
-    let w = 0; const weights = bands.map((b) => (w += Math.exp(-b.i * .35)));
-    const t = Math.random() * w, b = bands[weights.findIndex((x) => x >= t)] || bands[0];
+    const posts = bands.filter((x) => x.kind === "post"); if (!posts.length) return null;
+    let w = 0; const weights = posts.map((x, k) => (w += Math.exp(-k * .35)));
+    const t = Math.random() * w, b = posts[weights.findIndex((x) => x >= t)] || posts[0];
     const pool = b.rings.flatMap((r) => r.segs).filter((s) => s.kind !== "rule" && clock - s.litAt > 12);
     return pool[Math.floor(Math.random() * pool.length)];
   }
   // A new post (under a month old) writes itself in when the page opens: its arcs grow one after another.
   function writeIn() {
-    const b = bands[0]; if (!b || b.age > 30 || still) return;
+    const b = bands.find((x) => x.kind === "post"); if (!b || b.age > 30 || still) return;
     const list = b.rings.flatMap((r) => r.segs);
     list.forEach((s, k) => { s.grow = 0; s.red = .9; s.growAt = 1.2 + k * Math.min(.06, 6 / list.length); });
     const first = list.find((s) => s.kind === "head") || list[0];
@@ -280,10 +304,10 @@
       if (show < .01) continue;
       for (const s of r.segs) {
         if (s.grow <= 0) continue;
-        const heat = Math.max(s.lit, b.glow * .45), col = mix(mix(mix(b.col, COL.crimson, s.red * (1 - b.glow)), PINK, b.glow * .9), COL.cream, s.lit);
+        const heat = Math.max(s.lit, b.glow * .45), col = mix(mix(mix(b.col, COL.crimson, s.red * (1 - b.glow)), b.kind === "quest" ? [255, 236, 170] : PINK, b.glow * .9), COL.cream, s.lit);
         const near = show * (.6 + .4 * heat), far = near * .26, a = s.a0 + r.phase, len = s.len * s.grow;
         const lw = (s.kind === "head" ? 2.4 : r.heavy ? 2 : 1.15) * S * (1 + heat * .5);
-        if (s.kind === "photo" || s.kind === "rule") c.setLineDash(s.kind === "photo" ? [4 * S, 4 * S] : [1 * S, 5 * S]);
+        if (s.kind === "photo" || s.kind === "rule" || s.kind === "veiled") c.setLineDash(s.kind === "photo" ? [4 * S, 4 * S] : s.kind === "veiled" ? [7 * S, 5 * S] : [1 * S, 5 * S]);
         // soft neon, drawn the way a lit glass tube looks: a wide faint halo of its colour, the tube, then a pale core
         c.strokeStyle = rgb(col); c.lineWidth = lw * 5; arc(V.cx, cy, rx, ry, a, a + len, near * .15, far * .06);
         c.lineWidth = lw * 2.4; arc(V.cx, cy, rx, ry, a, a + len, near * .32, far * .12);
@@ -418,8 +442,16 @@
     if (!pin) { pin = document.createElement("a"); pin.className = "pin"; document.body.appendChild(pin); }
     if (!b) { pin.classList.remove("on"); return; }
     const when = new Date(b.date + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-    pin.href = "#/post/" + encodeURIComponent(b.file);
-    pin.innerHTML = `<span class="pk">ENTRY ${bands.length - b.i} · ${b.words.toLocaleString()} WORDS</span><span class="pt"></span><span class="pd">${when}</span><span class="po">${coarse ? "Tap to open" : "Click to open"} ▸</span>`;
+    pin.classList.toggle("quest", b.kind === "quest");
+    if (b.kind === "quest") {
+      const q = b.quest, end = q.end && q.end !== q.date ? " – " + new Date(q.end + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "";
+      pin.removeAttribute("href");
+      pin.innerHTML = `<span class="pk">QUEST · ${q.over ? "COMPLETED" : "TO COME"}</span><span class="pt"></span><span class="pd"></span><span class="po">${q.over ? "" : "Revealed once it is over"}</span>`;
+      pin.querySelector(".pd").textContent = q.over ? when + end : q.month;
+    } else {
+      pin.href = "#/post/" + encodeURIComponent(b.file);
+      pin.innerHTML = `<span class="pk">ENTRY ${b.entry} · ${b.words.toLocaleString()} WORDS</span><span class="pt"></span><span class="pd">${when}</span><span class="po">${coarse ? "Tap to open" : "Click to open"} ▸</span>`;
+    }
     pin.querySelector(".pt").textContent = b.title;
     const mid = ringAt((b.y0 + b.y1) / 2).cy / S, right = (V.cx + V.R * 1.25) / S, w = 230;
     const x = right + w + 16 < V.x1 * W / S ? right + 10 : Math.max(8, (V.cx - V.R * 1.25) / S - w - 10);
@@ -433,7 +465,7 @@
       const b = bandAt(e.offsetX, e.offsetY);
       if (!b) { hoverBand = null; showPin(null); poke(); return; }
       if (coarse && b !== hoverBand) { hoverBand = b; showPin(b); poke(); return; }   // on a phone: the first tap chooses, the second opens
-      onOpen(b.file);
+      if (b.kind === "post") onOpen(b.file);   // a quest has no page of its own
     });
     addEventListener("hashchange", () => { hoverBand = null; showPin(null); });
   }
@@ -466,7 +498,7 @@
 
   window.Tower = {
     start(canvas, posts, opts = {}) {
-      cv = canvas; onOpen = opts.onOpen || onOpen; build(posts || []); stack(); size(); hook(); writeIn();
+      cv = canvas; onOpen = opts.onOpen || onOpen; build(posts || [], opts.quests || []); stack(); size(); hook(); writeIn();
       if (still) { intro = 1; for (const s of segs) s.grow = 1; setInterval(poke, 4000); }   // held still, but the sayings still change
       if (document.fonts) document.fonts.ready.then(poke);
       poke();
