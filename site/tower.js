@@ -133,7 +133,7 @@
     // Room is kept clear above for the header (and on a phone the readout under it), and below for the line naming
     // the newest post, plus on a phone the callout strip. The tower fills what is left, its floor included.
     const free = (T.x1 - T.x0) * W, narrow = W < 700, home = T.dim > .9;
-    const top = (narrow ? 150 : 56) * S, below = (narrow ? (home ? 205 : 40) : 44) * S;   // a phone keeps a band under the tower for the saying and the callout
+    const top = (narrow ? 150 : 56) * S, below = (narrow ? (home ? 290 : 40) : (home ? 120 : 44)) * S;   // a phone keeps a band under the tower for the saying and the callout
     const R = Math.max(40 * S, Math.min(free * (narrow ? .3 : .19), H * .2, (H - top - below) * .3));
     const to = { cx: (T.x0 + T.x1) / 2 * W, top, h: Math.max(80 * S, (H - top - below - R * .62) / 1.06), R };
     for (const k in to) V[k] = snap ? to[k] : ease(V[k], to[k], 3.5, snap === 0 ? 0 : 1 / 60);
@@ -254,9 +254,9 @@
       if (a < .01) return;
       if (cant) { c.save(); c.textAlign = "center"; c.fillStyle = INK; c.globalAlpha = a; c.font = `500 ${17 * S}px "Noto Serif TC", "Songti TC", serif`;
         const per = Math.floor((W - 60 * S) / (17 * S * 1.05)), ch = [...saying.yue];
-        for (let k = 0; k * per < ch.length; k++) c.fillText(ch.slice(k * per, (k + 1) * per).join(""), W / 2 + Math.sin(t * .2 + k) * 3 * S, H - 178 * S + k * 17 * S * 1.5);
+        for (let k = 0; k * per < ch.length; k++) c.fillText(ch.slice(k * per, (k + 1) * per).join(""), W / 2 + Math.sin(t * .2 + k) * 3 * S, H - 258 * S + k * 17 * S * 1.5);
         c.restore(); }
-      else english(saying, W / 2, H - 172 * S, W - 60 * S, 16 * S, "center", a, t, 0);
+      else english(saying, W / 2, H - 252 * S, W - 60 * S, 16 * S, "center", a, t, 0);
       return;
     }
     const a = show * fade(age, HOLD) * INK_ALPHA; if (a < .01) return;
@@ -367,7 +367,7 @@
       l: Math.min(300 * S, (V.cx - V.R * 1.15 - 20 * S) - (V.x0 * W + 16 * S)),
       r: Math.min(300 * S, (V.x1 * W - 16 * S - reserved) - (V.cx + V.R * 1.15 + 20 * S)) };
     // labels stay clear of the header above, the line at the foot, and on the right the readout in the corner
-    const lowest = { l: H - 50 * S, r: H - 170 * S };
+    const lowest = { l: H - 130 * S, r: H - 170 * S };
     const placed = { l: [], r: [] };
     for (const co of callouts) {
       const s = co.seg, p = pointOn(s, s.a0 + s.len / 2 + s.ring.phase), side = p.x < V.cx ? "l" : "r";
@@ -412,7 +412,7 @@
   function strip() {
     const co = callouts[callouts.length - 1], s = co.seg, p = pointOn(s, s.a0 + s.len / 2 + s.ring.phase);
     const age = clock - co.t0, alpha = clamp(age / .3) * clamp((co.ttl - age) / 1.4) * clamp((V.dim - .25) * 2);
-    const fs = 11 * S, x = 18 * S, w = W - 36 * S, y = H - 82 * S;
+    const fs = 11 * S, x = 18 * S, w = W - 36 * S, y = H - 172 * S;
     c.textBaseline = "alphabetic"; c.globalCompositeOperation = "source-over"; c.globalAlpha = alpha;
     c.font = `500 ${fs}px "IBM Plex Mono", ui-monospace, monospace`;
     let lines = wrap(co.title || s.text, w);
@@ -484,13 +484,14 @@
     cv.width = W; cv.height = H; c = cv.getContext("2d");
     aim(true); poke();
   }
-  let last = 0, raf = 0, frame = 0, stillUntil = 0;
+  let last = 0, raf = 0, frame = 0, stillUntil = 0, scrolledAt = -1e9;
+  addEventListener("scroll", () => { scrolledAt = performance.now(); }, { passive: true });   // while reading and scrolling, the tower draws a third as often
   const poke = () => { stillUntil = performance.now() + 1500; if (!raf && cv) raf = requestAnimationFrame(tick); };
   function tick(now) {
     raf = 0; if (document.hidden) return;
     const dt = Math.min(.1, (now - (last || now)) / 1000); last = now;
     // phones draw every other frame; a page being read with the tower dimmed behind it draws one frame in four
-    frame++; const every = T.dim < .3 ? 4 : coarse ? 2 : 1;
+    frame++; const scrolling = now - scrolledAt < 200, every = T.dim < .3 ? 4 : scrolling ? 3 : coarse ? 2 : 1;
     step(dt);
     if (frame % every === 0) paint();
     if (!still || now < stillUntil) raf = requestAnimationFrame(tick);

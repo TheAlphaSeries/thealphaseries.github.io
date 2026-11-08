@@ -116,10 +116,11 @@
     if (kind === "pick") { tone(880, t, .09, .05); tone(1320, t + .07, .14, .045); } else tone(660, t, .05, .035);
   }
 
-  // Home is the tower itself; the menu and the readout frame it.
+  // Home is the tower itself; the menu and the readout frame it, and the email alerts box sits at the foot.
   function showHome() {
     nav("home"); document.title = "Half Life";
-    main.innerHTML = `<section class="hall" aria-label="Half Life"><h1 class="sr">Half Life</h1></section>`;
+    main.innerHTML = `<section class="hall" aria-label="Half Life"><h1 class="sr">Half Life</h1>${ALERTS}</section>`;
+    hookAlerts();
   }
 
   /* ------------------------------------------------------------------ the tower's place on each page ---------- */
@@ -174,9 +175,7 @@
           ${older ? `<a class="prev" href="#/post/${esc(older.file)}"><span class="k">&larr; The post before</span><span class="t">${esc(older.title)}</span></a>` : "<span></span>"}
           ${newer ? `<a class="next" href="#/post/${esc(newer.file)}"><span class="k">The post after &rarr;</span><span class="t">${esc(newer.title)}</span></a>` : ""}
         </nav>
-        ${ALERTS}
       </article>`;
-    hookAlerts();
     const pics = [...main.querySelectorAll(".prose figure img, .cover img")];
     pics.forEach((im, k) => im.addEventListener("click", () => view(pics.map((x) => ({ src: x.dataset.full || x.getAttribute("src"), caption: x.closest("figure")?.querySelector("figcaption")?.textContent || "" })), k)));
   }
@@ -198,16 +197,14 @@
 
   function showAbout() {
     nav("about"); document.title = "About · Half Life";
-    main.innerHTML = `<article class="sheet about"><p class="kicker"><b>About</b> · the person behind Half Life</p><h1>About</h1>${FLOURISH}<figure class="portrait"><img src="/site/portrait-5.webp?v=3" alt="Chris, drawn in ink and smoke" onerror="this.parentNode.remove()"></figure>${markdown(DATA.about) || '<p class="empty">This remains to be set down.</p>'}${ALERTS}</article>`;
-    hookAlerts();
+    main.innerHTML = `<article class="sheet about"><p class="kicker"><b>About</b> · the person behind Half Life</p><h1>About</h1>${FLOURISH}${markdown(DATA.about) || '<p class="empty">This remains to be set down.</p>'}</article>`;
   }
 
   /* ------------------------------------------------------------------ email alerts ------------------------- */
-  // A small box at the foot of each post and on About: friends leave an email address and get one short email when a
+  // A small box at the foot of the front page: friends leave an email address and get one short email when a
   // new entry is published (never for edits). The address is kept by scripts/worker.js; every email can stop them.
   const ALERTS = `<form class="alerts" novalidate>
-      <p class="ak">Alerts</p>
-      <label for="alert-email">Get an email when a new entry is set down.</label>
+      <label for="alert-email">Get an email when a new entry is set down</label>
       <div class="arow"><input id="alert-email" name="email" type="email" autocomplete="email" inputmode="email" placeholder="you@example.com" required>
         <button type="submit">Notify me</button></div>
       <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">

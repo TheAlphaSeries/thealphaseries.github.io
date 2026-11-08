@@ -135,7 +135,7 @@ body:not(.home) .readout { display: none; }
 body:not(.home) main { margin-left: auto; width: var(--sheet); padding: 0; }
 @media (max-width: 1100px) { body:not(.home) main { width: auto; margin-left: var(--side); } }
 .sheet { position: relative; min-height: 100vh; padding: clamp(36px, 7vh, 80px) clamp(22px, 5vw, 64px) 80px; background: var(--glass);
-  border-left: 1px solid var(--line); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); animation: rise .7s var(--ease) both; }
+  border-left: 1px solid var(--line); animation: rise .7s var(--ease) both; }
 @keyframes rise { from { opacity: 0; transform: translateY(10px); } }
 .kicker { margin: 0; font: 500 .62rem/1.5 var(--mono); letter-spacing: .24em; text-transform: uppercase; color: var(--ink-dim); }
 .kicker b { font-weight: 500; color: var(--ink); }
@@ -184,8 +184,6 @@ hr.fleuron { border: 0; height: 18px; margin: 2em 0; background: radial-gradient
 .gallery button:hover img { filter: saturate(1.05) brightness(1.06); }
 
 /* about, with the portrait */
-.about .portrait { margin: 0 0 30px; border: 1px solid var(--line); }
-.about .portrait img { width: 100%; height: auto; }
 .about blockquote p { margin: 0 0 1em; }
 
 /* the photograph viewer */
@@ -207,22 +205,23 @@ hr.fleuron { border: 0; height: 18px; margin: 2em 0; background: radial-gradient
 .close:hover, .close:focus-visible { color: var(--ink); border-color: var(--accent); transform: rotate(90deg); }
 @media (max-width: 860px) { .close { top: 76px; right: 16px; } }
 
-/* the email alerts box, at the foot of each post and on About */
-.alerts { margin-top: 56px; padding: 22px 22px 18px; border: 1px solid var(--line); background: rgba(var(--panel), .5); box-shadow: var(--glow-box); }
-.alerts .ak { margin: 0 0 6px; font: 500 .62rem/1.4 var(--mono); letter-spacing: .24em; text-transform: uppercase; color: var(--ink-dim); }
-.alerts label { display: block; margin-bottom: 14px; font: italic 400 1.15rem/1.4 var(--title); color: var(--ink); }
-.alerts .arow { display: flex; gap: 10px; flex-wrap: wrap; }
-.alerts input[type="email"] { flex: 1 1 220px; min-width: 0; padding: 11px 13px; font: 400 .95rem/1.2 var(--mono); color: var(--ink); background: rgba(0, 0, 0, .55);
+/* the email alerts box, at the foot of the front page under the tower */
+.hall .alerts { pointer-events: auto; display: inline-grid; gap: 7px; width: min(420px, calc(100% - 32px)); text-align: left; }
+.alerts label { font: italic 400 1rem/1.3 var(--title); color: var(--ink-soft); text-align: center; }
+.alerts .arow { display: flex; gap: 8px; }
+.alerts input[type="email"] { flex: 1 1 auto; min-width: 0; padding: 9px 12px; font: 400 .85rem/1.2 var(--mono); color: var(--ink); background: rgba(0, 0, 0, .7);
   border: 1px solid var(--line); border-radius: 0; outline: none; }
 .alerts input[type="email"]::placeholder { color: rgba(240, 232, 255, .35); }
 .alerts input[type="email"]:focus { border-color: var(--accent); box-shadow: 0 0 14px -4px rgba(189, 148, 255, .6); }
-.alerts button { padding: 11px 18px; font: 500 .7rem/1 var(--mono); letter-spacing: .22em; text-transform: uppercase; color: var(--ink); background: none;
-  border: 1px solid var(--accent); cursor: pointer; text-shadow: var(--glow-soft); box-shadow: 0 0 16px -6px rgba(189, 148, 255, .7); }
-.alerts button:hover { background: rgba(189, 148, 255, .12); }
+.alerts button { padding: 9px 14px; font: 500 .66rem/1 var(--mono); letter-spacing: .2em; text-transform: uppercase; color: var(--ink); background: rgba(0, 0, 0, .7);
+  border: 1px solid var(--accent); cursor: pointer; white-space: nowrap; text-shadow: var(--glow-soft); box-shadow: 0 0 16px -6px rgba(189, 148, 255, .7); }
+.alerts button:hover { background: rgba(189, 148, 255, .14); }
 .alerts button:disabled { opacity: .5; cursor: wait; }
 .alerts .hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
-.alerts .amsg { margin: 10px 0 0; min-height: 1.2em; font: 400 .72rem/1.5 var(--mono); color: var(--ink-soft); }
+.alerts .amsg { margin: 0; min-height: 1.1em; font: 400 .68rem/1.4 var(--mono); color: var(--ink-soft); text-align: center; }
+.alerts .amsg:empty { display: none; }
 .alerts.done .amsg { color: var(--ink); }
+@media (min-width: 861px) and (max-width: 1300px) { .hall { right: 270px; } }   /* keep clear of the readout */
 
 /* ---- the neon: soft violet glow on the words and the panels ---- */
 body { text-shadow: var(--glow-text); }
@@ -232,7 +231,7 @@ body { text-shadow: var(--glow-text); }
 a:hover { text-shadow: var(--glow); }
 .pin, .readout, .menutoggle { box-shadow: var(--glow-box); }
 .sheet { box-shadow: -1px 0 30px -8px rgba(189, 148, 255, .45); }
-.cover img, .prose figure img, .gallery button, .about .portrait { box-shadow: 0 0 26px -8px rgba(189, 148, 255, .5); }
+.cover img, .prose figure img, .gallery button { box-shadow: 0 0 26px -8px rgba(189, 148, 255, .5); }
 .readout .bar i, .readout .spark i.on { box-shadow: 0 0 8px rgba(189, 148, 255, .6); }
 .readout .bar.life i { box-shadow: 0 0 8px rgba(255, 90, 174, .6); }
 .flourish { filter: drop-shadow(0 0 4px rgba(189, 148, 255, .6)); }
@@ -259,8 +258,7 @@ html.aurora .aurora-light i:nth-child(3) { left: 25vw; bottom: -25vmax; backgrou
 @keyframes drift-a { 33% { transform: translate(30vw, 18vh) scale(1.2); } 66% { transform: translate(8vw, 42vh) scale(.9); } to { transform: translate(48vw, 8vh) scale(1.1); } }
 @keyframes drift-b { 33% { transform: translate(-28vw, 30vh) scale(.85); } 66% { transform: translate(-50vw, -10vh) scale(1.15); } to { transform: translate(-18vw, 40vh) scale(1); } }
 @keyframes drift-c { 33% { transform: translate(-20vw, -30vh) scale(1.15); } 66% { transform: translate(30vw, -45vh) scale(.9); } to { transform: translate(10vw, -20vh) scale(1.2); } }
-html.aurora { --chamber-1: transparent; --chamber-2: transparent; --chamber-3: transparent; --glass: rgba(var(--panel), .55); }   /* the reading page: dark violet glass, not black */
-html.aurora .sheet { -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+html.aurora { --chamber-1: transparent; --chamber-2: transparent; --chamber-3: transparent; --glass: rgba(var(--panel), .82); }   /* the reading page: dark violet glass, not black */
 html.aurora .side { background: none; }
 @media (prefers-reduced-motion: reduce) { html.aurora .aurora-light i { animation: none; } }
 
