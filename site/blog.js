@@ -199,11 +199,30 @@
     main.innerHTML = `<article class="sheet about"><p class="kicker"><b>About</b> · the person behind Half Life</p><h1>About</h1>${FLOURISH}<figure class="portrait"><img src="/site/portrait-5.webp?v=3" alt="Chris, drawn in ink and smoke" onerror="this.parentNode.remove()"></figure>${markdown(DATA.about) || '<p class="empty">This remains to be set down.</p>'}</article>`;
   }
 
+  /* ------------------------------------------------------------------ closing a page ------------------------ */
+  // Every page has a close button (and Escape works too). A post closes back to the list or the tower it was opened
+  // from; any other page closes to the tower.
+  let cameFrom = "#/", here_ = "#/";
+  function closeTo() {
+    if (/^#\/post\//.test(here_) && /^(#\/?|#\/posts)?$/.test(cameFrom)) return cameFrom || "#/";
+    return "#/";
+  }
+  function addClose() {
+    const sheet = main.querySelector(".sheet"); if (!sheet) return;
+    const a = document.createElement("a"); a.className = "close"; a.href = closeTo(); a.setAttribute("aria-label", "Close this page");
+    a.innerHTML = '<span aria-hidden="true">&times;</span>';
+    a.addEventListener("click", () => blip("pick"));
+    sheet.prepend(a);
+  }
+  addEventListener("keydown", (e) => { if (e.key === "Escape" && viewer.hidden && !document.body.classList.contains("home")) { location.hash = closeTo(); } });
+
   function route() {
+    cameFrom = here_; here_ = location.hash || "#/";
     const h = decodeURIComponent(location.hash.replace(/^#\/?/, ""));
     if (/^\d{4}-\d{2}-\d{2}-/.test(h)) { location.replace("#/post/" + h); return; }   // links from the old site
     const [what, arg] = h.split("/");
     if (what === "post" && arg) showPost(arg); else if (["posts", "accounts", "journal"].includes(what)) showJournal(); else if (what === "photos" || what === "visions") showPhotos(); else if (["about", "chronicler"].includes(what)) showAbout(); else showHome();   /* the old names still lead to the same pages */
+    addClose();
     scrollTo({ top: 0, behavior: "instant" });
   }
   addEventListener("hashchange", route);

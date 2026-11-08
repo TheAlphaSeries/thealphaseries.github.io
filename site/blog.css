@@ -196,6 +196,14 @@ hr.fleuron { border: 0; height: 18px; margin: 2em 0; background: radial-gradient
 .viewer .vprev { grid-column: 1; } .viewer .vnext { grid-column: 3; }
 .viewer.single .vprev, .viewer.single .vnext { visibility: hidden; }
 
+/* the close button on every page: top right of the page, staying put while you scroll */
+.close { position: fixed; z-index: 7; top: 18px; right: 22px; width: 42px; height: 42px; display: grid; place-items: center; text-decoration: none;
+  color: var(--ink); font: 300 2rem/1 var(--title); border: 1px solid var(--line); border-radius: 50%; background: rgba(var(--panel), .7);
+  box-shadow: var(--glow-box); text-shadow: var(--glow-soft); transition: transform .2s var(--ease), border-color .2s; }
+.close span { margin-top: -3px; }
+.close:hover, .close:focus-visible { color: var(--ink); border-color: var(--accent); transform: rotate(90deg); }
+@media (max-width: 860px) { .close { top: 76px; right: 16px; } }
+
 /* ---- the neon: soft violet glow on the words and the panels ---- */
 body { text-shadow: var(--glow-text); }
 .mark-en, .sheet h1, .prose h2, .prose h3, .contents .t, .pin .pt, .postnav .t, .cmds a.sel .name, .cmds a[aria-current="page"] .name,
