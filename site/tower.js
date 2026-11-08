@@ -58,7 +58,6 @@
      Tower.start(canvas, posts, { quests, onOpen(file) })  build and start drawing
      Tower.quests(posts, quests)                           add the gold rings when the calendar answers late
      Tower.view({ x0, x1, dim, focus })                    where to stand, how bright, which band stays unwound
-     Tower.hush(true|false)                                hide callouts on a phone while a question box is open
      Tower.stats()                                         counts, for testing
 
    COST
@@ -187,13 +186,14 @@
 
   /* =================================================================================================== 2. THE VIEW */
   const V = { x0: 0, x1: 1, dim: 1, cx: 0, top: 0, h: 0, R: 0 }, T = { x0: 0, x1: 1, dim: 1 };
-  let W = 0, H = 0, S = 1, cv = null, c = null, focusFile = null, hoverBand = null, onOpen = () => {}, hush = false;
-  // Fit the tower into its strip: room is kept above for the header (on a phone, also the readout) and below for the
-  // alerts box (on a phone, also the saying and the callout strip). dt = null snaps straight there.
+  let W = 0, H = 0, S = 1, phone = false, cv = null, c = null, focusFile = null, hoverBand = null, onOpen = () => {};
+  // Fit the tower into its strip: room is kept above for the header and below for the alerts box. On a phone
+  // (phone = a window 860 px wide or less, blog.css section 14) the tower is drawn larger, under the top bar, with
+  // room below for one saying, the alerts box and the tabs. dt = null snaps straight there.
   function aim(dt) {
-    const free = (T.x1 - T.x0) * W, narrow = W < 700, home = T.dim > .9;
-    const top = (narrow ? 150 : 56) * S, below = (narrow ? (home ? 290 : 40) : (home ? 120 : 44)) * S;
-    const R = Math.max(40 * S, Math.min(free * (narrow ? .3 : .19), H * .2, (H - top - below) * .3));
+    const free = (T.x1 - T.x0) * W, home = T.dim > .9;
+    const top = (phone ? 80 : 56) * S, below = (phone ? (home ? 262 : 40) : (home ? 120 : 44)) * S;
+    const R = Math.max(40 * S, Math.min(free * (phone ? .36 : .19), H * (phone ? .24 : .2), (H - top - below) * .3));
     const to = { cx: (T.x0 + T.x1) / 2 * W, top, h: Math.max(80 * S, (H - top - below - R * .62) / 1.06), R };
     for (const k in to) V[k] = dt == null ? to[k] : ease(V[k], to[k], 3.5, dt);
   }
@@ -213,7 +213,7 @@
   function read(seg) {
     seg.litAt = clock; seg.ring.boost = .5;
     if (T.dim > .9) callouts.push({ seg, kind: seg.kind === "photo" ? "VIEW" : "READ", t0: clock, ttl: 7 + Math.random() * 3 });
-    while (callouts.length > (W < 700 ? 1 : 7)) callouts.shift();
+    while (callouts.length > (phone ? 1 : 7)) callouts.shift();
     const p = pointOn(seg, seg.a0 + seg.len / 2 + seg.ring.phase); probe.tx = p.x; probe.ty = p.y; probe.on = 1;
   }
   // Which passage to read next: newer posts far more often than old ones; never one read in the last 12 s.
@@ -249,7 +249,7 @@
       if (s.red > 0 && s.grow >= 1) s.red = Math.max(0, s.red - dt / 18);                                                    // "just written" fades over ~18 s
       const t = clock - s.litAt; s.lit = t < 0 ? 0 : Math.min(1, t / .18) * Math.exp(-t / 4.2);                             // quick flash, slow fade
     }
-    if (!still && clock > nextRead && bands.length && T.dim > .3) { const s = pickPassage(); if (s) read(s); nextRead = clock + (W < 700 ? 3.2 : 1.6) + Math.random() * 2.2; }
+    if (!still && clock > nextRead && bands.length && T.dim > .3) { const s = pickPassage(); if (s) read(s); nextRead = clock + (phone ? 3.2 : 1.6) + Math.random() * 2.2; }
     for (let i = callouts.length - 1; i >= 0; i--) if (clock - callouts[i].t0 > callouts[i].ttl) callouts.splice(i, 1);
     probe.x = ease(probe.x || probe.tx, probe.tx, 1.8, dt); probe.y = ease(probe.y || probe.ty, probe.ty, 1.8, dt); probe.on = ease(probe.on, 0, .25, dt);
   }
@@ -338,7 +338,7 @@
   const FRONT_LIGHT = .12;
   function chamber(front) {
     c.globalAlpha = front ? FRONT_LIGHT : 1;
-    const fade = V.dim * intro, { cy } = ringAt(1.06), R = V.R * 1.75, n = W < 700 ? 90 : 170;
+    const fade = V.dim * intro, { cy } = ringAt(1.06), R = V.R * 1.75, n = phone ? 90 : 170;
     c.fillStyle = rgb(COL.blue, (front ? .85 : .35) * fade);
     for (let k = 0; k < n; k++) {
       const a = k / n * TAU + clock * .01, sn = Math.sin(a); if ((sn > 0) !== front) continue;
@@ -427,13 +427,13 @@
     if (!saying || clock - sayAt > HOLD) { saying = deck[dealt++ % deck.length]; sayAt = clock; }
     const age = clock - sayAt, t = still ? 0 : clock, gap = 32 * S;
     c.globalCompositeOperation = "source-over";
-    if (W < 700) {                                                       // phone: English for half the time, then Cantonese
+    if (phone) {                                                         // phone: one line under the tower, English for half the time, then Cantonese
       const half = saying.yue ? HOLD / 2 : HOLD, cant = saying.yue && age > half, a = show * fade(cant ? age - half : age, half) * .55;
       if (a < .01) return;
-      if (!cant) { english(saying, W / 2, H - 252 * S, W - 60 * S, 16 * S, "center", a, t); return; }
+      if (!cant) { english(saying, W / 2, H - 236 * S, W - 48 * S, 15 * S, "center", a, t); return; }
       c.save(); c.textAlign = "center"; c.fillStyle = INK; c.globalAlpha = a; c.font = `500 ${17 * S}px "Noto Serif TC", "Songti TC", serif`;
-      const per = Math.floor((W - 60 * S) / (17 * S * 1.05)), ch = [...saying.yue];
-      for (let k = 0; k * per < ch.length; k++) c.fillText(ch.slice(k * per, (k + 1) * per).join(""), W / 2 + Math.sin(t * .2 + k) * 3 * S, H - 258 * S + k * 17 * S * 1.5);
+      const per = Math.floor((W - 48 * S) / (17 * S * 1.05)), ch = [...saying.yue];
+      for (let k = 0; k * per < ch.length; k++) c.fillText(ch.slice(k * per, (k + 1) * per).join(""), W / 2 + Math.sin(t * .2 + k) * 3 * S, H - 240 * S + k * 17 * S * 1.5);
       c.restore(); return;
     }
     const a = show * fade(age, HOLD) * INK_ALPHA; if (a < .01) return;
@@ -457,8 +457,7 @@
   const coAlpha = (co) => { const age = clock - co.t0; return clamp(age / .3) * clamp((co.ttl - age) / 1.4) * clamp((V.dim - .25) * 2); };
   const coPoint = (co) => pointOn(co.seg, co.seg.a0 + co.seg.len / 2 + co.seg.ring.phase);
   function labels() {
-    if (V.dim < .25 || !callouts.length || (hush && W < 700)) return;
-    if (W < 700) return strip();
+    if (V.dim < .25 || !callouts.length || phone) return;                // a phone has no room for callouts: the tower speaks for itself
     const fs = 12 * S, gapY = fs * 3.1, room = {
       l: Math.min(300 * S, (V.cx - V.R * 1.15 - 20 * S) - (V.x0 * W + 16 * S)),
       r: Math.min(300 * S, (V.x1 * W - 16 * S - reserved) - (V.cx + V.R * 1.15 + 20 * S)) };
@@ -491,24 +490,6 @@
     }
     c.globalAlpha = 1;
   }
-  // On a phone there is no room beside the tower: the latest callout sits in a strip under it, over two lines.
-  function strip() {
-    const co = callouts[callouts.length - 1], s = co.seg, p = coPoint(co);
-    const fs = 11 * S, x = 18 * S, w = W - 36 * S, y = H - 172 * S;
-    c.textBaseline = "alphabetic"; c.globalCompositeOperation = "source-over"; c.globalAlpha = coAlpha(co);
-    c.font = MONO(fs);
-    let lines = wrap(co.title || s.text, w);
-    if (lines.length > 2) lines = [lines[0], clip(lines.slice(1).join(" "), Math.floor(w / (fs * .6)))];
-    const anchorX = clamp(p.x, x, x + w);
-    c.strokeStyle = rgb(COL.gold, .6); c.lineWidth = .8 * S; c.beginPath(); c.moveTo(p.x, p.y); c.lineTo(anchorX, y - fs * 1.6); c.lineTo(anchorX < W / 2 ? x : x + w, y - fs * 1.6); c.stroke();
-    c.fillStyle = rgb(COL.cream); c.beginPath(); c.arc(p.x, p.y, 1.8 * S, 0, TAU); c.fill();
-    c.textAlign = "left"; c.fillStyle = "#fff"; lines.forEach((l, j) => c.fillText(l, x, y + j * fs * 1.4));
-    const ty = y + lines.length * fs * 1.4 + fs * .2, tag = co.kind + "  ";
-    c.font = MONO(fs * .82); c.fillStyle = rgb(tagColour(co.kind)); c.fillText(tag, x, ty);
-    c.fillStyle = "rgba(255,255,255,.72)"; c.fillText(clip(`${s.chars ? s.chars + " ch  " : ""}${s.band.title}`, 34), x + c.measureText(tag).width, ty);
-    c.globalAlpha = 1;
-  }
-
   /* ========================================================================================== 9. ONE WHOLE FRAME */
   let chamberCols = ["#170c28", "#0c0716", "#05030a"];   // read from --chamber-1..3 in blog.css (a theme there changes them here)
   function paint() {
@@ -579,7 +560,7 @@
     const css = getComputedStyle(document.documentElement);
     chamberCols = chamberCols.map((v, i) => css.getPropertyValue("--chamber-" + (i + 1)).trim() || v);
     S = Math.min(devicePixelRatio || 1, coarse ? 1.5 : 1.75);            // canvas pixels per screen pixel (capped, for speed)
-    W = Math.round(innerWidth * S); H = Math.round(innerHeight * S);
+    W = Math.round(innerWidth * S); H = Math.round(innerHeight * S); phone = innerWidth <= 860;
     cv.width = W; cv.height = H; c = cv.getContext("2d");
     aim(null); poke();
   }
@@ -592,6 +573,7 @@
     frame++;
     const every = T.dim < .3 ? 4 : now - scrolledAt < 200 ? 3 : coarse ? 2 : 1;   // dimmed: 1 in 4; scrolling: 1 in 3; phone: 1 in 2
     step(dt);
+    if (T.dim === 0 && V.dim < .01) { paint(); return; }                 // switched off (a phone reading a page): one last clear frame, then sleep until view() wakes it
     if (frame % every === 0) paint();
     if (!still || now < stillUntil) raf = requestAnimationFrame(tick);
   }
@@ -620,7 +602,6 @@
       if (still) for (const s of segs) { s.grow = 1; s.tc = null; }
       hoverBand = null; stack(); poke();
     },
-    hush(on) { hush = !!on; poke(); },
     view(v = {}) {
       if (v.x0 != null) T.x0 = v.x0; if (v.x1 != null) T.x1 = v.x1; if (v.dim != null) T.dim = v.dim;
       if ("focus" in v) focusFile = v.focus;

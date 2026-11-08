@@ -145,15 +145,17 @@
   $(".menutoggle").addEventListener("click", (e) => { const open = side.classList.toggle("open"); e.currentTarget.setAttribute("aria-expanded", String(open)); });
 
   /* ======================================================================================= 6. THE TOWER'S PLACE */
-  // nav() is called by every page: it marks the menu, folds the phone menu away and moves the tower.
-  // Home: the tower stands right of the menu at full strength. Reading on a wide screen: it steps into the strip left
-  // of the page, half bright, and stays clickable. Reading on a narrow screen: it stays behind the page, dimmed.
+  // nav() is called by every page: it marks the menu and the phone's tabs, and moves the tower.
+  // Home: the tower stands right of the menu at full strength (on a phone: full width, under the top bar).
+  // Reading on a wide screen: it steps into the strip left of the page, half bright, and stays clickable.
+  // Reading on a middling screen: it stays behind the page, dimmed. Reading on a phone: it is switched off altogether
+  // (dim 0 puts it to sleep), so the page scrolls smoothly and the battery is spared.
   // `file` is the band to keep unwound and glowing (the post or quest being read).
-  const SIDE_WIDTH = 240;                                                // = --side in blog.css
+  const SIDE_WIDTH = 240, PHONE = 860;                                   // = --side and the phone breakpoint in blog.css
   let here = ["home"];
   function nav(route, file) {
     document.body.classList.toggle("home", route === "home");
-    $$(".cmds a").forEach((a) => (a.dataset.route === route ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current")));
+    $$(".cmds a, .tabs a").forEach((a) => (a.dataset.route === route || (route === "quest" && a.dataset.route === "home") ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current")));
     $$("#entries a").forEach((a) => (a.dataset.file === file ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current")));
     side.classList.remove("open"); $(".menutoggle").setAttribute("aria-expanded", "false");
     choose($('.menu a[aria-current="page"]') || $(".cmds a"), true);
@@ -161,18 +163,18 @@
   }
   function placeTower(route, file) {
     if (!window.Tower) return;
-    const side = innerWidth > 860 ? SIDE_WIDTH / innerWidth : 0;
+    const side = innerWidth > PHONE ? SIDE_WIDTH / innerWidth : 0;
     if (route === "home") Tower.view({ x0: side, x1: 1, dim: 1, focus: null });
     else if (innerWidth > 1100) Tower.view({ x0: side, x1: 1 - Math.min(760, innerWidth * .55) / innerWidth, dim: .55, focus: file || null });
-    else Tower.view({ x0: side, x1: 1, dim: .16, focus: file || null });
+    else if (innerWidth > PHONE) Tower.view({ x0: side, x1: 1, dim: .16, focus: file || null });
+    else Tower.view({ x0: 0, x1: 1, dim: 0, focus: file || null });
   }
   addEventListener("resize", () => placeTower(...here));
 
   /* ================================================================================================ 7. THE PAGES */
-  // Home: the tower is the page; the alerts box sits at its foot. hush(false) lets the tower's callouts back.
+  // Home: the tower is the page; the alerts box sits at its foot.
   function showHome() {
     nav("home"); document.title = "Half Life";
-    if (window.Tower) Tower.hush(false);
     main.innerHTML = `<section class="hall" aria-label="Half Life"><h1 class="sr">Half Life</h1>${ALERTS}</section>`;
     hookAlerts();
   }
@@ -329,7 +331,7 @@
     try { if (!DEVICE.push) return false; const reg = await navigator.serviceWorker.getRegistration(); return !!(reg && (await reg.pushManager.getSubscription())); } catch (e) { return false; }
   }
   function pushPanel(box) {
-    const put = (html) => { box.innerHTML = html; box.hidden = false; if (window.Tower) Tower.hush(true); };   // hush: no callouts behind it on a phone
+    const put = (html) => { box.innerHTML = html; box.hidden = false; };
     if (DEVICE.inApp) return put(`<p>To get notifications, open <b>halflife.studio</b> in Safari or Chrome.</p>`);
     if (DEVICE.ios && !DEVICE.standalone) {
       const v = iosVersion();

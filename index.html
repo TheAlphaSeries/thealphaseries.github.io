@@ -50,9 +50,14 @@
       <i class="pointer" aria-hidden="true"></i>
     </div>
     <div class="menuwin saywin" aria-live="polite"><p id="say">Everything is already changing.</p></div>
-    <div class="toggles"><button class="soundtoggle" type="button" id="music" aria-pressed="false">Music <span>off</span></button><button class="soundtoggle" type="button" id="sound" aria-pressed="true">Sound <span>on</span></button></div>
   </nav>
+  <div class="toggles"><button class="soundtoggle" type="button" id="music" aria-pressed="false">Music <span>off</span></button><button class="soundtoggle" type="button" id="sound" aria-pressed="true">Sound <span>on</span></button></div>
 </aside>
+
+<!-- on a phone: the tabs along the bottom, in place of the side menu (blog.css section 14) -->
+<nav class="tabs" aria-label="Sections">
+  <a href="#/" data-route="home">Tower</a><a href="#/posts" data-route="posts">Posts</a><a href="#/photos" data-route="photos">Photos</a><a href="#/about" data-route="about">About</a>
+</nav>
 
 <main id="main" tabindex="-1"><p class="loading">Winding the record&hellip;</p></main>
 

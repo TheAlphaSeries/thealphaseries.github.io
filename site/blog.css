@@ -17,7 +17,7 @@
    SECTIONS
      1 colours and type · 2 the basics · 3 the side menu · 4 home · 5 the tower's card · 6 the readout · 7 the pages
      8 a post · 9 a quest · 10 photos and the viewer · 11 the close button · 11b email alerts and notifications
-     12 the neon · 13 blackout and aurora · 14 phones
+     12 the neon · 13 blackout and aurora · 14 the phone view
    ================================================================================================================== */
 
 /* ===================================================================================== 1. COLOURS AND TYPE */
@@ -120,7 +120,8 @@ img { max-width: 100%; display: block; }
 #say { margin: 0; font: 400 .66rem/1.6 var(--mono); color: var(--ink-soft); }
 #say::after { content: "▌"; margin-left: 2px; color: var(--ink-dim); animation: blink 1s steps(1) infinite; }   /* the cursor */
 @keyframes blink { 50% { opacity: 0; } }
-.toggles { display: flex; gap: 18px; padding-left: 22px; }             /* Music on/off, Sound on/off */
+.toggles { display: flex; gap: 18px; padding-left: 22px; margin-top: 22px; }   /* Music on/off, Sound on/off */
+.tabs { display: none; }                                               /* the phone's tabs (section 14) */
 .soundtoggle { background: none; border: 0; padding: 2px 0; font: 500 .6rem/1.4 var(--mono); letter-spacing: .2em; text-transform: uppercase; color: var(--ink-soft); cursor: pointer; }
 .soundtoggle span { color: var(--ink); }
 
@@ -313,30 +314,58 @@ html.aurora .aurora-light i:nth-child(3) { left: 25vw; bottom: -25vmax; backgrou
 @keyframes drift-c { 33% { transform: translate(-20vw, -30vh) scale(1.15); } 66% { transform: translate(30vw, -45vh) scale(.9); } to { transform: translate(10vw, -20vh) scale(1.2); } }
 html.aurora .side { background: none; }
 
-/* ============================================================================================== 14. PHONES */
-/* Phones and narrow windows: the menu folds into a bar at the top behind a "Menu" button; the readout becomes one
-   line under it; the page takes the full width. */
+/* ====================================================================================== 14. THE PHONE VIEW */
+/* Its own layout for phones (and any window 860 px wide or less), rather than the desktop squeezed down:
+     · a slim top bar: HALF LIFE on the left, Music and Sound on the right
+     · tabs along the bottom, where a thumb reaches (Tower · Posts · Photos · About), in place of the side menu
+     · home: the tower large and alone (no callouts, no readout), one saying under it, then the alerts box;
+       tapping a ring brings its card up from the bottom, and tapping the card (or the ring again) opens it
+     · pages: full width on black, with the tower switched off behind them (blog.js placeTower), so they scroll
+       smoothly; the close button sits at the top right of the page and scrolls away with it
+   tower.js uses the same 860 px line. --bar and --tabs are the heights of the two bars. */
 @media (max-width: 860px) {
-  :root { --side: 0px; }
-  .side { position: fixed; bottom: auto; width: 100%; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-between;
-    padding: max(14px, env(safe-area-inset-top)) 16px 12px; background: linear-gradient(180deg, rgba(var(--shade), .92), rgba(var(--shade), .6) 70%, rgba(var(--shade), 0)); max-height: 100vh; }
-  .mark-en { font-size: 1.25rem; }
-  .menutoggle { display: block; background: rgba(var(--panel), .6); border: 1px solid var(--accent-dim); padding: 7px 14px; font: 500 .66rem/1 var(--mono); letter-spacing: .22em; text-transform: uppercase; color: var(--ink); }
-  .menu { display: none; width: 100%; margin-top: 14px; }
-  .side.open { bottom: 0; background: rgba(var(--shade), .94); align-content: flex-start; }
-  .side.open .menu { display: grid; }
-  .saywin { min-height: 0; }
-  body:not(.home) main { margin-left: 0; }
-  .sheet { padding-top: 84px; border-left: 0; }
-  .hall { left: 0; padding: 0 16px; }
-  .readout { left: 16px; right: 16px; width: auto; bottom: auto; top: 64px; }
-  .readout .rt { display: none; }
-  .readout dl { grid-template-columns: repeat(3, auto); justify-content: space-between; gap: 2px 14px; }
-  .readout dl div { grid-template-columns: auto auto; gap: 6px; }
-  .readout .bar, .readout .spark { display: none; }
-  .gallery { columns: 2 140px; }
+  :root { --side: 0px; --bar: 54px; --tabs: calc(60px + env(safe-area-inset-bottom)); }
+  body { font-size: 1.12rem; }
+  /* the top bar */
+  .side, html.aurora .side { position: fixed; inset: 0 0 auto; width: 100%; height: calc(var(--bar) + env(safe-area-inset-top)); overflow: visible;
+    flex-direction: row; align-items: center; justify-content: space-between; padding: env(safe-area-inset-top) 18px 0;
+    background: linear-gradient(180deg, rgba(0, 0, 0, .94) 55%, rgba(0, 0, 0, 0)); }
+  .mark-en { font-size: 1.12rem; letter-spacing: .24em; }
+  .menutoggle, .menu, .readout { display: none !important; }
+  .toggles { margin: 0; padding: 0; gap: 16px; }
+  .soundtoggle { padding: 10px 0; font-size: .56rem; }                 /* a taller tap target, same look */
+  /* the tabs */
+  .tabs { display: grid; grid-template-columns: repeat(4, 1fr); position: fixed; z-index: 8; left: 0; right: 0; bottom: 0; height: var(--tabs);
+    padding-bottom: env(safe-area-inset-bottom); background: rgba(0, 0, 0, .95); border-top: 1px solid var(--line); box-shadow: 0 -12px 30px -14px rgba(189, 148, 255, .4); }
+  .tabs a { display: grid; place-items: center; align-content: center; gap: 7px; text-decoration: none; font: 500 .6rem/1 var(--mono); letter-spacing: .2em;
+    text-transform: uppercase; color: var(--ink-dim); text-shadow: var(--glow-soft); -webkit-tap-highlight-color: transparent; }
+  .tabs a::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: currentColor; opacity: .35; }   /* a small light over each */
+  .tabs a[aria-current="page"] { color: var(--ink); text-shadow: var(--glow); }
+  .tabs a[aria-current="page"]::before { opacity: 1; background: var(--accent-hi); box-shadow: 0 0 6px var(--accent), 0 0 14px var(--accent); }
+  /* home */
+  .hall { left: 0; right: 0; padding: 0 16px; bottom: calc(var(--tabs) + 14px); }
+  .hall .alerts { width: 100%; }
+  .pin { left: 16px !important; right: 16px; top: auto !important; bottom: calc(var(--tabs) + 12px); width: auto; padding: 14px 16px; background: rgb(4, 2, 8); }
+  body:has(.pin.on) .hall { visibility: hidden; }                     /* the card takes the alerts box's place while it's up */
+  /* the pages */
+  body:not(.home) main { margin: 0; width: auto; }
+  body:not(.home) #tower { visibility: hidden; }
+  .sheet { padding: calc(var(--bar) + env(safe-area-inset-top) + 16px) 20px calc(var(--tabs) + 48px); border-left: 0; box-shadow: none; background: rgba(0, 0, 0, .9); }
+  .sheet.quest { box-shadow: none; }
+  .close { position: absolute; top: calc(var(--bar) + env(safe-area-inset-top) + 6px); right: 12px; width: 40px; height: 40px; font-size: 1.7rem; }
+  .kicker { padding-right: 52px; }                                     /* clear of the close button */
+  .sheet h1 { font-size: 2.3rem; }
+  .flourish { margin: 18px 0 22px; }
+  .contents a { grid-template-columns: 1fr; padding: 18px 0; }          /* one column: the number becomes a small label */
+  .contents .n { font-size: .6rem; line-height: 1.6; letter-spacing: .2em; }
+  .contents .n::before { content: "ENTRY "; }
+  .contents .t { font-size: 1.5rem; }
+  .contents .l { grid-column: 1; font-size: 1rem; line-height: 1.55; }
+  .postnav { grid-template-columns: 1fr; gap: 18px; }
+  .postnav .next { text-align: left; }
+  .gallery { columns: 2 140px; column-gap: 8px; }
+  .gallery button { margin-bottom: 8px; }
   .viewer { grid-template-columns: 40px minmax(0, 1fr) 40px; }
-  .pin { width: min(230px, calc(100vw - 32px)); }
 }
 /* for people who asked their device for less motion */
 @media (prefers-reduced-motion: reduce) {
