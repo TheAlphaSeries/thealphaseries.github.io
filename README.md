@@ -38,9 +38,9 @@ anything. Every email has a link to stop them.
 
 - The addresses are kept in the site's Cloudflare database (table `subscribers`), never shown on the site.
 - `scripts/worker.js` takes sign-ups, removes people who unsubscribe, and sends the emails through Cloudflare's own Email Sending.
-- `.github/workflows/alert.yml` notices a new file in `posts/`, waits until it is live, then asks the site to send.
-- It needs the Workers paid plan with halflife.studio onboarded to Email Sending, the `send_email` binding named
-  `EMAIL` in `wrangler.jsonc`, and `NOTIFY_SECRET` set in Cloudflare and saved in GitHub.
+- Every 5 minutes the site checks its own post list; a post it has never seen is new, so edits never send anything.
+- It needs the Workers paid plan with halflife.studio onboarded to Email Sending, and the `send_email` binding named
+  `EMAIL` in `wrangler.jsonc`.
 
 ## Quests
 

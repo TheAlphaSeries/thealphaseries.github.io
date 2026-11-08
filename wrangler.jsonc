@@ -7,6 +7,10 @@
   "assets": { "directory": ".", "binding": "ASSETS" },
   // The small database that holds petitions to join a quest (see scripts/worker.js).
   "d1_databases": [{ "binding": "QUESTS_DB", "database_name": "halflife-quests", "database_id": "e394b9ce-de5c-42df-b34d-22a1a32dbbf6" }],
+  // Email alerts for new entries are sent through Cloudflare's own Email Sending (see scripts/worker.js).
+  "send_email": [{ "name": "EMAIL" }],
+  // Every 5 minutes the site checks for posts it has not seen before and emails the people who signed up.
+  "triggers": { "crons": ["*/5 * * * *"] },
   // Rebuild the entry list from posts/ before every publish.
   "build": { "command": "node scripts/build-index.mjs" }
 }

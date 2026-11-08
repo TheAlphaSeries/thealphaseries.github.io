@@ -5,15 +5,14 @@
 // 2. Email alerts for new entries:
 //      POST /api/subscribe     a friend leaves their email address (the box at the foot of each post and on About)
 //      GET  /api/unsubscribe   the link at the bottom of every alert email; removes the address at once
-//      POST /api/notify        called by GitHub (.github/workflows/alert.yml) when a NEW post file appears in posts/,
-//                              never when a post is edited; sends one email per address
+//      every 5 minutes         the site looks at its own list of posts; any post it has never seen before is new,
+//                              and everyone on the list gets one email for it. Edits never send anything, because an
+//                              edited post is one it has already seen. (The first look only remembers what is there.)
 //    The addresses live in the site's own Cloudflare database (QUESTS_DB, table "subscribers") and are never shown
 //    anywhere on the site. Emails are sent by Cloudflare's own Email Sending (the EMAIL binding in wrangler.jsonc)
 //    from entries@halflife.studio; that needs the Workers paid plan and halflife.studio onboarded under
 //    Compute > Email Service > Email Sending. Until the binding is there, sign-ups are kept and nothing is sent.
-//
-//    It needs one secret, set in Cloudflare (Workers > thealphaseries-github-io > Settings > Variables and Secrets):
-//      NOTIFY_SECRET    a long random password; the same one is saved in GitHub so only GitHub can trigger a send
+
 //
 // 3. Quests: GET /api/quests reads Chris's Google Calendar (its private iCal address, saved in Cloudflare as the
 //    secret QUEST_CALENDAR) and passes on ONLY events whose title starts with "Quest:". Nothing else in the calendar
@@ -28,11 +27,12 @@ const SITE = "https://halflife.studio";
 const FROM = { email: "entries@halflife.studio", name: "Half Life" };
 
 export default {
+  // every 5 minutes (wrangler.jsonc, "triggers"): send alerts for any post not seen before
+  async scheduled(event, env, ctx) { ctx.waitUntil(checkForNewPosts(env)); },
   async fetch(request, env) {
     const url = new URL(request.url), path = url.pathname;
     if (path === "/api/subscribe" && request.method === "POST") return subscribe(request, env);
     if (path === "/api/unsubscribe") return unsubscribe(url, env);
-    if (path === "/api/notify" && request.method === "POST") return notify(request, env);
     if (path === "/api/quests") return quests(env);
     if (path.startsWith("/api/")) return text("Gone.", 410);
 
@@ -54,9 +54,6 @@ async function table(env) {
   await env.QUESTS_DB.prepare("CREATE TABLE IF NOT EXISTS subscribers (email TEXT PRIMARY KEY, token TEXT NOT NULL UNIQUE, created INTEGER NOT NULL)").run();
 }
 function token() { const b = new Uint8Array(18); crypto.getRandomValues(b); return [...b].map((x) => x.toString(16).padStart(2, "0")).join(""); }
-
-// Both sides of a comparison take the same time, so the secret cannot be guessed a letter at a time.
-function same(a, b) { a = String(a || ""); b = String(b || ""); if (!a || a.length !== b.length) return false; let d = 0; for (let i = 0; i < a.length; i++) d |= a.charCodeAt(i) ^ b.charCodeAt(i); return d === 0; }
 
 // Sends each email through Cloudflare, one at a time (each friend gets their own, with their own unsubscribe link).
 // If Cloudflare refuses the unsubscribe headers, that email is sent again without them.
@@ -124,27 +121,30 @@ async function unsubscribe(url, env) {
   return new Response(page, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
 }
 
-/* ------------------------------------------------------------------ notify ------------------------------------- */
-// GitHub sends { file: "2026-11-07-entry-5" } once that new post is live. The post's title and opening lines come
-// from posts.json on this very site, so the email always matches what people will see.
-async function notify(request, env) {
-  if (!env.NOTIFY_SECRET || !same(request.headers.get("x-notify-secret"), env.NOTIFY_SECRET)) return json({ ok: false, error: "Not allowed." }, 403);
-  let data = {};
-  try { data = await request.json(); } catch (e) { return json({ ok: false, error: "Bad request." }, 400); }
-  const file = String(data.file || "");
-  const posts = await (await env.ASSETS.fetch(new Request(SITE + "/posts.json"))).json();
-  const p = (posts.posts || []).find((x) => x.file === file);
-  if (!p) return json({ ok: false, error: "No post called " + file + " is live yet." }, 404);
-
+/* ------------------------------------------------------------------ new posts -------------------------------- */
+// The post list is the one the site itself serves (posts.json), so a post is only "new" once it is actually live.
+// alerts_sent remembers every post already seen. The very first time this runs it just remembers what is there, so
+// old posts never go out; after that, anything not in it is a new post.
+async function checkForNewPosts(env) {
+  if (!env.QUESTS_DB) return { ok: false };
   await table(env);
-  // never twice for the same post, even if GitHub runs again
   await env.QUESTS_DB.prepare("CREATE TABLE IF NOT EXISTS alerts_sent (file TEXT PRIMARY KEY, sent INTEGER NOT NULL)").run();
-  if (await env.QUESTS_DB.prepare("SELECT file FROM alerts_sent WHERE file = ?").bind(file).first()) return json({ ok: true, skipped: "already sent" });
+  const posts = (await (await env.ASSETS.fetch(new Request(SITE + "/posts.json"))).json()).posts || [];
+  const seen = new Set(((await env.QUESTS_DB.prepare("SELECT file FROM alerts_sent").all()).results || []).map((r) => r.file));
+  const remember = (file) => env.QUESTS_DB.prepare("INSERT OR IGNORE INTO alerts_sent (file, sent) VALUES (?, ?)").bind(file, Date.now()).run();
+  if (!seen.size) { for (const p of posts) await remember(p.file); return { ok: true, seeded: posts.length }; }
+  const fresh = posts.filter((p) => !seen.has(p.file)).reverse();   // oldest first, if several arrived at once
+  const out = [];
+  for (const p of fresh) { const r = await sendFor(env, p); if (r.ok) await remember(p.file); out.push({ file: p.file, ...r }); }
+  return { ok: true, sent: out };
+}
 
+async function sendFor(env, p) {
   const { results } = await env.QUESTS_DB.prepare("SELECT email, token FROM subscribers").all();
-  const link = `${SITE}/#/post/${encodeURIComponent(file)}`, when = new Date(p.date + "T12:00:00Z").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
+  if (!(results || []).length) return { ok: true, sent: 0 };
+  const link = `${SITE}/#/post/${encodeURIComponent(p.file)}`, when = new Date(p.date + "T12:00:00Z").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
   const lede = plainBody(p.body);
-  const emails = (results || []).map(({ email, token: t }) => {
+  const emails = results.map(({ email, token: t }) => {
     const unsub = `${SITE}/api/unsubscribe?t=${t}`;
     return { from: FROM, to: email, subject: `${p.title} · Half Life`,
       headers: { "List-Unsubscribe": `<${unsub}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" },
@@ -154,10 +154,7 @@ async function notify(request, env) {
 <tr><td style="padding-bottom:36px"><a href="${link}" style="display:inline-block;padding:12px 22px;border:1px solid #bd94ff;color:#fff;text-decoration:none;font:13px 'Courier New',monospace;letter-spacing:3px">READ IT</a></td></tr>`, unsub),
       text: `New entry · ${when}\n\n${p.title}\n\n${lede}\n\nRead it: ${link}\n\nStop these emails: ${unsub}` };
   });
-  if (!emails.length) { await env.QUESTS_DB.prepare("INSERT OR IGNORE INTO alerts_sent (file, sent) VALUES (?, ?)").bind(file, Date.now()).run(); return json({ ok: true, sent: 0 }); }
-  const r = await send(env, emails);
-  if (r.ok) await env.QUESTS_DB.prepare("INSERT OR IGNORE INTO alerts_sent (file, sent) VALUES (?, ?)").bind(file, Date.now()).run();
-  return json(r, r.ok ? 200 : 502);
+  return send(env, emails);
 }
 
 /* ------------------------------------------------------------------ quests ------------------------------------- */
