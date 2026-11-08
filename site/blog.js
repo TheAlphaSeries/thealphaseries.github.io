@@ -174,7 +174,9 @@
           ${older ? `<a class="prev" href="#/post/${esc(older.file)}"><span class="k">&larr; The post before</span><span class="t">${esc(older.title)}</span></a>` : "<span></span>"}
           ${newer ? `<a class="next" href="#/post/${esc(newer.file)}"><span class="k">The post after &rarr;</span><span class="t">${esc(newer.title)}</span></a>` : ""}
         </nav>
+        ${ALERTS}
       </article>`;
+    hookAlerts();
     const pics = [...main.querySelectorAll(".prose figure img, .cover img")];
     pics.forEach((im, k) => im.addEventListener("click", () => view(pics.map((x) => ({ src: x.dataset.full || x.getAttribute("src"), caption: x.closest("figure")?.querySelector("figcaption")?.textContent || "" })), k)));
   }
@@ -196,7 +198,37 @@
 
   function showAbout() {
     nav("about"); document.title = "About · Half Life";
-    main.innerHTML = `<article class="sheet about"><p class="kicker"><b>About</b> · the person behind Half Life</p><h1>About</h1>${FLOURISH}<figure class="portrait"><img src="/site/portrait-5.webp?v=3" alt="Chris, drawn in ink and smoke" onerror="this.parentNode.remove()"></figure>${markdown(DATA.about) || '<p class="empty">This remains to be set down.</p>'}</article>`;
+    main.innerHTML = `<article class="sheet about"><p class="kicker"><b>About</b> · the person behind Half Life</p><h1>About</h1>${FLOURISH}<figure class="portrait"><img src="/site/portrait-5.webp?v=3" alt="Chris, drawn in ink and smoke" onerror="this.parentNode.remove()"></figure>${markdown(DATA.about) || '<p class="empty">This remains to be set down.</p>'}${ALERTS}</article>`;
+    hookAlerts();
+  }
+
+  /* ------------------------------------------------------------------ email alerts ------------------------- */
+  // A small box at the foot of each post and on About: friends leave an email address and get one short email when a
+  // new entry is published (never for edits). The address is kept by scripts/worker.js; every email can stop them.
+  const ALERTS = `<form class="alerts" novalidate>
+      <p class="ak">Alerts</p>
+      <label for="alert-email">Get an email when a new entry is set down.</label>
+      <div class="arow"><input id="alert-email" name="email" type="email" autocomplete="email" inputmode="email" placeholder="you@example.com" required>
+        <button type="submit">Notify me</button></div>
+      <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <p class="amsg" role="status" aria-live="polite"></p>
+    </form>`;
+  function hookAlerts() {
+    const f = main.querySelector(".alerts"); if (!f) return;
+    const msg = f.querySelector(".amsg"), btn = f.querySelector("button");
+    f.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = f.email.value.trim();
+      if (!/^\S+@\S+\.\S+$/.test(email)) { msg.textContent = "That doesn't look like an email address."; f.email.focus(); return; }
+      btn.disabled = true; msg.textContent = "Adding you…";
+      try {
+        const r = await fetch("/api/subscribe", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email, website: f.website.value }) });
+        const d = await r.json().catch(() => ({}));
+        if (r.ok && d.ok) { blip("pick"); f.classList.add("done"); msg.textContent = d.already ? "You're already on the list." : d.welcomed ? "You're on the list. A welcome email is on its way." : "You're on the list."; f.email.value = ""; }
+        else msg.textContent = d.error || "That didn't work. Try again in a moment.";
+      } catch (err) { msg.textContent = "That didn't work. Check your connection and try again."; }
+      btn.disabled = false;
+    });
   }
 
   /* ------------------------------------------------------------------ closing a page ------------------------ */

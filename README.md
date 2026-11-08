@@ -29,3 +29,15 @@ security tower in *Ghost in the Shell 2: Innocence* and [gits-file-visualizer](h
 (Apache-2.0), which draws a computer's files that way: each sentence is an arc, each paragraph a ring, the newest post at
 the top. Nothing about it needs updating by hand; a new post simply appears in it. The portrait is on the About page,
 `site/portrait-5.webp`.
+
+## Email alerts
+
+Friends can leave an email address in the box at the foot of each post (and on About). When a **new** post is
+published, each of them gets one short email with its title, its opening lines and a link; editing a post never sends
+anything. Every email has a link to stop them.
+
+- The addresses are kept in the site's Cloudflare database (table `subscribers`), never shown on the site.
+- `scripts/worker.js` takes sign-ups, removes people who unsubscribe, and sends the emails through Resend.
+- `.github/workflows/alert.yml` notices a new file in `posts/`, waits until it is live, then asks the site to send.
+- It needs `RESEND_API_KEY` and `NOTIFY_SECRET` set in Cloudflare, and the same `NOTIFY_SECRET` saved in GitHub.
+

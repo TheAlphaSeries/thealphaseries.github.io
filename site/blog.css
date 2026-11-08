@@ -204,6 +204,23 @@ hr.fleuron { border: 0; height: 18px; margin: 2em 0; background: radial-gradient
 .close:hover, .close:focus-visible { color: var(--ink); border-color: var(--accent); transform: rotate(90deg); }
 @media (max-width: 860px) { .close { top: 76px; right: 16px; } }
 
+/* the email alerts box, at the foot of each post and on About */
+.alerts { margin-top: 56px; padding: 22px 22px 18px; border: 1px solid var(--line); background: rgba(var(--panel), .5); box-shadow: var(--glow-box); }
+.alerts .ak { margin: 0 0 6px; font: 500 .62rem/1.4 var(--mono); letter-spacing: .24em; text-transform: uppercase; color: var(--ink-dim); }
+.alerts label { display: block; margin-bottom: 14px; font: italic 400 1.15rem/1.4 var(--title); color: var(--ink); }
+.alerts .arow { display: flex; gap: 10px; flex-wrap: wrap; }
+.alerts input[type="email"] { flex: 1 1 220px; min-width: 0; padding: 11px 13px; font: 400 .95rem/1.2 var(--mono); color: var(--ink); background: rgba(0, 0, 0, .55);
+  border: 1px solid var(--line); border-radius: 0; outline: none; }
+.alerts input[type="email"]::placeholder { color: rgba(240, 232, 255, .35); }
+.alerts input[type="email"]:focus { border-color: var(--accent); box-shadow: 0 0 14px -4px rgba(189, 148, 255, .6); }
+.alerts button { padding: 11px 18px; font: 500 .7rem/1 var(--mono); letter-spacing: .22em; text-transform: uppercase; color: var(--ink); background: none;
+  border: 1px solid var(--accent); cursor: pointer; text-shadow: var(--glow-soft); box-shadow: 0 0 16px -6px rgba(189, 148, 255, .7); }
+.alerts button:hover { background: rgba(189, 148, 255, .12); }
+.alerts button:disabled { opacity: .5; cursor: wait; }
+.alerts .hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+.alerts .amsg { margin: 10px 0 0; min-height: 1.2em; font: 400 .72rem/1.5 var(--mono); color: var(--ink-soft); }
+.alerts.done .amsg { color: var(--ink); }
+
 /* ---- the neon: soft violet glow on the words and the panels ---- */
 body { text-shadow: var(--glow-text); }
 .mark-en, .sheet h1, .prose h2, .prose h3, .contents .t, .pin .pt, .postnav .t, .cmds a.sel .name, .cmds a[aria-current="page"] .name,

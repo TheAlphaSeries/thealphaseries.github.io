@@ -1,0 +1,42 @@
+# Emails friends who signed up for alerts, when a NEW entry is published. Edits to an existing post never send
+# anything: this only looks at files that were added to posts/ in a push, not ones that were changed.
+# It waits until the new post is actually live on halflife.studio, then asks the site (scripts/worker.js,
+# /api/notify) to send the emails. The site refuses unless the NOTIFY_SECRET saved here matches its own.
+name: Email alert for new entries
+on:
+  push:
+    branches: [main]
+    paths: ["posts/**"]
+permissions:
+  contents: read
+jobs:
+  alert:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Find posts that are new in this push (not edited ones)
+        id: new
+        run: |
+          before="${{ github.event.before }}"
+          if [ -z "$before" ] || ! git cat-file -e "$before" 2>/dev/null; then before="${{ github.sha }}^"; fi
+          files=$(git diff --name-only --diff-filter=A "$before" "${{ github.sha }}" -- 'posts/*.md' | sed 's#^posts/##; s#\.md$##' | tr '\n' ' ')
+          echo "New posts: ${files:-none}"
+          echo "files=$files" >> "$GITHUB_OUTPUT"
+      - name: Wait until each new post is live, then send the alert
+        if: steps.new.outputs.files != ''
+        env:
+          NOTIFY_SECRET: ${{ secrets.NOTIFY_SECRET }}
+        run: |
+          if [ -z "$NOTIFY_SECRET" ]; then echo "NOTIFY_SECRET is not saved in GitHub yet, so no alert was sent."; exit 0; fi
+          for f in ${{ steps.new.outputs.files }}; do
+            for i in $(seq 1 40); do                      # up to 20 minutes for Cloudflare to publish it
+              if curl -fsS "https://halflife.studio/posts.json?t=$(date +%s)" | grep -q "\"file\": \"$f\""; then live=1; break; fi
+              sleep 30
+            done
+            if [ -z "$live" ]; then echo "$f never appeared on the site, so no alert was sent."; exit 1; fi
+            echo "Sending the alert for $f"
+            curl -fsS -X POST "https://halflife.studio/api/notify" -H "content-type: application/json" -H "x-notify-secret: $NOTIFY_SECRET" -d "{\"file\":\"$f\"}"
+            echo; live=""
+          done
