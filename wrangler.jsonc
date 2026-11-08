@@ -11,6 +11,8 @@
   "send_email": [{ "name": "EMAIL" }],
   // Every 5 minutes the site checks for posts it has not seen before and emails the people who signed up.
   "triggers": { "crons": ["*/5 * * * *"] },
+  // Cloudflare's own AI, used to retell quest descriptions in Cugel's manner (see scripts/worker.js, section 9).
+  "ai": { "binding": "AI" },
   // Rebuild the entry list from posts/ before every publish.
   "build": { "command": "node scripts/build-index.mjs" }
 }

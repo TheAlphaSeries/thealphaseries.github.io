@@ -45,7 +45,11 @@ anything. Every email has a link to stop them.
 ## Quests
 
 Gold rings in the tower are quests: events in Chris's Google Calendar whose title starts with `Quest:`. Click one to
-read it: its title, when, and the story written in the event's description. A quest still to come sits at the top of
+read it: its title, when, and its story. The story is never the event's description as written: the site has
+Cloudflare's own AI retell it in the manner of Cugel the Clever, with every name, place, address, date and time
+swapped for a Dying Earth invention (a completed quest may still name the country). Write the description plainly;
+the veiling happens on the way to the site. Each retelling is made once and kept; editing the description makes a new
+one. If the AI is unavailable the quest shows no story rather than the original words. A quest still to come sits at the top of
 the tower, dashed, showing only the month; the moment its event ends it turns solid gold, shows its dates, and settles
 among the posts by date. A line `Veil: …` in the description gives an upcoming quest a different public title.
 Nothing else from the calendar ever reaches the site: no other events, no locations, no guests. Delete the event and

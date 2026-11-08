@@ -24,7 +24,7 @@
 
    4. QUESTS        GET  /api/quests   reads Chris's Google Calendar (its secret iCal address, stored in Cloudflare as
                     the secret QUEST_CALENDAR) and passes on ONLY events whose title starts "Quest:": title, story (the
-                    description) and when. No locations, no guests, no other events ever leave this program. A quest
+                    description, retold by the Cugel filter, section 9) and when. No locations, no guests, no other events ever leave this program. A quest
                     still to come shows only its month and stays at the top of the tower until its event ends. A line
                     "Veil: …" in the description gives an upcoming quest a different public title.
 
@@ -35,10 +35,11 @@
      alerts_sent  (file, sent)              every post already seen by the 5-minute check
      push_subs    (endpoint, created)       devices that want a notification
      settings     (key, value)              push_vapid: the push key pair · push_last: the last post pushed
+     quest_tales  (key, tale, made)         each quest's story retold in Cugel's manner (section 9)
    The old game's tables are in there too, untouched; nothing here reads them.
 
    SECTIONS: 1 the doorway · 2 helpers · 3 the database · 4 emails · 5 sign-up and leaving · 6 new posts
-             7 push · 8 quests (calendar reading)
+             7 push · 8 quests (calendar reading) · 9 the Cugel filter
    ================================================================================================================== */
 
 const SITE = "https://halflife.studio";
@@ -47,7 +48,8 @@ const FROM = { email: "entries@halflife.studio", name: "Half Life" };
 /* ============================================================================================ 1. THE DOORWAY */
 export default {
   // every 5 minutes (wrangler.jsonc "triggers"): alerts for any post not seen before
-  async scheduled(event, env, ctx) { ctx.waitUntil(checkForNewPosts(env)); },
+  // and read the calendar, so a new quest's retelling (section 9) is ready before the first visitor asks
+  async scheduled(event, env, ctx) { ctx.waitUntil(checkForNewPosts(env)); ctx.waitUntil(quests(env).catch(() => {})); },
 
   async fetch(request, env) {
     const url = new URL(request.url), path = url.pathname, post = request.method === "POST";
@@ -96,7 +98,8 @@ function db(env) {
       "CREATE TABLE IF NOT EXISTS subscribers (email TEXT PRIMARY KEY, token TEXT NOT NULL UNIQUE, created INTEGER NOT NULL)",
       "CREATE TABLE IF NOT EXISTS alerts_sent (file TEXT PRIMARY KEY, sent INTEGER NOT NULL)",
       "CREATE TABLE IF NOT EXISTS push_subs (endpoint TEXT PRIMARY KEY, created INTEGER NOT NULL)",
-      "CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)"
+      "CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)",
+      "CREATE TABLE IF NOT EXISTS quest_tales (key TEXT PRIMARY KEY, tale TEXT NOT NULL, made INTEGER NOT NULL)"
     ]) await D.prepare(sql).run();
   })().catch((e) => { made.delete(D); throw e; }));                   // if it failed, try again next time
   return made.get(D).then(() => D);
@@ -256,7 +259,7 @@ async function pushOnce(env, file) {
 // happened, so opening /api/quests in a browser shows whether the calendar is connected.
 async function quests(env) {
   if (!env.QUEST_CALENDAR) return json({ quests: [], note: "No calendar connected: the QUEST_CALENDAR secret is not set on this site." });
-  const cache = typeof caches !== "undefined" ? caches.default : null, key = new Request(SITE + "/api/quests#cache-v2");
+  const cache = typeof caches !== "undefined" ? caches.default : null, key = new Request(SITE + "/api/quests#cache-v3");
   if (cache) { const hit = await cache.match(key); if (hit) return hit; }
   let list = [], note = "", failed = false, soonest = Infinity;
   try {
@@ -272,7 +275,8 @@ async function quests(env) {
       const over = e.end <= now, id = hashOf(once).toString(36);
       if (!over) soonest = Math.min(soonest, e.end);
       const veil = (/^\s*veil\s*:\s*(.+)$/im.exec(e.description) || [])[1];
-      const blurb = e.description.replace(/^\s*veil\s*:.*$/gim, "").trim().slice(0, 4000);
+      // the description itself never leaves: only its retelling in Cugel's manner (section 9)
+      const blurb = await retell(env, e.description.replace(/^\s*veil\s*:.*$/gim, "").trim().slice(0, 4000), over, veil || m[1]);
       const day = dayIn(e.start, e.tz), last = dayIn(e.allDay ? e.end - 1 : e.end, e.tz);   // all-day ends are the day after
       list.push(over
         ? { id, over: true, title: m[1].trim().slice(0, 100), date: day, end: last, blurb }
@@ -331,4 +335,52 @@ function events(ics) {
       start, end, allDay, tz: calTz, status: field("STATUS").value.trim() });
   }
   return out;
+}
+
+/* ==================================================================================== 9. THE CUGEL FILTER */
+// A quest's calendar description is never shown as written. Cloudflare's own AI (Workers AI, the AI binding in
+// wrangler.jsonc; no account or key needed) retells it as a short passage in the manner of Jack Vance's Cugel the
+// Clever, with the particulars veiled: no businesses, people, streets, addresses, dates, times, prices or links,
+// each replaced by a Dying Earth invention ("a certain inkmaster of dire repute"). A quest still to come is veiled
+// fully; a completed one may name the land it happened in, but still no people or addresses.
+//
+// Each retelling is made once and kept (table quest_tales), keyed by the description and whether the quest is
+// over, so it costs nothing on later visits; editing the description in Google makes a new one. As a last guard, a
+// retelling that repeats a proper name from the original (a capitalised word that isn't a sentence's first) is
+// tried once more and, if it still does, dropped. If anything fails the quest shows no story at all (the page says
+// its particulars have not yet been set down), never the original text.
+const TALE_MODEL = "@cf/google/gemma-4-26b-a4b-it";
+const TALE_RULES = `You retell a traveller's private note about a coming journey as a short passage in the voice of Jack Vance's Dying Earth stories, as if written by Cugel the Clever: ornate, formal, wry, a little vain and sardonic, with archaic flourishes.
+Rules:
+- First person. Two to four sentences, under 90 words.
+- Keep the spirit of what will happen and how the traveller feels about it.
+- NEVER include any real name or particular: no businesses, shops, people, streets, cities, neighbourhoods, addresses, phone numbers, links, dates, days, times, prices or numbers. Replace each with an invented Dying Earth-style description (for example "a certain inkmaster of dire repute", "a hall beside the grey water").
+- Output only the passage: no title, no quotation marks, no preamble.`;
+const TALE_RULES_DONE = TALE_RULES.replace("about a coming journey", "about a journey already made")
+  .replace("no businesses, shops, people, streets, cities, neighbourhoods,", "no businesses, shops, people, streets, neighbourhoods,") + "\n- You may name the country or region where it happened.";
+
+// Proper names in the original: capitalised words of 3+ letters that don't start a sentence, leaving out the words
+// of the quest's public title (those are already on the site).
+const namesIn = (s, title) => { const shown = new Set(String(title).toLowerCase().match(/[a-z]+/g) || []);
+  return new Set([...s.matchAll(/(?<![.!?:]\s|^)\b([A-Z][a-z]{2,})/gm)].map((m) => m[1].toLowerCase()).filter((w) => !shown.has(w))); };
+const leaks = (tale, source, over, title) => {
+  const names = namesIn(source, title), words = tale.toLowerCase().match(/[a-z]+/g) || [];
+  return /https?:|www\.|@|\d/.test(tale) || (!over && words.some((w) => names.has(w)));
+};
+async function retell(env, source, over, title) {
+  if (!source) return "";
+  const D = env.QUESTS_DB ? await db(env).catch(() => null) : null, key = (over ? "done:" : "soon:") + hashOf(source).toString(36) + ":" + source.length;
+  if (D) { const row = await D.prepare("SELECT tale FROM quest_tales WHERE key = ?").bind(key).first().catch(() => null); if (row) return row.tale; }
+  if (!env.AI) return "";
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const r = await env.AI.run(TALE_MODEL, { messages: [{ role: "system", content: over ? TALE_RULES_DONE : TALE_RULES }, { role: "user", content: source }],
+        max_tokens: 260, temperature: .8, chat_template_kwargs: { enable_thinking: false } });
+      const tale = String(r?.response ?? r?.choices?.[0]?.message?.content ?? "").replace(/^["“\s]+|["”\s]+$/g, "").trim().slice(0, 1200);
+      if (!tale || leaks(tale, source, over, title)) continue;
+      if (D) await D.prepare("INSERT OR REPLACE INTO quest_tales (key, tale, made) VALUES (?, ?, ?)").bind(key, tale, Date.now()).run().catch(() => {});
+      return tale;
+    } catch (e) {}
+  }
+  return "";
 }
