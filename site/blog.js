@@ -291,7 +291,7 @@
   // from; any other page closes to the tower.
   let cameFrom = "#/", here_ = "#/";
   function closeTo() {
-    if (/^#\/post\//.test(here_) && /^(#\/?|#\/posts)?$/.test(cameFrom)) return cameFrom || "#/";
+    if (/^#\/(post|quest)\//.test(here_) && /^(#\/?|#\/posts)?$/.test(cameFrom)) return cameFrom || "#/";
     return "#/";
   }
   function addClose() {
@@ -303,12 +303,26 @@
   }
   addEventListener("keydown", (e) => { if (e.key === "Escape" && viewer.hidden && !document.body.classList.contains("home")) { location.hash = closeTo(); } });
 
+  // A quest's own page: its title, when (only the month while it is still to come), and the story from its calendar
+  // description. The quests arrive from the calendar a moment after the page, so this waits for them.
+  let QUESTS = null;
+  function showQuest(id) {
+    nav("quest", "quest:" + id);
+    const q = (QUESTS || []).find((x) => x.id === id);
+    if (!q) { main.innerHTML = `<article class="sheet"><p class="kicker"><b>Quest</b></p><h1>${QUESTS ? "This quest is gone" : "Unrolling the map…"}</h1>${QUESTS ? '<p class="when">It may have been struck from the record.</p>' : ""}</article>`; return; }
+    document.title = q.title + " · Half Life";
+    const day = (d) => new Date(d + "T12:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+    const when_ = q.over ? day(q.date) + (q.end && q.end !== q.date ? " – " + day(q.end) : "") : "Sometime in " + q.month;
+    main.innerHTML = `<article class="sheet quest"><p class="kicker"><b>Quest</b> · ${q.over ? "completed" : "to come"}</p><h1>${esc(q.title)}</h1><p class="when">${esc(when_)}</p>${FLOURISH}
+      <div class="prose">${q.blurb ? markdown(q.blurb) : '<p class="empty">The particulars of this quest have not yet been set down.</p>'}</div></article>`;
+  }
+
   function route() {
     cameFrom = here_; here_ = location.hash || "#/";
     const h = decodeURIComponent(location.hash.replace(/^#\/?/, ""));
     if (/^\d{4}-\d{2}-\d{2}-/.test(h)) { location.replace("#/post/" + h); return; }   // links from the old site
     const [what, arg] = h.split("/");
-    if (what === "post" && arg) showPost(arg); else if (["posts", "accounts", "journal"].includes(what)) showJournal(); else if (what === "photos" || what === "visions") showPhotos(); else if (["about", "chronicler"].includes(what)) showAbout(); else showHome();   /* the old names still lead to the same pages */
+    if (what === "quest" && arg) showQuest(arg); else if (what === "post" && arg) showPost(arg); else if (["posts", "accounts", "journal"].includes(what)) showJournal(); else if (what === "photos" || what === "visions") showPhotos(); else if (["about", "chronicler"].includes(what)) showAbout(); else showHome();   /* the old names still lead to the same pages */
     addClose();
     scrollTo({ top: 0, behavior: "instant" });
   }
@@ -342,7 +356,7 @@
     // the tower is drawn from the posts, with quests as gold rings among them; clicking a post's band opens it
     if (window.Tower) {
       Tower.start($("#tower"), DATA.posts, { onOpen: (file) => { blip("pick"); location.hash = "#/post/" + encodeURIComponent(file); } });
-      questsArrive.then((quests) => { if (quests.length) Tower.quests(DATA.posts, quests); });
+      questsArrive.then((quests) => { QUESTS = quests; if (quests.length) Tower.quests(DATA.posts, quests); if (/^#\/quest\//.test(location.hash)) route(); });
     }
     route();
   }).catch(() => { main.innerHTML = '<p class="empty">The pages could not be fetched. Try again in a moment.</p>'; });

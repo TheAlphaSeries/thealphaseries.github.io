@@ -44,13 +44,15 @@ anything. Every email has a link to stop them.
 
 ## Quests
 
-Gold rings in the tower are quests: events in Chris's Google Calendar whose title starts with `Quest:`. They are
-placed by date among the posts; ones still to come sit at the top, dashed, and show only a veiled name and the month
-(put `Veil: …` in the event's description to choose that name). Once a quest is over, its real title and dates show.
-Nothing else from the calendar ever reaches the site: no other events, no locations, no notes.
+Gold rings in the tower are quests: events in Chris's Google Calendar whose title starts with `Quest:`. Click one to
+read it: its title, when, and the story written in the event's description. A quest still to come sits at the top of
+the tower, dashed, showing only the month; the moment its event ends it turns solid gold, shows its dates, and settles
+among the posts by date. A line `Veil: …` in the description gives an upcoming quest a different public title.
+Nothing else from the calendar ever reaches the site: no other events, no locations, no guests. Delete the event and
+the quest leaves the site (usually within ten minutes; Google sometimes takes a few hours to update its feed).
 
 `scripts/worker.js` (`/api/quests`) reads the calendar through its private iCal address, saved in Cloudflare as the
-secret `QUEST_CALENDAR`, and checks it again at most every ten minutes.
+runtime secret `QUEST_CALENDAR`.
 
 ## Push notifications
 

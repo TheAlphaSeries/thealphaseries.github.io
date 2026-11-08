@@ -97,7 +97,7 @@
   const QUEST_GOLD = [255, 194, 82];
   function questBand(q, i, n) {
     const rnd = dice(hash("quest" + q.id + q.date));
-    const band = { i, kind: "quest", quest: q, title: q.title, date: q.date, age: 0, col: q.over ? QUEST_GOLD : mix(QUEST_GOLD, COL.cream, .15), rings: [], unwind: 1, unwindTo: 1,
+    const band = { i, kind: "quest", quest: q, file: "quest:" + q.id, title: q.title, date: q.date, age: 0, col: q.over ? QUEST_GOLD : mix(QUEST_GOLD, COL.cream, .15), rings: [], unwind: 1, unwindTo: 1,
       glow: 0, glowTo: 0, month: String(q.date || "").slice(0, 7), words: 0, fade: 1 };
     const radius = n > 1 ? .46 + .54 * Math.pow(i / (n - 1), .75) : .72;
     for (let k = 0; k < 3; k++) {
@@ -447,8 +447,8 @@
     pin.classList.toggle("quest", b.kind === "quest");
     if (b.kind === "quest") {
       const q = b.quest, end = q.end && q.end !== q.date ? " – " + new Date(q.end + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "";
-      pin.removeAttribute("href");
-      pin.innerHTML = `<span class="pk">QUEST · ${q.over ? "COMPLETED" : "TO COME"}</span><span class="pt"></span><span class="pd"></span><span class="po">${q.over ? "" : "Revealed once it is over"}</span>`;
+      pin.href = "#/quest/" + encodeURIComponent(q.id);
+      pin.innerHTML = `<span class="pk">QUEST · ${q.over ? "COMPLETED" : "TO COME"}</span><span class="pt"></span><span class="pd"></span><span class="po">${coarse ? "Tap to read" : "Click to read"} ▸</span>`;
       pin.querySelector(".pd").textContent = q.over ? when + end : q.month;
     } else {
       pin.href = "#/post/" + encodeURIComponent(b.file);
@@ -468,7 +468,7 @@
       const b = bandAt(e.offsetX, e.offsetY);
       if (!b) { hoverBand = null; showPin(null); poke(); return; }
       if (coarse && b !== hoverBand) { hoverBand = b; showPin(b); poke(); return; }   // on a phone: the first tap chooses, the second opens
-      if (b.kind === "post") onOpen(b.file);   // a quest has no page of its own
+      if (b.kind === "post") onOpen(b.file); else location.hash = "#/quest/" + encodeURIComponent(b.quest.id);
     });
     addEventListener("hashchange", () => { hoverBand = null; showPin(null); });
   }
@@ -508,6 +508,7 @@
       poke();
     },
     // add (or replace) the gold quest rings once they arrive; the posts' rings keep their place in the drawing
+    questList() { return bands.filter((b) => b.kind === "quest").map((b) => b.quest); },
     quests(posts, list) {
       const keep = new Map(segs.map((s) => [s.band.file + "|" + s.a0, s]));
       build(posts || [], list || []);

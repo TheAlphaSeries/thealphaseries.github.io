@@ -177,6 +177,12 @@ hr.fleuron { border: 0; height: 18px; margin: 2em 0; background: radial-gradient
 .postnav .k { font: 500 .6rem/1.4 var(--mono); letter-spacing: .18em; text-transform: uppercase; color: var(--ink-dim); }
 .postnav .t { font: 500 1.25rem/1.2 var(--title); color: var(--ink); }
 
+/* a quest's page: the gold of its ring */
+.sheet.quest { border-left-color: rgba(255, 194, 82, .4); box-shadow: -1px 0 30px -8px rgba(255, 194, 82, .4); }
+.sheet.quest .kicker b { color: #ffd68c; }
+.sheet.quest h1 { text-shadow: 0 0 3px rgba(255, 214, 140, .55), 0 0 14px rgba(255, 194, 82, .4), 0 0 32px rgba(255, 170, 60, .25); }
+.sheet.quest .flourish path { stroke: rgba(255, 194, 82, .55); } .sheet.quest .flourish .tick { fill: #ffc252; }
+
 /* the photographs */
 .gallery { columns: 3 220px; column-gap: 14px; }
 .gallery button { display: block; width: 100%; margin: 0 0 14px; padding: 0; border: 1px solid var(--line); background: rgb(var(--panel)); cursor: zoom-in; break-inside: avoid; }

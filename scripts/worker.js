@@ -23,10 +23,11 @@
 //    The same every-5-minutes check that sends the emails sends one push per new entry, never for edits.
 //
 // 3. Quests: GET /api/quests reads Chris's Google Calendar (its private iCal address, saved in Cloudflare as the
-//    secret QUEST_CALENDAR) and passes on ONLY events whose title starts with "Quest:". Nothing else in the calendar
-//    ever leaves this program: no locations, no notes, no other events. A quest still to come is veiled: just a
-//    Dying Earth-style name and the month (write "Veil: …" in the event's description to choose the name yourself);
-//    once it is over, its real title and date are shown. The tower draws them as gold rings (site/tower.js).
+//    secret QUEST_CALENDAR) and passes on ONLY events whose title starts with "Quest:": their title, their story
+//    (the event's description) and when they happen. Nothing else in the calendar ever leaves this program: no
+//    locations, no guests, no other events. A quest still to come shows only its month, never the day or time, and
+//    stays at the top of the tower until the moment its event ends. A line "Veil: …" in the description gives an
+//    upcoming quest a different public title. The tower draws them as gold rings (site/tower.js).
 //
 // The game that used to live here (quests, sign-ups, remarks) moved to its own repository, halflife-game. What
 // people sent to it is still kept in the QUESTS_DB database, untouched; nothing on this site reads or writes it now.
@@ -171,59 +172,85 @@ async function sendFor(env, p) {
 }
 
 /* ------------------------------------------------------------------ quests ------------------------------------- */
-// The names an upcoming quest goes by until it is over, when its own name has not been chosen with "Veil: …".
-const VEILS = [
-  "A journey toward a far shore", "An errand beyond the mountains", "A voyage of uncertain purpose", "A summons from a distant city",
-  "A pilgrimage, details withheld", "An expedition across the water", "A matter requiring travel", "A crossing of some consequence",
-  "An appointment at the edge of the map", "A wandering, plans imprecise", "A visit to people of good repute", "A quest whose nature is not yet told"
-];
 function unfold(ics) { return String(ics).replace(/\r\n/g, "\n").replace(/\n[ \t]/g, ""); }
 function unescapeIcs(v) { return String(v || "").replace(/\\n/gi, "\n").replace(/\\([,;\\])/g, "$1").trim(); }
-// "20261114", "20261114T090000Z" or "20261114T090000" (with a TZID) all become "2026-11-14"
-function icsDay(v) { const m = /(\d{4})(\d{2})(\d{2})/.exec(v || ""); return m ? `${m[1]}-${m[2]}-${m[3]}` : ""; }
+// Google sometimes stores a description as HTML; keep only the words and line breaks.
+function plainText(v) {
+  return String(v || "").replace(/<br\s*\/?>/gi, "\n").replace(/<\/(p|div|li)>/gi, "\n").replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+    .replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+}
+// How far a time zone is ahead of UTC at a given moment, in milliseconds.
+function zoneOffset(ms, tz) {
+  const parts = Object.fromEntries(new Intl.DateTimeFormat("en-US", { timeZone: tz, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" })
+    .formatToParts(new Date(ms)).map((x) => [x.type, x.value]));
+  return Date.UTC(+parts.year, +parts.month - 1, +parts.day, +parts.hour % 24, +parts.minute, +parts.second) - ms;
+}
+// A calendar time ("20261109T160000Z", "20261109T160000" in a named zone, or the all-day "20261109") as a moment.
+function icsMoment(params, value, calTz) {
+  const m = /^(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(\d{2})(Z)?)?/.exec(value || ""); if (!m) return null;
+  const local = Date.UTC(+m[1], +m[2] - 1, +m[3], +(m[4] || 0), +(m[5] || 0), +(m[6] || 0));
+  if (m[7]) return local;
+  let tz = (/TZID=([^;:]+)/.exec(params || "") || [])[1] || calTz;
+  try { zoneOffset(local, tz); } catch (e) { tz = calTz; }
+  const guess = local - zoneOffset(local, tz);
+  return local - zoneOffset(guess, tz);
+}
+const dayIn = (ms, tz) => new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(ms));
 function events(ics) {
-  const out = [];
-  for (const block of unfold(ics).split("BEGIN:VEVENT").slice(1)) {
-    const body = block.split("END:VEVENT")[0], field = (name) => { const m = new RegExp("^" + name + "(?:;[^:\\n]*)?:(.*)$", "m").exec(body); return m ? m[1] : ""; };
-    out.push({ uid: field("UID"), summary: unescapeIcs(field("SUMMARY")), description: unescapeIcs(field("DESCRIPTION")), start: icsDay(field("DTSTART")),
-      end: icsDay(field("DTEND")), allDay: /DTSTART;VALUE=DATE:/.test(body), status: field("STATUS") });
+  const text = unfold(ics), out = [];
+  let calTz = ((/^X-WR-TIMEZONE:(.+)$/m.exec(text) || [])[1] || "America/Los_Angeles").trim();
+  try { zoneOffset(Date.now(), calTz); } catch (e) { calTz = "America/Los_Angeles"; }
+  for (const block of text.split("BEGIN:VEVENT").slice(1)) {
+    const body = block.split("END:VEVENT")[0];
+    const field = (name) => { const m = new RegExp("^" + name + "((?:;[^:\\n]*)?):(.*)$", "m").exec(body); return m ? { params: m[1], value: m[2] } : { params: "", value: "" }; };
+    const ds = field("DTSTART"), de = field("DTEND"), allDay = /VALUE=DATE(?!-)/.test(ds.params) || /^\d{8}$/.test(ds.value.trim());
+    const start = icsMoment(ds.params, ds.value, calTz); if (start == null) continue;
+    let end = icsMoment(de.params, de.value, calTz); if (end == null || end <= start) end = start + (allDay ? 864e5 : 36e5);
+    out.push({ uid: field("UID").value, summary: unescapeIcs(field("SUMMARY").value), description: plainText(unescapeIcs(field("DESCRIPTION").value)),
+      start, end, allDay, tz: calTz, status: field("STATUS").value.trim() });
   }
   return out;
 }
 function hashOf(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619); return h >>> 0; }
 const monthOf = (iso) => new Date(iso + "T12:00:00Z").toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
 
+// The quests, as the site shows them. A quest stays "to come" until the moment its calendar event ends, then it is
+// "completed". Upcoming quests show their title, the month and the story from the event's description; never the
+// exact day, the time or the location. Completed quests also show their dates.
 async function quests(env) {
   // "note" says plainly what happened, so opening /api/quests in a browser shows whether the calendar is connected
   if (!env.QUEST_CALENDAR) return json({ quests: [], note: "No calendar connected: the QUEST_CALENDAR secret is not set on this site." });
-  const cache = typeof caches !== "undefined" ? caches.default : null, key = new Request("https://halflife.studio/api/quests#cache");
+  const cache = typeof caches !== "undefined" ? caches.default : null, key = new Request("https://halflife.studio/api/quests#cache-v2");
   if (cache) { const hit = await cache.match(key); if (hit) return hit; }
-  let list = [], note = "", scanned = 0, failed = false;
+  let list = [], note = "", scanned = 0, failed = false, soonest = Infinity;
   try {
     const r = await fetch(String(env.QUEST_CALENDAR).trim().replace(/^webcal:/i, "https:"), { headers: { "user-agent": "halflife.studio" } });
     if (!r.ok) throw new Error("Google answered " + r.status + (r.status === 404 ? " (the calendar address is wrong or was reset)" : ""));
-    const today = new Date().toISOString().slice(0, 10), from = new Date(Date.now() - 2 * 365 * 864e5).toISOString().slice(0, 10), to = new Date(Date.now() + 400 * 864e5).toISOString().slice(0, 10);
-    const seen = new Set();
+    const now = Date.now(), from = now - 2 * 365 * 864e5, to = now + 400 * 864e5, seen = new Set();
     const body = await r.text();
     if (!/BEGIN:VCALENDAR/.test(body)) throw new Error("the calendar address did not return a calendar (is it the 'Secret address in iCal format'?)");
     const all = events(body); scanned = all.length;
     for (const e of all) {
       const m = /^\s*quest\s*:\s*(.+)$/i.exec(e.summary);
-      if (!m || !e.start || e.status === "CANCELLED" || e.start < from || e.start > to || seen.has(e.uid + e.start)) continue;
+      if (!m || e.status === "CANCELLED" || e.start < from || e.start > to || seen.has(e.uid + e.start)) continue;
       seen.add(e.uid + e.start);
-      // an all-day event's end date is the day after it finishes
-      let end = e.end || e.start; if (e.allDay && end > e.start) end = new Date(Date.parse(end + "T12:00:00Z") - 864e5).toISOString().slice(0, 10);
-      const over = end < today, id = (hashOf(e.uid + e.start) >>> 0).toString(36);
+      const over = e.end <= now, id = (hashOf(e.uid + e.start) >>> 0).toString(36);
+      if (!over) soonest = Math.min(soonest, e.end);
       const veil = (/^\s*veil\s*:\s*(.+)$/im.exec(e.description) || [])[1];
+      const blurb = e.description.replace(/^\s*veil\s*:.*$/gim, "").trim().slice(0, 4000);
+      const day = dayIn(e.start, e.tz), last = dayIn(e.allDay ? e.end - 1 : e.end, e.tz);
       list.push(over
-        ? { id, over: true, title: m[1].trim().slice(0, 80), date: e.start, end }
-        : { id, over: false, title: (veil || VEILS[hashOf(e.uid) % VEILS.length]).trim().slice(0, 80), month: monthOf(e.start), date: e.start.slice(0, 7) + "-01" });
+        ? { id, over: true, title: m[1].trim().slice(0, 100), date: day, end: last, blurb }
+        : { id, over: false, title: (veil || m[1]).trim().slice(0, 100), month: monthOf(day), date: day.slice(0, 7) + "-01", blurb });
     }
     note = `Calendar read: ${scanned} events checked, ${list.length} quest${list.length === 1 ? "" : "s"} found.`;
   } catch (err) { list = []; failed = true; note = "Could not read the calendar: " + (err.message || err); }
   list.sort((a, b) => b.date.localeCompare(a.date));
-  // a good answer is kept for 10 minutes; a failed one is not kept, so the next visit tries again
-  const res = new Response(JSON.stringify({ quests: list, note }), { headers: { "content-type": "application/json", "cache-control": failed ? "no-store" : "public, max-age=600" } });
+  // A good answer is kept for up to 10 minutes, but never past the moment the next quest ends, so a quest turns
+  // completed right on time. A failed answer is not kept, so the next visit tries again.
+  const keep = Math.max(30, Math.min(600, Math.floor((soonest - Date.now()) / 1000)));
+  const res = new Response(JSON.stringify({ quests: list, note }), { headers: { "content-type": "application/json", "cache-control": failed ? "no-store" : "public, max-age=" + keep } });
   if (cache && !failed) await cache.put(key, res.clone());
   return res;
 }
