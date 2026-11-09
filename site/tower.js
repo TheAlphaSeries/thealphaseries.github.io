@@ -198,7 +198,7 @@
   // room below for one saying, the RECORD panel and the tabs. dt = null snaps straight there.
   function aim(dt) {
     const free = (T.x1 - T.x0) * W, home = T.dim > .9;
-    const top = (phone ? 80 : 56) * S, below = (phone ? (home ? 262 : 40) : (home ? 70 : 44)) * S;
+    const top = (phone ? 80 : 56) * S, below = (phone ? (home ? 300 : 40) : (home ? 70 : 44)) * S;
     const R = Math.max(40 * S, Math.min(free * (phone ? .36 : .19), H * (phone ? .24 : .2), (H - top - below) * .3));
     const to = { cx: (T.x0 + T.x1) / 2 * W, top, h: Math.max(80 * S, (H - top - below - R * .62) / 1.06), R };
     for (const k in to) V[k] = dt == null ? to[k] : ease(V[k], to[k], 3.5, dt);
@@ -440,10 +440,13 @@
     if (phone) {                                                         // phone: one line under the tower, English for half the time, then Cantonese
       const half = saying.yue ? HOLD / 2 : HOLD, cant = saying.yue && age > half, a = show * fade(cant ? age - half : age, half) * .55;
       if (a < .01) return;
-      if (!cant) { english(saying, W / 2, H - 236 * S, W - 48 * S, 15 * S, "center", a, t); return; }
+      // the saying's foot stays put just above the RECORD panel; longer sayings grow upward into the room left for them
+      const foot = H - 214 * S, size = 15 * S, w = W - 44 * S;
+      if (!cant) { c.font = `italic 500 ${size}px "Cormorant Garamond", Georgia, serif`; const n = wrap("“" + saying.text + "”", w).length;
+        english(saying, W / 2, foot - (n - 1) * size * 1.22 - (saying.from ? size * .8 : 0), w, size, "center", a, t); return; }
       c.save(); c.textAlign = "center"; c.fillStyle = INK; c.globalAlpha = a; c.font = `500 ${17 * S}px "Noto Serif TC", "Songti TC", serif`;
-      const per = Math.floor((W - 48 * S) / (17 * S * 1.05)), ch = [...saying.yue];
-      for (let k = 0; k * per < ch.length; k++) c.fillText(ch.slice(k * per, (k + 1) * per).join(""), W / 2 + Math.sin(t * .2 + k) * 3 * S, H - 240 * S + k * 17 * S * 1.5);
+      const per = Math.floor((W - 44 * S) / (17 * S * 1.05)), ch = [...saying.yue], rows = Math.ceil(ch.length / per);
+      for (let k = 0; k < rows; k++) c.fillText(ch.slice(k * per, (k + 1) * per).join(""), W / 2 + Math.sin(t * .2 + k) * 3 * S, foot - (rows - 1 - k) * 17 * S * 1.5);
       c.restore(); return;
     }
     const a = show * fade(age, HOLD) * INK_ALPHA; if (a < .01) return;
