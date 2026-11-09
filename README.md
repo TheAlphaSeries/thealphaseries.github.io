@@ -54,6 +54,18 @@ still appear under Posts, marked in their colour. The newest entry's pink goes t
 The colours live in `site/blog.css` (`--leaf`, `--tide`). Adding another kind takes a line in each of
 `scripts/build-index.mjs`, `.pages.yml`, `site/tower.js`, `site/blog.js` and `site/blog.css` (search for "fishing").
 
+## Opening an entry: the note
+
+An entry (and a quest) opens like a lore note in a game such as Phantom Blade Zero: the object on the left (above,
+on a phone) and the words beside it, under "Records", the collection's name (JOURNAL, PLANTS, FISHING TALES, QUESTS),
+the title, and a row of diamonds, one per note in that collection (click one to go to it).
+
+The object is the entry's photographs, shown as a small stack of prints that open in the photo viewer: the **Note
+photo** chosen in the editor first, then any photographs in the text. An entry with no photographs gets its own
+relic instead: an old storage medium (floppy disk, cassette, punch card, CD-R, reel of tape, and so on, seventeen in
+all) drawn by `site/relics.js` with the title handwritten on its label. Each entry's relic is its own and never
+changes.
+
 ## Quests
 
 Gold rings in the tower are quests: events in Chris's Google Calendar whose title starts with `Quest:`. Click one to

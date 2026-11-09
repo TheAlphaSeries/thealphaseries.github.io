@@ -154,9 +154,13 @@
   // (dim 0 puts it to sleep), so the page scrolls smoothly and the battery is spared.
   // `file` is the band to keep unwound and glowing (the post or quest being read).
   const SIDE_WIDTH = 240, PHONE = 860;                                   // = --side and the phone breakpoint in blog.css
+  // A note (a post or quest) on a screen at least NOTE_WIDE across stands in two columns, as wide as leaves the tower
+  // a 300 px strip, between 760 and 1220 px: the same sum as body.note main in blog.css.
+  const NOTE_WIDE = 1280, noteWidth = () => Math.max(760, Math.min(1220, innerWidth - SIDE_WIDTH - 300));
   let here = ["home"];
   function nav(route, file) {
     document.body.classList.toggle("home", route === "home");
+    document.body.classList.toggle("note", !!file);                      // a post or quest page: the note layout (section 7)
     $$(".cmds a, .tabs a").forEach((a) => (a.dataset.route === route || ((/^quests?$/.test(route) || KINDS[route]) && a.dataset.route === "home") ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current")));
     $$("#entries a").forEach((a) => (a.dataset.file === file ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current")));
     side.classList.remove("open"); $(".menutoggle").setAttribute("aria-expanded", "false");
@@ -167,6 +171,7 @@
     if (!window.Tower) return;
     const side = innerWidth > PHONE ? SIDE_WIDTH / innerWidth : 0;
     if (route === "home") Tower.view({ x0: side, x1: 1, dim: 1, focus: null });
+    else if (innerWidth >= NOTE_WIDE && file) Tower.view({ x0: side, x1: 1 - noteWidth() / innerWidth, dim: .55, focus: file });   // a note, two columns
     else if (innerWidth > 1100) Tower.view({ x0: side, x1: 1 - Math.min(760, innerWidth * .55) / innerWidth, dim: .55, focus: file || null });
     else if (innerWidth > PHONE) Tower.view({ x0: side, x1: 1, dim: .16, focus: file || null });
     else Tower.view({ x0: 0, x1: 1, dim: 0, focus: file || null });
@@ -200,24 +205,61 @@
     main.innerHTML = `<article class="sheet kind k-${kind}"><p class="kicker"><b>${K.name}</b> · ${list.length} ${list.length === 1 ? "entry" : "entries"}</p><h1>${K.name}</h1><p class="when">${K.when}</p>${FLOURISH}
       <ol class="contents">${list.map(entryRow).join("") || `<li class="empty">${K.empty}</li>`}</ol></article>`;
   }
-  // One post: entry number, title, date, cover (if it isn't already in the text), the writing, links to the
-  // posts either side. Clicking a picture opens it in the viewer.
+  /* ---- a note: how a post or a quest opens, after the lore notes in Phantom Blade Zero ----
+     On a wide screen: the object on the left (sticky), the words on the right. Narrower: the object above the words.
+       the object   the entry's photographs as a small stack of prints (tap: the viewer, to look closer), or, with no
+                    photograph, its own relic: an old storage medium with the title on its label (site/relics.js)
+       the words    "Records" · the collection in capitals (JOURNAL, PLANTS, FISHING TALES, QUESTS) · the entry's
+                    title · a row of diamonds, one per note in the collection, oldest to newest, this one lit (each is
+                    a link) · a rule · the writing
+     The photographs come from the post itself: its cover (the editor's "Note photo") first, then any in the text. */
+  const COLLECTION = { "": "Journal", plants: "Plants", fishing: "Fishing Tales" };
+  function pipsFor(list, here, href, title) {                            // up to 15 diamonds around this one
+    const k = list.indexOf(here), from = Math.max(0, Math.min(k - 7, list.length - 15)), shown = list.slice(from, from + 15);
+    return `<nav class="pips" aria-label="Other notes in this collection">${from > 0 ? '<span class="more">…</span>' : ""}${shown.map((x) => `<a href="${href(x)}" class="${x === here ? "on" : ""}" title="${esc(title(x))}" aria-label="${esc(title(x))}"${x === here ? ' aria-current="page"' : ""}></a>`).join("")}${from + 15 < list.length ? '<span class="more">…</span>' : ""}</nav>`;
+  }
+  function noteObject(pics, relic) {
+    if (pics.length) {
+      const shown = pics.slice(0, 3).reverse();                          // the first photograph on top of the stack
+      return `<button type="button" class="prints" aria-label="Look at the photographs (${pics.length})">${shown.map((ph, j) => { const top = j === shown.length - 1, r = top ? -2 : (j ? 5 : -7);
+        return `<span class="print" style="--r:${r}deg;--x:${top ? 0 : j ? 14 : -16}px;--y:${top ? 0 : j ? 8 : 12}px">${imgTag(ph.src, ph.caption, "large")}${top && ph.caption ? `<span class="pcap">${esc(ph.caption)}</span>` : ""}</span>`; }).join("")}</button>
+        <p class="cap">${pics.length === 1 ? "a photograph" : pics.length + " photographs"} · ${matchMedia("(pointer: coarse)").matches ? "tap" : "click"} to look closer</p>`;
+    }
+    return `<div class="relicobj">${window.Relics ? Relics.svg(relic) : ""}</div><p class="cap">${window.Relics ? esc(Relics.name(relic.n)) : ""}</p>`;
+  }
+  function note({ cls, collection, title, sub, pips, object, prose, after = "" }) {
+    return `<article class="sheet note${cls}">
+        <div class="relic">${object}</div>
+        <div class="notebody"><p class="notecat">Records</p><h1>${esc(collection)}</h1><h2 class="notetitle">${esc(title)}</h2>
+          ${pips}<p class="notesub">${sub}</p><hr class="noterule">
+          <div class="prose">${prose}</div>${after}</div>
+      </article>`;
+  }
+  // The photographs in a post, without repeats: its cover first, then those in the text, with their captions.
+  function photosOf(p) {
+    const seen = new Set(), out = [], add = (src, caption) => { if (src && !seen.has(src)) { seen.add(src); out.push({ src, caption: caption || "" }); } };
+    add(p.cover, ""); for (const m of p.body.matchAll(/!\[([^\]]*)\]\(([^)\s]+)(?:\s+"([^"]*)")?\)/g)) add(m[2], m[3] || m[1]);
+    return out;
+  }
+  // One post, as a note; links to the posts either side at the foot. Any picture opens in the viewer.
   function showPost(file) {
     const i = DATA.posts.findIndex((p) => p.file === file), p = DATA.posts[i];
     if (!p) { location.replace("#/posts"); return; }
     nav("posts", file); document.title = p.title + " · Half Life";
-    const n = DATA.posts.length, newer = DATA.posts[i - 1], older = DATA.posts[i + 1], coverInBody = p.cover && p.body.includes(p.cover);
-    main.innerHTML = `<article class="sheet${kindClass(p)}">
-        <p class="kicker"><b>${p.kind ? KINDS[p.kind].name + " · " : ""}Entry ${p.entry}</b> · ${p.words.toLocaleString()} words · read</p><h1>${esc(p.title)}</h1><p class="when">${esc(longDate(p.date))}</p>${FLOURISH}
-        ${p.cover && !coverInBody ? `<figure class="cover">${imgTag(p.cover, "", "large")}</figure>` : ""}
-        <div class="prose">${markdown(p.body)}</div>
-        <nav class="postnav" aria-label="More entries">
+    const newer = DATA.posts[i - 1], older = DATA.posts[i + 1], pics = photosOf(p), same = DATA.posts.filter((x) => x.kind === p.kind).reverse();
+    main.innerHTML = note({
+      cls: kindClass(p), collection: COLLECTION[p.kind] || "Journal", title: p.title,
+      sub: `Entry ${p.entry} · ${esc(longDate(p.date))} · ${p.words.toLocaleString()} words`,
+      pips: pipsFor(same, p, (x) => "#/post/" + esc(x.file), (x) => `Entry ${x.entry}: ${x.title}`),
+      object: noteObject(pics, { seed: p.file, n: p.entry, title: p.title, sub: "No. " + p.entry }),
+      prose: markdown(p.body),
+      after: `<nav class="postnav" aria-label="More entries">
           ${older ? `<a class="prev" href="#/post/${esc(older.file)}"><span class="k">&larr; The post before</span><span class="t">${esc(older.title)}</span></a>` : "<span></span>"}
           ${newer ? `<a class="next" href="#/post/${esc(newer.file)}"><span class="k">The post after &rarr;</span><span class="t">${esc(newer.title)}</span></a>` : ""}
-        </nav>
-      </article>`;
-    const pics = $$(".prose figure img, .cover img", main);
-    pics.forEach((im, k) => im.addEventListener("click", () => view(pics.map((x) => ({ src: x.dataset.full || x.getAttribute("src"), caption: x.closest("figure")?.querySelector("figcaption")?.textContent || "" })), k)));
+        </nav>` });
+    const stack = $(".prints", main); if (stack) stack.addEventListener("click", () => view(pics, 0));
+    const inText = $$(".prose figure img", main);
+    inText.forEach((im) => im.addEventListener("click", () => view(pics, Math.max(0, pics.findIndex((ph) => ph.src === im.getAttribute("src"))))));
   }
   // Photos: every photograph as a grid of thumbnails; each opens in the viewer.
   function showPhotos() {
@@ -256,8 +298,12 @@
     if (!q) { main.innerHTML = `<article class="sheet"><p class="kicker"><b>Quest</b></p><h1>${QUESTS ? "This quest is gone" : "Unrolling the map…"}</h1>${QUESTS ? '<p class="when">It may have been struck from the record.</p>' : ""}</article>`; return; }
     document.title = q.title + " · Half Life";
     const when = q.over ? longDate(q.date) + (q.end && q.end !== q.date ? " – " + longDate(q.end) : "") : "Sometime in " + q.month;
-    main.innerHTML = `<article class="sheet quest"><p class="kicker"><b>Quest</b> · ${q.over ? "completed" : "to come"}</p><h1>${esc(q.title)}</h1><p class="when">${esc(when)}</p>${FLOURISH}
-      <div class="prose">${q.blurb ? markdown(q.blurb) : '<p class="empty">The particulars of this quest have not yet been set down.</p>'}</div></article>`;
+    const all = QUESTS.slice().sort((a, b) => a.date.localeCompare(b.date)), n = 1 + (parseInt(q.id, 36) || 0) % (window.Relics ? Relics.count : 1);
+    main.innerHTML = note({
+      cls: " quest", collection: "Quests", title: q.title, sub: `${q.over ? "Completed" : "To come"} · ${esc(when)}`,
+      pips: pipsFor(all, q, (x) => "#/quest/" + esc(x.id), (x) => x.title),
+      object: noteObject([], { seed: "quest:" + q.id, n, title: q.title, sub: q.over ? "done" : "to come" }),
+      prose: q.blurb ? markdown(q.blurb) : '<p class="empty">The particulars of this quest have not yet been set down.</p>' });
   }
 
   /* ======================================================================================= 8. CLOSING A PAGE */

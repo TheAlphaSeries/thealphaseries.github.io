@@ -16,7 +16,7 @@
 
    SECTIONS
      1 colours and type · 2 the basics · 3 the side menu · 4 home · 5 the tower's card · 6 the readout · 7 the pages
-     8 a post · 8b plants and fishing · 9 a quest · 10 photos and the viewer · 11 the close button · 11b email alerts and notifications
+     7b a note · 8 a post · 8b plants and fishing · 9 a quest · 10 photos and the viewer · 11 the close button · 11b email alerts and notifications
      12 the neon · 13 blackout and aurora · 14 the phone view
    ================================================================================================================== */
 
@@ -209,6 +209,44 @@ body:not(.home) main { margin-left: auto; width: var(--sheet); padding: 0; }
 .contents .t { font: 500 1.75rem/1.15 var(--title); color: var(--ink); }
 .contents .d { display: block; margin-top: 4px; font: 500 .62rem/1.4 var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--ink-soft); }
 .contents .l { grid-column: 2; margin-top: 8px; color: var(--ink-soft); font-size: 1.05rem; line-height: 1.6; }
+
+/* ============================================================================================ 7b. A NOTE */
+/* A post or quest opens as a note, after the lore notes in Phantom Blade Zero (blog.js "a note"): the object (a stack
+   of prints, or a storage-media relic from relics.js) and the words. Under 1280 px the object sits above the words;
+   from 1280 px the page widens and the object stands in its own column on the left, staying put as the words scroll.
+   The object glows faintly in the note's colour: --k for plants and fishing, gold for quests, violet otherwise. */
+.note { --glowc: var(--k, 189, 148, 255); }
+.note.quest { --glowc: var(--gold); }
+.note .relic { display: grid; justify-items: center; gap: 12px; margin: 4px 0 30px; }
+.note .relicobj, .note .prints { position: relative; width: min(330px, 78%); aspect-ratio: 1; filter: drop-shadow(0 0 46px rgba(var(--glowc), .22)); animation: hover-object 8s ease-in-out infinite; }
+@keyframes hover-object { 50% { transform: translateY(-8px) rotate(.6deg); } }
+.relic-svg { width: 100%; height: 100%; display: block; }
+.note .cap { margin: 0; font: italic 400 1rem/1.3 var(--title); color: var(--ink-dim); text-align: center; }
+/* the prints: up to three photographs on white card, the first on top, its caption written along the bottom */
+.prints { border: 0; padding: 0; background: none; cursor: zoom-in; }
+.print { position: absolute; inset: 7% 9% 11%; display: block; padding: 10px 10px 38px; background: #f3efe6; box-shadow: 0 18px 40px rgba(0, 0, 0, .75);
+  transform: translate(var(--x), var(--y)) rotate(var(--r)); transition: transform .4s var(--ease); }
+.print img { width: 100%; height: 100%; object-fit: cover; }
+.prints:hover .print:last-child, .prints:focus-visible .print:last-child { transform: translate(0, -6px) rotate(0deg) scale(1.02); }
+.pcap { position: absolute; left: 12px; right: 12px; bottom: 6px; font: 500 1.25rem/1.2 "Caveat", cursive; color: #1d1d2a; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: none; }
+/* the words: "Records", the collection, the title, the diamonds, a rule */
+.notecat { margin: 0; font: 400 1.02rem/1.3 var(--text); color: var(--ink-soft); }
+.note h1 { margin: .35rem 0 0; font: 400 clamp(2.1rem, 3.6vw, 3rem)/1.05 var(--caps); letter-spacing: .03em; text-transform: uppercase; text-wrap: balance; }
+.notetitle { margin: .9rem 0 0; font: 400 1.18rem/1.3 var(--caps); letter-spacing: .05em; text-transform: uppercase; color: var(--ink); }
+.pips { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; margin: 1.3rem 0 0; }
+.pips a { width: 11px; height: 11px; transform: rotate(45deg) skew(-8deg, -8deg); background: rgba(240, 232, 255, .38); transition: background .2s, box-shadow .2s; }
+.pips a:hover, .pips a:focus-visible { background: var(--ink); }
+.pips a.on { background: #fff; box-shadow: 0 0 6px #fff, 0 0 16px rgba(var(--glowc), .9); }
+.pips .more { color: var(--ink-dim); font-size: .9rem; }
+.notesub { margin: .8rem 0 0; font: 500 .62rem/1.5 var(--mono); letter-spacing: .2em; text-transform: uppercase; color: var(--ink-dim); }
+.noterule { height: 1px; margin: 1.1rem 0 1.8rem; border: 0; background: linear-gradient(90deg, rgba(240, 232, 255, .55), rgba(240, 232, 255, .2) 70%, transparent); }
+@media (min-width: 1280px) {
+  body.note main { width: clamp(760px, calc(100vw - var(--side) - 300px), 1220px); }   /* = noteWidth() in blog.js */
+  .sheet.note { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 0 48px; align-items: start; }
+  .note .relic { position: sticky; top: 0; height: 100vh; align-content: center; margin: calc(-1 * clamp(36px, 7vh, 80px)) 0 0; }
+  .note .relicobj, .note .prints { width: 100%; max-width: 420px; }
+}
+@media (prefers-reduced-motion: reduce) { .note .relicobj, .note .prints { animation: none; } }
 
 /* ============================================================================================== 8. A POST */
 .cover { margin: 0 0 34px; }
@@ -404,6 +442,9 @@ html.aurora .side { background: none; }
   .contents .t { font-size: 1.5rem; }
   .contents .l { grid-column: 1; font-size: 1rem; line-height: 1.55; }
   .postnav { grid-template-columns: 1fr; gap: 18px; }
+  .note .relicobj, .note .prints { width: min(270px, 74vw); }
+  .note .relic { margin-bottom: 22px; }
+  .note h1 { font-size: 2rem; }
   .postnav .next { text-align: left; }
   .gallery { columns: 2 140px; column-gap: 8px; }
   .gallery button { margin-bottom: 8px; }
