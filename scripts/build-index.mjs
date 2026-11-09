@@ -57,6 +57,11 @@ const isoDay = (v) => { const d = /^\d{4}-\d{2}-\d{2}/.exec(str(v)); return d ? 
 
 const photo = (v) => str(v).trim().replace(/^\/+/, "/");   // "/photos/x.jpg" as the editor writes it
 
+// A post's kind, from the editor's Kind menu: "plants" (house plants, bonsai) or "fishing" (fishing tales), or ""
+// for an ordinary journal entry. (An older "plants: true" tick box still counts.)
+const KINDS = ["plants", "fishing"];
+const kindOf = (meta) => { const k = str(meta.kind).trim().toLowerCase(); return KINDS.includes(k) ? k : /^(true|yes|1)$/i.test(str(meta.plants)) ? "plants" : ""; };
+
 // Posts: one file per post in posts/, newest first. A post may name a cover photo; its first picture otherwise.
 const posts = [];
 if (existsSync("posts")) {
@@ -67,7 +72,7 @@ if (existsSync("posts")) {
     // "Entry 000005" is shown as "Entry 5": entries are numbered plainly
     posts.push({ file: name.replace(/\.md$/, ""), title: (str(meta.title) || name.replace(/\.md$/, "")).replace(/^(entry\s+)0+(?=\d)/i, "$1"), date: isoDay(meta.date) || isoDay(name),
       cover: photo(meta.cover) || (first ? first[1] : ""), body,
-      plants: /^(true|yes|1)$/i.test(str(meta.plants)) });   // a plant entry (house plants, bonsai): a green ring, listed under Plants
+      kind: kindOf(meta) });   // "" for a journal entry, or "plants" / "fishing": its own ring colour and its own list
   }
 }
 posts.sort((a, b) => b.date.localeCompare(a.date) || b.file.localeCompare(a.file));

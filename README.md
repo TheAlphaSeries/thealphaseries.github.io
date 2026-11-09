@@ -42,12 +42,16 @@ anything. Every email has a link to stop them.
 - It needs the Workers paid plan with halflife.studio onboarded to Email Sending, and the `send_email` binding named
   `EMAIL` in `wrangler.jsonc`.
 
-## Plant entries
+## Plants and fishing
 
-Tick **Plant entry** on a post in the editor (for the house plants and the bonsai) and it becomes a green ring in the
-tower, with a green card, a green post page, and a place on the **Plants** page (`#/plants`), opened from the Plants
-row of the RECORD panel. Plant entries are still numbered with the other entries and still appear under Posts, marked
-green. The newest entry's pink goes to the newest post that isn't a plant entry.
+Each post has a **Kind** menu in the editor. Leave it blank for an ordinary journal entry, or pick **Plants** (house
+plants and bonsai) or **Fishing** (fishing tales). Those entries get their own ring colour in the tower (green for
+plants, sea-glass teal for fishing), a matching card and post page, and their own list (`#/plants`, `#/fishing`),
+opened from the Plants and Fishing rows of the RECORD panel. They keep the same entry numbers as everything else and
+still appear under Posts, marked in their colour. The newest entry's pink goes to the newest ordinary entry.
+
+The colours live in `site/blog.css` (`--leaf`, `--tide`). Adding another kind takes a line in each of
+`scripts/build-index.mjs`, `.pages.yml`, `site/tower.js`, `site/blog.js` and `site/blog.css` (search for "fishing").
 
 ## Quests
 
