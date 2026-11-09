@@ -16,7 +16,7 @@
 
    SECTIONS
      1 colours and type · 2 the basics · 3 the side menu · 4 home · 5 the tower's card · 6 the readout · 7 the pages
-     8 a post · 9 a quest · 10 photos and the viewer · 11 the close button · 11b email alerts and notifications
+     8 a post · 8b plant entries · 9 a quest · 10 photos and the viewer · 11 the close button · 11b email alerts and notifications
      12 the neon · 13 blackout and aurora · 14 the phone view
    ================================================================================================================== */
 
@@ -43,6 +43,8 @@
   --new: #ff5aae;                        /* the newest: magenta */
   --gold: 255, 194, 82;                  /* quests (red, green, blue) */
   --gold-ink: #ffd68c;
+  --leaf: 96, 236, 150;                  /* plant entries (red, green, blue): a soft neon green */
+  --leaf-ink: #a8f5c4;
   /* the neon (used in section 12): soft violet light, never a hard edge */
   --glow: 0 0 3px rgba(205, 170, 255, .55), 0 0 12px rgba(189, 148, 255, .45), 0 0 30px rgba(170, 120, 255, .28);
   --glow-soft: 0 0 6px rgba(189, 148, 255, .4), 0 0 18px rgba(170, 120, 255, .2);
@@ -145,6 +147,8 @@ body.home main { pointer-events: none; }
 .pin.quest { border-color: rgba(var(--gold), .6); box-shadow: 0 0 30px -8px rgba(var(--gold), .45); cursor: default; }   /* a quest's card: gold */
 .pin.quest .pk, .pin.quest .po { color: rgba(255, 214, 140, .85); }
 .pin.quest .po:empty { display: none; }
+.pin.plant { border-color: rgba(var(--leaf), .6); box-shadow: 0 0 30px -8px rgba(var(--leaf), .45); }   /* a plant entry's card: green */
+.pin.plant .pk, .pin.plant .po { color: var(--leaf-ink); }
 
 /* ======================================================================================== 6. THE READOUT */
 /* The RECORD panel, lower right on the front page, after the film's system monitor (filled in by blog.js section 13).
@@ -170,6 +174,8 @@ body:not(.home) .readout { display: none; }
 .readout .marks i { width: 7px; height: 7px; border: 1px solid rgb(var(--gold)); transform: rotate(45deg); }
 .readout .marks i.done { background: rgb(var(--gold)); box-shadow: 0 0 6px rgba(var(--gold), .7); }
 .readout .quests .v { color: var(--gold-ink); }
+.readout .plants .marks i { border-color: rgb(var(--leaf)); background: rgb(var(--leaf)); border-radius: 50% 0; transform: rotate(0); box-shadow: 0 0 6px rgba(var(--leaf), .7); }   /* little leaves */
+.readout .plants .v { color: var(--leaf-ink); }
 .readout .note { color: var(--ink-dim); font-size: .56rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .readout .alerts .v { color: var(--accent-hi); }
 .readout .alerts.on .v { color: var(--ink-dim); }
@@ -223,6 +229,16 @@ hr.fleuron { border: 0; height: 18px; margin: 2em 0; background: radial-gradient
 .postnav .next { text-align: right; }
 .postnav .k { font: 500 .6rem/1.4 var(--mono); letter-spacing: .18em; text-transform: uppercase; color: var(--ink-dim); }
 .postnav .t { font: 500 1.25rem/1.2 var(--title); color: var(--ink); }
+
+/* ====================================================================================== 8b. PLANT ENTRIES */
+/* A plant entry (house plants, bonsai) and the Plants list: the green of its ring. In the full post list, plant
+   entries carry a green number and date. */
+.sheet.plant { border-left-color: rgba(var(--leaf), .4); box-shadow: -1px 0 30px -8px rgba(var(--leaf), .4); }
+.sheet.plant .kicker b { color: var(--leaf-ink); }
+.sheet.plant h1 { text-shadow: 0 0 3px rgba(168, 245, 196, .5), 0 0 14px rgba(var(--leaf), .35), 0 0 32px rgba(60, 200, 120, .22); }
+.sheet.plant .flourish path { stroke: rgba(var(--leaf), .55); }
+.sheet.plant .flourish .tick { fill: rgb(var(--leaf)); }
+.contents li.plant .n, .contents li.plant .d { color: var(--leaf-ink); }
 
 /* ============================================================================================= 9. A QUEST */
 /* A quest's page: the gold of its ring. */
@@ -355,13 +371,13 @@ html.aurora .side { background: none; }
   .tabs a[aria-current="page"] { color: var(--ink); text-shadow: var(--glow); }
   .tabs a[aria-current="page"]::before { opacity: 1; background: var(--accent-hi); box-shadow: 0 0 6px var(--accent), 0 0 14px var(--accent); }
   /* home */
-  /* the RECORD panel: two columns of rows, in a band above the tabs (Latest is left out; Half-life says it) */
+  /* the RECORD panel: two columns of rows, in a band above the tabs (Latest and Words are left out) */
   .readout { left: 16px; right: 16px; width: auto; bottom: calc(var(--tabs) + 14px); padding: 8px 10px; background: rgba(0, 0, 0, .82); font-size: .62rem; }
   .readout .rt { display: none; }
   .readout .rows { grid-template-columns: 1fr 1fr; gap: 2px 14px; }
   .readout .row { grid-template-columns: auto 1fr; gap: 6px; min-height: 26px; }   /* taller, for thumbs */
   .readout .row > :nth-child(2) { display: none; }                     /* no pictures: label and number only */
-  .readout .latest { display: none; }
+  .readout .latest, .readout .words { display: none; }               /* six rows, three by two */
   .pin { left: 16px !important; right: 16px; top: auto !important; bottom: calc(var(--tabs) + 12px); width: auto; padding: 14px 16px; background: rgb(4, 2, 8); }
   body:has(.pin.on) .readout { visibility: hidden; }                  /* the card takes the panel's place while it's up */
   /* the pages */
@@ -369,7 +385,7 @@ html.aurora .side { background: none; }
   body:not(.home) #tower, body:not(.home) .aurora-light, body:not(.home)::after { visibility: hidden; }
   body:not(.home) { text-shadow: none; }
   .sheet { padding: calc(var(--bar) + env(safe-area-inset-top) + 16px) 20px calc(var(--tabs) + 48px); border-left: 0; box-shadow: none; background: #000; }
-  .sheet.quest { box-shadow: none; }
+  .sheet.quest, .sheet.plant { box-shadow: none; }
   .close { position: absolute; top: calc(var(--bar) + env(safe-area-inset-top) + 6px); right: 12px; width: 40px; height: 40px; font-size: 1.7rem; }
   .kicker { padding-right: 52px; }                                     /* clear of the close button */
   .sheet h1 { font-size: 2.3rem; }

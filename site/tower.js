@@ -15,7 +15,7 @@
      a directory (many rings)    = one BAND         one post (or one quest)             = one BAND
      ~ at the top, deeper folders further out       newest post at the top and narrowest, older ones lower and wider
      a file being read flashes cream                every few seconds a random passage flashes white (READ)
-     a new file grows along its ring                a post < 30 days old writes itself in on page load (NEW), and the newest post stays pink;
+     a new file grows along its ring                a post < 30 days old writes itself in on page load (NEW), and the newest post stays pink; plant entries are green;
                                                     quest rings draw themselves in the same way
      activity "unwinds" a subtree (rings part)      pointing at a band unwinds it: its rings part and it glows
      callouts name the files being touched          callouts name the passage being "read"
@@ -92,6 +92,8 @@
   const PINK = [255, 120, 210];          // a post's band glows this when pointed at or being read
   const QUEST_GOLD = [255, 194, 82];     // quest rings
   const QUEST_HOT = [255, 236, 170];     // a quest's band when pointed at
+  const LEAF = [96, 236, 150];           // plant entries (house plants, bonsai): a soft neon green
+  const LEAF_HOT = [196, 255, 214];      // a plant entry's band when pointed at
 
   /* ============================================================================================ 1. WORDS INTO RINGS */
   // A post's text broken into the pieces that become arcs. "fresh" marks the first sentence of a paragraph, which
@@ -123,7 +125,7 @@
     bands = []; rings = []; segs = []; questOrder = 0;
     const items = [...posts.map((p, k) => ({ kind: "post", p, date: p.date, entry: posts.length - k })), ...quests.map((q) => ({ kind: "quest", q, date: q.date }))]
       .sort((a, b) => { const key = (x) => (x.kind === "quest" && !x.q.over ? "9" : "0") + String(x.date); return key(b).localeCompare(key(a)); });
-    const n = items.length; newestEntry = posts.length;
+    const n = items.length, newest = posts.findIndex((p) => !p.plants); newestEntry = newest < 0 ? 0 : posts.length - newest;
     items.forEach((it, i) => (it.kind === "quest" ? questBand(it.q, i, n) : postBand(it.p, it.entry, i, n)));
   }
 
@@ -134,8 +136,8 @@
     const rnd = dice(hash(p.file || p.title || String(i)));
     const age = Math.max(0, (Date.now() - Date.parse(p.date + "T12:00:00")) / 864e5) || 0;   // days old
     const cool = 1 - Math.exp(-age / 120);                                                   // 0 new → 1 old
-    const col = mix(COL.gold, mix(COL.orange, COL.bronze, .55), cool * .45);   // cools only a little: the tower stays neon
-    const band = newBand({ i, kind: "post", entry, file: p.file, title: p.title || "Untitled", date: p.date, age, col,
+    const col = p.plants ? mix(LEAF, [60, 170, 120], cool * .3) : mix(COL.gold, mix(COL.orange, COL.bronze, .55), cool * .45);   // cools only a little: the tower stays neon
+    const band = newBand({ i, kind: "post", plant: !!p.plants, entry, file: p.file, title: p.title || "Untitled", date: p.date, age, col,
       words: String(p.body || "").split(/\s+/).filter(Boolean).length, fade: .78 + .22 * Math.exp(-age / 200) });
     const radius = radiusFor(i, n);
     let ring = null, fill = 0;
@@ -152,9 +154,9 @@
       if (piece.kind === "head" || piece.kind === "rule") ring = null;     // headings and ornaments get a ring to themselves
     }
     if (!band.rings.length) open(false);
-    // The newest post stays pink at rest; every other post is violet. (pink is the floor the "just written" magenta
-    // fades down to; see step().)
-    band.pink = entry === newestEntry ? PINK_REST : 0;
+    // The newest post stays pink at rest; every other post is violet (and a plant entry always green, so the pink goes
+    // to the newest entry that isn't one). pink is the floor the "just written" magenta fades down to; see step().
+    band.pink = entry === newestEntry && !p.plants ? PINK_REST : 0;
     for (const r of band.rings) for (const sg of r.segs) sg.red = band.pink;
     bands.push(band);
   }
@@ -234,7 +236,7 @@
   function writeIn() {
     const b = bands.find((x) => x.kind === "post"); if (!b || b.age > 30 || still) return;
     const list = b.rings.flatMap((r) => r.segs);
-    list.forEach((s, k) => { s.grow = 0; s.red = .9; s.tc = 1.2 + k * Math.min(.06, 6 / list.length); });
+    list.forEach((s, k) => { s.grow = 0; s.red = b.plant ? 0 : .9; s.tc = 1.2 + k * Math.min(.06, 6 / list.length); });
     const first = list.find((s) => s.kind === "head") || list[0];
     if (first) setTimeout(() => callouts.push({ seg: first, kind: "NEW", t0: clock, ttl: 11, title: b.title }), 1300);
   }
@@ -282,7 +284,7 @@
   function segColour(s, b) {
     const key = ((s.lit * 20) | 0) * 441 + ((b.glow * 20) | 0) * 21 + ((s.red * 20) | 0);
     if (s.ck !== key) {
-      const col = mix(mix(mix(b.col, COL.crimson, s.red * (1 - b.glow)), b.kind === "quest" ? QUEST_HOT : PINK, b.glow * .9), COL.cream, s.lit * WHITE);
+      const col = mix(mix(mix(b.col, COL.crimson, s.red * (1 - b.glow)), b.kind === "quest" ? QUEST_HOT : b.plant ? LEAF_HOT : PINK, b.glow * .9), COL.cream, s.lit * WHITE);
       s.ck = key; s.cTube = rgb(col); s.cCore = rgb(mix(col, COL.cream, .7 * WHITE));
     }
   }
@@ -329,7 +331,7 @@
     // the bright leading tip of each arc still being written, fading as it completes (the original's create glow)
     for (const { s, b, end, show } of tips) {
       const p = pointOn(s, end), k = 1 - s.grow, tip = c.createRadialGradient(p.x, p.y, 0, p.x, p.y, 9 * S);
-      tip.addColorStop(0, rgb(COL.cream, show)); tip.addColorStop(.3, rgb(b.kind === "quest" ? QUEST_GOLD : COL.gold, .7 * show * k)); tip.addColorStop(1, rgb(COL.cream, 0));
+      tip.addColorStop(0, rgb(COL.cream, show)); tip.addColorStop(.3, rgb(b.kind === "quest" ? QUEST_GOLD : b.plant ? LEAF : COL.gold, .7 * show * k)); tip.addColorStop(1, rgb(COL.cream, 0));
       c.globalAlpha = 1; c.fillStyle = tip; c.fillRect(p.x - 9 * S, p.y - 9 * S, 18 * S, 18 * S);
     }
     // white cards standing on the near side of headings, photos and passages being read, like index tabs
@@ -538,7 +540,7 @@
   function showPin(b) {
     if (!pin) { pin = document.createElement("a"); pin.className = "pin"; document.body.appendChild(pin); }
     if (!b) { pin.classList.remove("on"); return; }
-    pin.classList.toggle("quest", b.kind === "quest");
+    pin.classList.toggle("quest", b.kind === "quest"); pin.classList.toggle("plant", !!b.plant);
     if (b.kind === "quest") {
       const q = b.quest;
       pin.href = "#/quest/" + encodeURIComponent(q.id);
@@ -546,7 +548,7 @@
       pin.querySelector(".pd").textContent = q.over ? shortDate(q.date) + (q.end && q.end !== q.date ? " – " + shortDate(q.end) : "") : q.month;
     } else {
       pin.href = "#/post/" + encodeURIComponent(b.file);
-      pin.innerHTML = `<span class="pk">ENTRY ${b.entry} · ${b.words.toLocaleString()} WORDS</span><span class="pt"></span><span class="pd">${shortDate(b.date)}</span><span class="po">${coarse ? "Tap" : "Click"} to open ▸</span>`;
+      pin.innerHTML = `<span class="pk">${b.plant ? "PLANTS · " : ""}ENTRY ${b.entry} · ${b.words.toLocaleString()} WORDS</span><span class="pt"></span><span class="pd">${shortDate(b.date)}</span><span class="po">${coarse ? "Tap" : "Click"} to open ▸</span>`;
     }
     pin.querySelector(".pt").textContent = b.title;
     const mid = ringAt((b.y0 + b.y1) / 2).cy / S, right = (V.cx + V.R * 1.25) / S, w = 230;

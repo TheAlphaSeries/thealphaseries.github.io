@@ -23,6 +23,9 @@ content:
         required: true
         options:
           format: yyyy-MM-dd
+      - name: plants
+        label: Plant entry (house plants and bonsai) - shown as a green ring in the tower and listed under Plants
+        type: boolean
       - name: cover
         label: Cover photo (optional - shown at the top of the post and on the front page; otherwise the first photo in the post is used)
         type: image

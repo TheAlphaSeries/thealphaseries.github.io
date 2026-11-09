@@ -66,7 +66,8 @@ if (existsSync("posts")) {
     const first = /!\[[^\]]*\]\(([^)\s]+)/.exec(body);
     // "Entry 000005" is shown as "Entry 5": entries are numbered plainly
     posts.push({ file: name.replace(/\.md$/, ""), title: (str(meta.title) || name.replace(/\.md$/, "")).replace(/^(entry\s+)0+(?=\d)/i, "$1"), date: isoDay(meta.date) || isoDay(name),
-      cover: photo(meta.cover) || (first ? first[1] : ""), body });
+      cover: photo(meta.cover) || (first ? first[1] : ""), body,
+      plants: /^(true|yes|1)$/i.test(str(meta.plants)) });   // a plant entry (house plants, bonsai): a green ring, listed under Plants
   }
 }
 posts.sort((a, b) => b.date.localeCompare(a.date) || b.file.localeCompare(a.file));

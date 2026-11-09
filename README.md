@@ -42,6 +42,13 @@ anything. Every email has a link to stop them.
 - It needs the Workers paid plan with halflife.studio onboarded to Email Sending, and the `send_email` binding named
   `EMAIL` in `wrangler.jsonc`.
 
+## Plant entries
+
+Tick **Plant entry** on a post in the editor (for the house plants and the bonsai) and it becomes a green ring in the
+tower, with a green card, a green post page, and a place on the **Plants** page (`#/plants`), opened from the Plants
+row of the RECORD panel. Plant entries are still numbered with the other entries and still appear under Posts, marked
+green. The newest entry's pink goes to the newest post that isn't a plant entry.
+
 ## Quests
 
 Gold rings in the tower are quests: events in Chris's Google Calendar whose title starts with `Quest:`. Click one to

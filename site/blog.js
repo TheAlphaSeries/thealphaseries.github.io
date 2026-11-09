@@ -13,6 +13,7 @@
           #/              the tower (home), with the RECORD panel in the corner (its rows lead to the pages)
           #/posts         every post, newest first          #/post/<file>   one post
           #/quests        every quest                       #/quest/<id>    one quest's story
+          #/plants        the plant entries (posts with "Plant entry" ticked in the editor: green rings)
           #/photos        every photograph                  #/about         about Chris
           #/alerts        sign up for email alerts (and a notification on this device)
         Old addresses from earlier versions of the site still lead to the right page.
@@ -81,7 +82,7 @@
   function load(d) {
     DATA = { posts: Array.isArray(d.posts) ? d.posts : [], albums: Array.isArray(d.albums) ? d.albums : [], about: d.about || "" };
     DATA.albums.forEach((a) => { a.photos = Array.isArray(a.photos) ? a.photos : []; a.captions = Array.isArray(a.captions) ? a.captions : []; });
-    DATA.posts.forEach((p) => { p.body = p.body || ""; p.cover = p.cover || ""; p.words = plain(p.body).split(" ").filter(Boolean).length; });
+    DATA.posts.forEach((p, i) => { p.body = p.body || ""; p.cover = p.cover || ""; p.plants = !!p.plants; p.entry = DATA.posts.length - i; p.words = plain(p.body).split(" ").filter(Boolean).length; });
     const seen = new Set(), add = (src, caption, from) => { if (src && !seen.has(src)) { seen.add(src); PHOTOS.push({ src, caption, from }); } };
     PHOTOS = [];
     DATA.albums.forEach((a) => a.photos.forEach((src) => add(src, (a.captions.find((c) => c.photo === src) || {}).caption || "", a.title)));
@@ -156,7 +157,7 @@
   let here = ["home"];
   function nav(route, file) {
     document.body.classList.toggle("home", route === "home");
-    $$(".cmds a, .tabs a").forEach((a) => (a.dataset.route === route || (/^quests?$/.test(route) && a.dataset.route === "home") ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current")));
+    $$(".cmds a, .tabs a").forEach((a) => (a.dataset.route === route || (/^(quests?|plants)$/.test(route) && a.dataset.route === "home") ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current")));
     $$("#entries a").forEach((a) => (a.dataset.file === file ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current")));
     side.classList.remove("open"); $(".menutoggle").setAttribute("aria-expanded", "false");
     choose($('.menu a[aria-current="page"]') || $(".cmds a"), true);
@@ -178,12 +179,20 @@
     nav("home"); document.title = "Half Life";
     main.innerHTML = `<section class="hall" aria-label="Half Life"><h1 class="sr">Half Life</h1></section>`;
   }
-  // Posts: every post, newest first, with its number, date and opening words.
+  // Posts: every post, newest first, with its number, date and opening words (plant entries marked green).
+  // Plants: only the plant entries (house plants and bonsai), opened from the RECORD panel; green throughout.
+  const entryRow = (p) => `<li${p.plants ? ' class="plant"' : ""}><a href="#/post/${esc(p.file)}"><span class="n">${p.entry}</span><span><span class="t">${esc(p.title)}</span><span class="d">${p.plants ? "Plants · " : ""}${esc(longDate(p.date))}</span></span><span class="l">${esc(lede(p.body))}</span></a></li>`;
   function showPosts() {
     nav("posts"); document.title = "Posts · Half Life";
     const n = DATA.posts.length;
     main.innerHTML = `<article class="sheet"><p class="kicker"><b>Record</b> · ${n} ${n === 1 ? "entry" : "entries"}</p><h1>Posts</h1><p class="when">most lately set down first</p>${FLOURISH}
-      <ol class="contents">${DATA.posts.map((p, i) => `<li><a href="#/post/${esc(p.file)}"><span class="n">${n - i}</span><span><span class="t">${esc(p.title)}</span><span class="d">${esc(longDate(p.date))}</span></span><span class="l">${esc(lede(p.body))}</span></a></li>`).join("") || '<li class="empty">Nothing has yet been set down.</li>'}</ol></article>`;
+      <ol class="contents">${DATA.posts.map(entryRow).join("") || '<li class="empty">Nothing has yet been set down.</li>'}</ol></article>`;
+  }
+  function showPlants() {
+    nav("plants"); document.title = "Plants · Half Life";
+    const list = DATA.posts.filter((p) => p.plants);
+    main.innerHTML = `<article class="sheet plant"><p class="kicker"><b>Plants</b> · ${list.length} ${list.length === 1 ? "entry" : "entries"}</p><h1>Plants</h1><p class="when">the house plants and the bonsai, tended against all odds</p>${FLOURISH}
+      <ol class="contents">${list.map(entryRow).join("") || '<li class="empty">Nothing green has yet been set down.</li>'}</ol></article>`;
   }
   // One post: entry number, title, date, cover (if it isn't already in the text), the writing, links to the
   // posts either side. Clicking a picture opens it in the viewer.
@@ -192,8 +201,8 @@
     if (!p) { location.replace("#/posts"); return; }
     nav("posts", file); document.title = p.title + " · Half Life";
     const n = DATA.posts.length, newer = DATA.posts[i - 1], older = DATA.posts[i + 1], coverInBody = p.cover && p.body.includes(p.cover);
-    main.innerHTML = `<article class="sheet">
-        <p class="kicker"><b>Entry ${n - i}</b> · ${p.words.toLocaleString()} words · read</p><h1>${esc(p.title)}</h1><p class="when">${esc(longDate(p.date))}</p>${FLOURISH}
+    main.innerHTML = `<article class="sheet${p.plants ? " plant" : ""}">
+        <p class="kicker"><b>${p.plants ? "Plants · " : ""}Entry ${p.entry}</b> · ${p.words.toLocaleString()} words · read</p><h1>${esc(p.title)}</h1><p class="when">${esc(longDate(p.date))}</p>${FLOURISH}
         ${p.cover && !coverInBody ? `<figure class="cover">${imgTag(p.cover, "", "large")}</figure>` : ""}
         <div class="prose">${markdown(p.body)}</div>
         <nav class="postnav" aria-label="More entries">
@@ -249,7 +258,7 @@
   // The round × at the top right of every page (and Escape). A post or quest opened from the tower, the post list or
   // the quest list closes back there; anything else closes to the tower.
   let cameFrom = "#/", current = "#/";
-  const closeTo = () => (/^#\/(post|quest)\//.test(current) && /^(#\/?|#\/posts|#\/quests)?$/.test(cameFrom) ? cameFrom || "#/" : "#/");
+  const closeTo = () => (/^#\/(post|quest)\//.test(current) && /^(#\/?|#\/posts|#\/quests|#\/plants)?$/.test(cameFrom) ? cameFrom || "#/" : "#/");
   function addClose() {
     const sheet = $(".sheet", main); if (!sheet) return;
     const a = document.createElement("a"); a.className = "close"; a.href = closeTo(); a.setAttribute("aria-label", "Close this page");
@@ -261,7 +270,7 @@
 
   /* ================================================================================================== 9. ROUTES */
   // The part after # chooses the page. The second column lists older names that still work.
-  const ROUTES = { post: showPost, quest: showQuest, quests: showQuests, alerts: showAlerts, posts: showPosts, accounts: showPosts, journal: showPosts, photos: showPhotos, visions: showPhotos, about: showAbout, chronicler: showAbout };
+  const ROUTES = { post: showPost, quest: showQuest, quests: showQuests, plants: showPlants, alerts: showAlerts, posts: showPosts, accounts: showPosts, journal: showPosts, photos: showPhotos, visions: showPhotos, about: showAbout, chronicler: showAbout };
   function route() {
     cameFrom = current; current = location.hash || "#/";
     const h = decodeURIComponent(location.hash.replace(/^#\/?/, ""));
@@ -384,6 +393,7 @@
   // little picture, and most rows are also the way in:
   //   Entries    posts per month over the last year, as bars          → the post list
   //   Quests     one mark per quest, bright once completed             → the quest list
+  //   Plants     one green mark per plant entry                        → the plant entries
   //   Photos     how many photographs                                  → the photographs
   //   Words      every word written
   //   Latest     the newest post's date
@@ -400,6 +410,7 @@
     $("#readout").innerHTML = `<p class="rt">Record</p><div class="rows">
       ${row("entries", "Entries", `<span class="spark">${months.map((m) => `<i style="height:${Math.max(8, m / top * 100)}%" class="${m ? "on" : ""}"></i>`).join("")}</span>`, posts.length, "#/posts")}
       ${row("quests", "Quests", `<span class="marks">${quests.slice(0, 14).map((q) => `<i class="${q.over ? "done" : ""}"></i>`).join("")}</span>`, QUESTS ? quests.length : "…", "#/quests")}
+      ${row("plants", "Plants", `<span class="marks">${posts.filter((p) => p.plants).slice(0, 14).map(() => "<i></i>").join("")}</span>`, posts.filter((p) => p.plants).length, "#/plants")}
       ${row("photos", "Photos", bar(Math.min(100, PHOTOS.length * 4)), PHOTOS.length, "#/photos")}
       ${row("words", "Words", bar(Math.min(100, words / 200)), words.toLocaleString())}
       ${row("latest", "Latest", bar(life), latest ? esc(shortDate(latest.date)) : "—")}
