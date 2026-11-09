@@ -1,6 +1,6 @@
 ---
 title: Thoughts on Bonsai 1
-date: 2026-11-09
+date: 2026-10-05
 kind: plants
 ---
 Last year, I undertook the cultivation of a modest collection of bonsai, those miniature trees whose survival depends upon patience, careful attention, and, as I have recently discovered, water.
