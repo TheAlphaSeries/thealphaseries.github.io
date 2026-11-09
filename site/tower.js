@@ -94,7 +94,13 @@
   const QUEST_HOT = [255, 236, 170];     // a quest's band when pointed at
   // Posts of a kind (blog.js / the editor's Kind menu) have their own ring colour, read from blog.css (--leaf for
   // plants, --tide for fishing), so each colour is set in one place. hot is the colour when pointed at.
-  const KINDS = { plants: { label: "PLANTS", css: "--leaf", col: [96, 236, 150] }, fishing: { label: "FISHING", css: "--tide", col: [64, 214, 230] } };
+  // Each kind also has its own texture, the way quests are dashed gold:
+  //   plants   a vine: the tube broken by little nodes (dash), with small leaves sprouting on the near side
+  //   fishing  ripples: every ring drawn as a gentle wave that slowly travels round it, like water
+  const KINDS = {
+    plants: { label: "PLANTS", css: "--leaf", col: [96, 236, 150], dash: [9, 3, 1.5, 3], leaves: true },
+    fishing: { label: "FISHING", css: "--tide", col: [64, 214, 230], wave: true }
+  };
   function kindColours() {
     const css = getComputedStyle(document.documentElement);
     for (const k of Object.values(KINDS)) {
@@ -284,6 +290,20 @@
       p.moveTo(cx + rx * Math.cos(s), cy + ry * Math.sin(s)); p.ellipse(cx, cy, rx, ry, 0, s, e); s = e;
     }
   }
+  // The same, but as a ripple (fishing): the line rises and falls a little as it goes round. ph moves the ripple along.
+  const WAVE_AMP = 1.8, WAVE_FREQ = 18;                                   // ripple height (screen px) and ripples per turn
+  function addWave(front, back, cx, cy, rx, ry, a, b, ph) {
+    const amp = WAVE_AMP * S, step = .035;
+    for (let s = a; s < b - 1e-4;) {
+      const k = Math.floor(s / Math.PI + 1e-6), e = Math.min(b, (k + 1) * Math.PI), p = ((k % 2) + 2) % 2 === 0 ? front : back;
+      for (let t = s, first = true; ; t = Math.min(e, t + step)) {
+        const x = cx + rx * Math.cos(t), y = cy + ry * Math.sin(t) + amp * Math.sin(t * WAVE_FREQ + ph);
+        if (first) { p.moveTo(x, y); first = false; } else p.lineTo(x, y);
+        if (t >= e) break;
+      }
+      s = e;
+    }
+  }
   function strokeBoth(paths, width, near, far) {                         // one pass over a batch: front, then back
     c.lineWidth = width;
     if (near > .015) { c.globalAlpha = near; c.stroke(paths[0]); }
@@ -303,7 +323,7 @@
   const DASH = { photo: [4, 4], veiled: [7, 5], rule: [1, 5] };          // dashed kinds (in screen pixels)
   function drawRings() {
     c.lineCap = "round";
-    const tips = [], cards = [];
+    const tips = [], cards = [], leaves = [], ph = still ? 0 : clock * 1.3;
     for (const r of rings) {
       const b = r.band, reveal = clamp(intro * 1.8 - r.y * .8);          // the opening sweep: top rings first
       const show = V.dim * b.fade * reveal; if (show < .01) continue;
@@ -313,14 +333,16 @@
       for (const s of r.segs) {
         if (s.grow <= 0) continue;                                       // not started growing yet
         segColour(s, b);
-        const heat = Math.max(s.lit, b.glow * .45), dash = DASH[s.kind] || null, lw = (s.kind === "head" ? 2.4 : r.heavy ? 2 : 1.15) * S * (1 + heat * .5);
+        const heat = Math.max(s.lit, b.glow * .45), dash = DASH[s.kind] || (b.sort && b.sort.dash) || null, lw = (s.kind === "head" ? 2.4 : r.heavy ? 2 : 1.15) * S * (1 + heat * .5);
         const key = s.ck + "|" + s.kind + "|" + (lw * 10 | 0);
         let g = batches.get(key);
         if (!g) batches.set(key, (g = { s, heat, dash, lw, main: [new Path2D(), new Path2D()], line1: [new Path2D(), new Path2D()], line2: [new Path2D(), new Path2D()] }));
         const a = s.a0 + r.phase, end = a + s.len * s.grow;
-        addArc(g.main[0], g.main[1], V.cx, cy, rx, ry, a, end);
-        addArc(g.line1[0], g.line1[1], V.cx, cy + 2.2 * S, rx * .995, ry, a, end);              // two faint lines just under it, so packed
-        if (end - a > .06) addArc(g.line2[0], g.line2[1], V.cx, cy + 4.4 * S, rx * .99, ry, a + .03, end - .03);   // rings merge into the film's striated drum
+        const add = b.sort && b.sort.wave ? (f, k, x, y, rxx, ryy, a0, a1) => addWave(f, k, x, y, rxx, ryy, a0, a1, ph) : addArc;   // fishing: ripples
+        add(g.main[0], g.main[1], V.cx, cy, rx, ry, a, end);
+        add(g.line1[0], g.line1[1], V.cx, cy + 2.2 * S, rx * .995, ry, a, end);                 // two faint lines just under it, so packed
+        if (end - a > .06) add(g.line2[0], g.line2[1], V.cx, cy + 4.4 * S, rx * .99, ry, a + .03, end - .03);      // rings merge into the film's striated drum
+        if (b.sort && b.sort.leaves && !still) for (let t = a + .25, j = 0; t < end - .1; t += .55, j++) leaves.push({ s, t, j, show, heat });   // plants: a leaf every so often
         if (s.grow < 1) tips.push({ s, b, end, show });                  // drawn after, so they sit on top
         if (!still && (s.kind === "photo" || s.kind === "head" || s.lit > .3)) cards.push({ s, a: a + s.len * s.grow / 2, show });
       }
@@ -337,6 +359,12 @@
         if (g.dash) c.setLineDash([]);
         c.strokeStyle = g.s.cTube; strokeBoth(g.line1, .8 * S, near * .34, far * .4); strokeBoth(g.line2, .8 * S, near * .14, far * .2);
       }
+    }
+    // plants: small leaves on the near side of each vine, leaning alternately left and right, in the arc's own colour
+    for (const L of leaves) {
+      const p = pointOn(L.s, L.t); if (!p.front) continue;
+      c.globalAlpha = L.show * (.55 + .4 * L.heat); c.fillStyle = L.s.cTube;
+      c.beginPath(); c.ellipse(p.x + (L.j % 2 ? 2 : -2) * S, p.y - 2.6 * S, 3.4 * S, 1.3 * S, L.j % 2 ? -.7 : .7, 0, TAU); c.fill();
     }
     // the bright leading tip of each arc still being written, fading as it completes (the original's create glow)
     for (const { s, b, end, show } of tips) {
