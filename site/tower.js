@@ -279,6 +279,7 @@
       s.ck = key; s.cTube = rgb(col); s.cCore = rgb(mix(col, COL.cream, .7));
     }
   }
+  const RING_LIGHT = .42;                                                 // the rings' brightness at rest (was .6): the one dial for "too bright"
   const DASH = { photo: [4, 4], veiled: [7, 5], rule: [1, 5] };          // dashed kinds (in screen pixels)
   function drawRings() {
     c.lineCap = "round";
@@ -303,9 +304,10 @@
         if (s.grow < 1) tips.push({ s, b, end, show });                  // drawn after, so they sit on top
         if (!still && (s.kind === "photo" || s.kind === "head" || s.lit > .3)) cards.push({ s, a: a + s.len * s.grow / 2, show });
       }
-      // 2. stroke each batch: soft neon, the way a lit glass tube looks: wide faint halo, closer halo, tube, pale core
+      // 2. stroke each batch: soft neon, the way a lit glass tube looks: wide faint halo, closer halo, tube, pale core.
+      //    RING_LIGHT is how bright a ring is at rest; pointed at or being read (heat) it still rises to full.
       for (const g of batches.values()) {
-        const near = show * (.6 + .4 * g.heat), far = near * .26;
+        const near = show * (RING_LIGHT + (1 - RING_LIGHT) * g.heat), far = near * .26;
         c.strokeStyle = g.s.cTube;
         if (g.dash) c.setLineDash(g.dash.map((v) => v * S));
         strokeBoth(g.main, g.lw * 5, near * .15, far * .06);
@@ -369,7 +371,7 @@
   // The glow: the picture (light only, on a clear canvas) shrunk to 1/4, then 1/10, then 1/26 of its size, each from
   // the last; shrinking blurs it. Each is stretched back over the picture and added: a close glow, a halo, a faint
   // wash. Because the dark background is laid in only afterwards, only the light glows.
-  const GLOW = [[4, .75], [10, .55], [26, .28]];                         // [times smaller, strength]
+  const GLOW = [[4, .55], [10, .4], [26, .22]];                           // [times smaller, strength]
   let glows = null;
   function glow() {
     if (!glows) glows = GLOW.map(() => document.createElement("canvas"));
