@@ -15,7 +15,7 @@
      a directory (many rings)    = one BAND         one post (or one quest)             = one BAND
      ~ at the top, deeper folders further out       newest post at the top and narrowest, older ones lower and wider
      a file being read flashes cream                every few seconds a random passage flashes white (READ)
-     a new file grows along its ring                a post < 30 days old writes itself in on page load (NEW);
+     a new file grows along its ring                a post < 30 days old writes itself in on page load (NEW), and new posts stay pink;
                                                     quest rings draw themselves in the same way
      activity "unwinds" a subtree (rings part)      pointing at a band unwinds it: its rings part and it glows
      callouts name the files being touched          callouts name the passage being "read"
@@ -123,10 +123,12 @@
     bands = []; rings = []; segs = []; questOrder = 0;
     const items = [...posts.map((p, k) => ({ kind: "post", p, date: p.date, entry: posts.length - k })), ...quests.map((q) => ({ kind: "quest", q, date: q.date }))]
       .sort((a, b) => { const key = (x) => (x.kind === "quest" && !x.q.over ? "9" : "0") + String(x.date); return key(b).localeCompare(key(a)); });
-    const n = items.length;
+    const n = items.length; newestEntry = posts.length;
     items.forEach((it, i) => (it.kind === "quest" ? questBand(it.q, i, n) : postBand(it.p, it.entry, i, n)));
   }
 
+  const PINK_DAYS = 14, PINK_REST = .85;                                  // how long a new post stays pink, and how pink
+  let newestEntry = 0;                                                    // set by build(): the newest post's entry number
   // A post: its pieces laid along rings. A ring is filled to about two thirds of the way round, so arcs leave gaps.
   function postBand(p, entry, i, n) {
     const rnd = dice(hash(p.file || p.title || String(i)));
@@ -150,6 +152,10 @@
       if (piece.kind === "head" || piece.kind === "rule") ring = null;     // headings and ornaments get a ring to themselves
     }
     if (!band.rings.length) open(false);
+    // NEW posts stay pink at rest: the newest post always, and any post from the last two weeks, cooling to violet
+    // over the week after that. (pink is the floor the "just written" magenta fades down to; see step()).
+    band.pink = PINK_REST * (entry === newestEntry ? 1 : clamp((PINK_DAYS + 7 - age) / 7));
+    for (const r of band.rings) for (const sg of r.segs) sg.red = band.pink;
     bands.push(band);
   }
 
@@ -246,7 +252,8 @@
     if (!still) for (const r of rings) { r.phase += r.turn * (1 + r.boost * 6) * dt; r.boost = ease(r.boost, 0, .6, dt); }
     for (const s of segs) {
       if (s.tc != null) { const g = clamp((clock - s.tc) / GROW); s.grow = g * g * (3 - 2 * g); if (g >= 1) s.tc = null; }   // smoothstep, as the original
-      if (s.red > 0 && s.grow >= 1) s.red = Math.max(0, s.red - dt / 18);                                                    // "just written" fades over ~18 s
+      const floor = s.band.pink || 0;
+      if (s.red > floor && s.grow >= 1) s.red = Math.max(floor, s.red - dt / 18);                                            // "just written" fades over ~18 s, down to its resting pink
       const t = clock - s.litAt; s.lit = t < 0 ? 0 : Math.min(1, t / .18) * Math.exp(-t / 4.2);                             // quick flash, slow fade
     }
     if (!still && clock > nextRead && bands.length && T.dim > .3) { const s = pickPassage(); if (s) read(s); nextRead = clock + (phone ? 3.2 : 1.6) + Math.random() * 2.2; }
