@@ -15,7 +15,7 @@
      a directory (many rings)    = one BAND         one post (or one quest)             = one BAND
      ~ at the top, deeper folders further out       newest post at the top and narrowest, older ones lower and wider
      a file being read flashes cream                every few seconds a random passage flashes white (READ)
-     a new file grows along its ring                a post < 30 days old writes itself in on page load (NEW), and new posts stay pink;
+     a new file grows along its ring                a post < 30 days old writes itself in on page load (NEW), and the newest post stays pink;
                                                     quest rings draw themselves in the same way
      activity "unwinds" a subtree (rings part)      pointing at a band unwinds it: its rings part and it glows
      callouts name the files being touched          callouts name the passage being "read"
@@ -127,14 +127,14 @@
     items.forEach((it, i) => (it.kind === "quest" ? questBand(it.q, i, n) : postBand(it.p, it.entry, i, n)));
   }
 
-  const PINK_DAYS = 14, PINK_REST = .85;                                  // how long a new post stays pink, and how pink
+  const PINK_REST = .85;                                                  // how pink the newest post stays
   let newestEntry = 0;                                                    // set by build(): the newest post's entry number
   // A post: its pieces laid along rings. A ring is filled to about two thirds of the way round, so arcs leave gaps.
   function postBand(p, entry, i, n) {
     const rnd = dice(hash(p.file || p.title || String(i)));
     const age = Math.max(0, (Date.now() - Date.parse(p.date + "T12:00:00")) / 864e5) || 0;   // days old
     const cool = 1 - Math.exp(-age / 120);                                                   // 0 new → 1 old
-    const col = mix(mix(COL.gold, COL.cream, .22 * (1 - cool)), mix(COL.orange, COL.bronze, .55), cool * .45);   // cools only a little: the tower stays neon
+    const col = mix(COL.gold, mix(COL.orange, COL.bronze, .55), cool * .45);   // cools only a little: the tower stays neon
     const band = newBand({ i, kind: "post", entry, file: p.file, title: p.title || "Untitled", date: p.date, age, col,
       words: String(p.body || "").split(/\s+/).filter(Boolean).length, fade: .78 + .22 * Math.exp(-age / 200) });
     const radius = radiusFor(i, n);
@@ -152,9 +152,9 @@
       if (piece.kind === "head" || piece.kind === "rule") ring = null;     // headings and ornaments get a ring to themselves
     }
     if (!band.rings.length) open(false);
-    // NEW posts stay pink at rest: the newest post always, and any post from the last two weeks, cooling to violet
-    // over the week after that. (pink is the floor the "just written" magenta fades down to; see step()).
-    band.pink = PINK_REST * (entry === newestEntry ? 1 : clamp((PINK_DAYS + 7 - age) / 7));
+    // The newest post stays pink at rest; every other post is violet. (pink is the floor the "just written" magenta
+    // fades down to; see step().)
+    band.pink = entry === newestEntry ? PINK_REST : 0;
     for (const r of band.rings) for (const sg of r.segs) sg.red = band.pink;
     bands.push(band);
   }
@@ -282,11 +282,12 @@
   function segColour(s, b) {
     const key = ((s.lit * 20) | 0) * 441 + ((b.glow * 20) | 0) * 21 + ((s.red * 20) | 0);
     if (s.ck !== key) {
-      const col = mix(mix(mix(b.col, COL.crimson, s.red * (1 - b.glow)), b.kind === "quest" ? QUEST_HOT : PINK, b.glow * .9), COL.cream, s.lit);
-      s.ck = key; s.cTube = rgb(col); s.cCore = rgb(mix(col, COL.cream, .7));
+      const col = mix(mix(mix(b.col, COL.crimson, s.red * (1 - b.glow)), b.kind === "quest" ? QUEST_HOT : PINK, b.glow * .9), COL.cream, s.lit * WHITE);
+      s.ck = key; s.cTube = rgb(col); s.cCore = rgb(mix(col, COL.cream, .7 * WHITE));
     }
   }
   const RING_LIGHT = .42;                                                 // the rings' brightness at rest (was .6): the one dial for "too bright"
+  const WHITE = .45;                                                      // how much white light the rings carry: the pale core, read flashes, index tabs (was 1)
   const DASH = { photo: [4, 4], veiled: [7, 5], rule: [1, 5] };          // dashed kinds (in screen pixels)
   function drawRings() {
     c.lineCap = "round";
@@ -320,7 +321,7 @@
         strokeBoth(g.main, g.lw * 5, near * .15, far * .06);
         strokeBoth(g.main, g.lw * 2.4, near * .32, far * .12);
         strokeBoth(g.main, g.lw, Math.min(1, near * 1.05), far);
-        c.strokeStyle = g.s.cCore; strokeBoth(g.main, Math.max(.6 * S, g.lw * .4), near * .55, far * .5);
+        c.strokeStyle = g.s.cCore; strokeBoth(g.main, Math.max(.6 * S, g.lw * .4), near * .55 * WHITE, far * .5 * WHITE);
         if (g.dash) c.setLineDash([]);
         c.strokeStyle = g.s.cTube; strokeBoth(g.line1, .8 * S, near * .34, far * .4); strokeBoth(g.line2, .8 * S, near * .14, far * .2);
       }
@@ -335,7 +336,7 @@
     c.fillStyle = rgb(COL.cream);
     for (const { s, a, show } of cards) {
       const p = pointOn(s, a);
-      if (p.front) { c.globalAlpha = show * (s.kind === "photo" ? .8 : .45 + s.lit * .5); c.fillRect(p.x - 1.4 * S, p.y - 15 * S, 2.8 * S, 13 * S); }
+      if (p.front) { c.globalAlpha = show * WHITE * (s.kind === "photo" ? .8 : .45 + s.lit * .5); c.fillRect(p.x - 1.4 * S, p.y - 15 * S, 2.8 * S, 13 * S); }
     }
   }
 
