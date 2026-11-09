@@ -32,7 +32,7 @@ the top. Nothing about it needs updating by hand; a new post simply appears in i
 
 ## Email alerts
 
-Friends can leave an email address in the box at the foot of each post (and on About). When a **new** post is
+Friends can sign up from the Alerts row of the RECORD panel on the front page (it opens the Email alerts page, `#/alerts`); once signed up, that row reads "On" on their device. When a **new** post is
 published, each of them gets one short email with its title, its opening lines and a link; editing a post never sends
 anything. Every email has a link to stop them.
 

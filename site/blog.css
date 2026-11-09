@@ -126,12 +126,10 @@ img { max-width: 100%; display: block; }
 .soundtoggle span { color: var(--ink); }
 
 /* ================================================================================================ 4. HOME */
-/* The tower is the page. <main> lets clicks through to it; only the alerts box at the foot catches them. */
+/* The tower is the page. <main> lets clicks through to it. */
 main { position: relative; z-index: 2; min-height: 100vh; outline: none; }
 .loading { padding: 40vh 0 0; text-align: center; font: 500 .7rem/1 var(--mono); letter-spacing: .3em; text-transform: uppercase; color: var(--ink-dim); }
 body.home main { pointer-events: none; }
-.hall { position: fixed; left: var(--side); right: 0; bottom: max(22px, env(safe-area-inset-bottom)); text-align: center; pointer-events: none; }
-@media (min-width: 861px) and (max-width: 1300px) { .hall { right: 270px; } }   /* keep clear of the readout */
 
 /* ===================================================================================== 5. THE TOWER'S CARD */
 /* The card beside a band of the tower when it is pointed at (made and placed by tower.js, section 10 there). */
@@ -149,21 +147,32 @@ body.home main { pointer-events: none; }
 .pin.quest .po:empty { display: none; }
 
 /* ======================================================================================== 6. THE READOUT */
-/* Lower right on the front page, after the film's system monitor (filled in by blog.js section 13). */
-.readout { position: fixed; z-index: 4; right: 22px; bottom: 20px; width: 240px; pointer-events: none; padding: 8px 10px; background: rgba(var(--shade), .62); font: 500 .6rem/1.5 var(--mono); color: var(--ink); letter-spacing: .08em; }
+/* The RECORD panel, lower right on the front page, after the film's system monitor (filled in by blog.js section 13).
+   Each row: label · a little picture · the number. Rows that lead somewhere are links and light up when pointed at. */
+.readout { position: fixed; z-index: 4; right: 22px; bottom: 20px; width: 250px; padding: 8px 10px; background: rgba(var(--shade), .62); font: 500 .6rem/1.5 var(--mono); color: var(--ink); letter-spacing: .08em; }
 body:not(.home) .readout { display: none; }
 .readout .rt { margin: 0 0 6px; padding-bottom: 4px; border-bottom: 1px solid var(--line); letter-spacing: .2em; text-transform: uppercase; color: var(--ink-dim); }
-.readout dl { margin: 0; display: grid; gap: 3px; }
-.readout dl div { display: grid; grid-template-columns: 62px 1fr 54px; align-items: center; gap: 8px; }   /* label · bar · number */
-.readout dt { text-transform: uppercase; color: var(--ink-dim); }
-.readout dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
-.readout .bar, .readout .spark { height: 9px; position: relative; text-align: left; }
+.readout .rows { display: grid; gap: 1px; }
+.readout .row { display: grid; grid-template-columns: 62px 1fr auto; align-items: center; gap: 8px; min-height: 17px; padding: 0 4px; margin: 0 -4px; color: var(--ink); text-decoration: none; }
+.readout .k { text-transform: uppercase; color: var(--ink-dim); }
+.readout .v { min-width: 44px; text-align: right; font-variant-numeric: tabular-nums; }
+.readout a.row { cursor: pointer; transition: background .2s; }
+.readout a.row:hover, .readout a.row:focus-visible { background: rgba(189, 148, 255, .14); text-shadow: var(--glow-soft); }
+.readout a.row:hover .k { color: var(--ink); }
+.readout .bar, .readout .spark, .readout .marks { height: 9px; position: relative; }
 .readout .bar { background: rgba(189, 148, 255, .1); }
 .readout .bar i { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, rgba(189, 148, 255, .4), var(--accent)); }
 .readout .bar.life i { background: linear-gradient(90deg, rgba(255, 90, 174, .5), var(--new)); }
 .readout .spark { display: flex; align-items: flex-end; gap: 2px; }   /* posts per month, the last twelve */
 .readout .spark i { flex: 1; background: rgba(189, 148, 255, .18); }
 .readout .spark i.on { background: var(--accent); }
+.readout .marks { display: flex; align-items: center; gap: 4px; }      /* one gold mark per quest: hollow to come, solid done */
+.readout .marks i { width: 7px; height: 7px; border: 1px solid rgb(var(--gold)); transform: rotate(45deg); }
+.readout .marks i.done { background: rgb(var(--gold)); box-shadow: 0 0 6px rgba(var(--gold), .7); }
+.readout .quests .v { color: var(--gold-ink); }
+.readout .note { color: var(--ink-dim); font-size: .56rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.readout .alerts .v { color: var(--accent-hi); }
+.readout .alerts.on .v { color: var(--ink-dim); }
 
 /* =========================================================================================== 7. THE PAGES */
 /* A sheet of dark glass. On a wide screen it stands on the right with the tower beside it; narrower, it fills the
@@ -250,10 +259,11 @@ hr.fleuron { border: 0; height: 18px; margin: 2em 0; background: radial-gradient
 @media (max-width: 860px) { .close { top: 76px; right: 16px; } }      /* below the phone's top bar */
 
 /* ========================================================================= 11b. EMAIL ALERTS AND NOTIFICATIONS */
-/* The box at the foot of the front page (blog.js sections 11 and 12): a line, an email field and a button. Once
-   signed up the field and line step aside, and the offer of a notification on this device appears in a dark box. */
-.hall .alerts { pointer-events: auto; display: inline-grid; gap: 7px; width: min(420px, calc(100% - 32px)); text-align: left; }
-.alerts label { font: italic 400 1rem/1.3 var(--title); color: var(--ink-soft); text-align: center; }
+/* The form on the Email alerts page (blog.js sections 11 and 12): a line, an email field and a button. Once signed
+   up the field and line step aside, and the offer of a notification on this device appears in a dark box. */
+.sheet .alerts { display: grid; gap: 9px; max-width: 480px; }
+.alerts label { font: italic 400 1.1rem/1.3 var(--title); color: var(--ink-soft); }
+.signed { color: var(--ink-soft); font-style: italic; }
 .alerts .arow { display: flex; gap: 8px; }
 .alerts input[type="email"] { flex: 1 1 auto; min-width: 0; padding: 9px 12px; font: 400 .85rem/1.2 var(--mono); color: var(--ink); background: rgba(0, 0, 0, .7);
   border: 1px solid var(--line); border-radius: 0; outline: none; }
@@ -264,12 +274,12 @@ hr.fleuron { border: 0; height: 18px; margin: 2em 0; background: radial-gradient
 .alerts button:hover { background: rgba(189, 148, 255, .14); }
 .alerts button:disabled { opacity: .5; cursor: wait; }
 .alerts .hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }   /* the robot trap: never seen */
-.alerts .amsg { margin: 0; min-height: 1.1em; font: 400 .68rem/1.4 var(--mono); color: var(--ink-soft); text-align: center; }
+.alerts .amsg { margin: 0; min-height: 1.1em; font: 400 .72rem/1.5 var(--mono); color: var(--ink-soft); }
 .alerts .amsg:empty { display: none; }
 .alerts.done .amsg { color: var(--ink); }
 .alerts [hidden] { display: none !important; }                         /* needed: the rules above would otherwise show them */
-.hall .alerts:has(.apush:not([hidden])) { padding: 14px 16px; background: rgba(0, 0, 0, .94); border: 1px solid var(--line); box-shadow: var(--glow-box); }
-.apush { display: grid; gap: 8px; justify-items: center; text-align: center; font: 400 .74rem/1.5 var(--mono); color: var(--ink-soft); }
+.sheet .alerts:has(.apush:not([hidden])) { padding: 14px 16px; background: rgba(0, 0, 0, .94); border: 1px solid var(--line); box-shadow: var(--glow-box); }
+.apush { display: grid; gap: 8px; justify-items: start; text-align: left; font: 400 .74rem/1.5 var(--mono); color: var(--ink-soft); }
 .apush p { margin: 0; }
 .apush .aq { font: italic 400 1.02rem/1.3 var(--title); color: var(--ink); }                  /* the question */
 .apush b { color: var(--ink); font-weight: 500; }
@@ -318,10 +328,12 @@ html.aurora .side { background: none; }
 /* Its own layout for phones (and any window 860 px wide or less), rather than the desktop squeezed down:
      · a slim top bar: HALF LIFE on the left, Music and Sound on the right
      · tabs along the bottom, where a thumb reaches (Tower · Posts · Photos · About), in place of the side menu
-     · home: the tower large and alone (no callouts, no readout), one saying under it, then the alerts box;
+     · home: the tower large and alone (no callouts), one saying under it, then the RECORD panel in two columns;
        tapping a ring brings its card up from the bottom, and tapping the card (or the ring again) opens it
      · pages: full width on black, with the tower switched off behind them (blog.js placeTower), so they scroll
        smoothly; the close button sits at the top right of the page and scrolls away with it
+     · for smooth scrolling on a phone, the film grain, the moving light and the glow on body text are left out
+       while reading (each repaints the whole screen as it scrolls)
    tower.js uses the same 860 px line. --bar and --tabs are the heights of the two bars. */
 @media (max-width: 860px) {
   :root { --side: 0px; --bar: 54px; --tabs: calc(60px + env(safe-area-inset-bottom)); }
@@ -331,7 +343,7 @@ html.aurora .side { background: none; }
     flex-direction: row; align-items: center; justify-content: space-between; padding: env(safe-area-inset-top) 18px 0;
     background: linear-gradient(180deg, rgba(0, 0, 0, .94) 55%, rgba(0, 0, 0, 0)); }
   .mark-en { font-size: 1.12rem; letter-spacing: .24em; }
-  .menutoggle, .menu, .readout { display: none !important; }
+  .menutoggle, .menu { display: none !important; }
   .toggles { margin: 0; padding: 0; gap: 16px; }
   .soundtoggle { padding: 10px 0; font-size: .56rem; }                 /* a taller tap target, same look */
   /* the tabs */
@@ -343,14 +355,20 @@ html.aurora .side { background: none; }
   .tabs a[aria-current="page"] { color: var(--ink); text-shadow: var(--glow); }
   .tabs a[aria-current="page"]::before { opacity: 1; background: var(--accent-hi); box-shadow: 0 0 6px var(--accent), 0 0 14px var(--accent); }
   /* home */
-  .hall { left: 0; right: 0; padding: 0 16px; bottom: calc(var(--tabs) + 14px); }
-  .hall .alerts { width: 100%; }
+  /* the RECORD panel: two columns of rows, in a band above the tabs (Latest is left out; Half-life says it) */
+  .readout { left: 16px; right: 16px; width: auto; bottom: calc(var(--tabs) + 14px); padding: 8px 10px; background: rgba(0, 0, 0, .82); font-size: .62rem; }
+  .readout .rt { display: none; }
+  .readout .rows { grid-template-columns: 1fr 1fr; gap: 2px 14px; }
+  .readout .row { grid-template-columns: auto 1fr; gap: 6px; min-height: 26px; }   /* taller, for thumbs */
+  .readout .row > :nth-child(2) { display: none; }                     /* no pictures: label and number only */
+  .readout .latest { display: none; }
   .pin { left: 16px !important; right: 16px; top: auto !important; bottom: calc(var(--tabs) + 12px); width: auto; padding: 14px 16px; background: rgb(4, 2, 8); }
-  body:has(.pin.on) .hall { visibility: hidden; }                     /* the card takes the alerts box's place while it's up */
+  body:has(.pin.on) .readout { visibility: hidden; }                  /* the card takes the panel's place while it's up */
   /* the pages */
   body:not(.home) main { margin: 0; width: auto; }
-  body:not(.home) #tower { visibility: hidden; }
-  .sheet { padding: calc(var(--bar) + env(safe-area-inset-top) + 16px) 20px calc(var(--tabs) + 48px); border-left: 0; box-shadow: none; background: rgba(0, 0, 0, .9); }
+  body:not(.home) #tower, body:not(.home) .aurora-light, body:not(.home)::after { visibility: hidden; }
+  body:not(.home) { text-shadow: none; }
+  .sheet { padding: calc(var(--bar) + env(safe-area-inset-top) + 16px) 20px calc(var(--tabs) + 48px); border-left: 0; box-shadow: none; background: #000; }
   .sheet.quest { box-shadow: none; }
   .close { position: absolute; top: calc(var(--bar) + env(safe-area-inset-top) + 6px); right: 12px; width: 40px; height: 40px; font-size: 1.7rem; }
   .kicker { padding-right: 52px; }                                     /* clear of the close button */
@@ -359,6 +377,7 @@ html.aurora .side { background: none; }
   .contents a { grid-template-columns: 1fr; padding: 18px 0; }          /* one column: the number becomes a small label */
   .contents .n { font-size: .6rem; line-height: 1.6; letter-spacing: .2em; }
   .contents .n::before { content: "ENTRY "; }
+  .quests .contents .n::before { content: none; }                      /* the quest list's label is "soon" or "done" */
   .contents .t { font-size: 1.5rem; }
   .contents .l { grid-column: 1; font-size: 1rem; line-height: 1.55; }
   .postnav { grid-template-columns: 1fr; gap: 18px; }

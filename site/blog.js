@@ -10,10 +10,11 @@
      2. The tower is started with the posts, and with the quests too if the calendar answered within 1.2 s (so the gold
         rings are part of the opening); otherwise the gold is added the moment it arrives.
      3. The address after # picks the page (see ROUTES):
-          #/              the tower (home), with the email alerts box at the foot
+          #/              the tower (home), with the RECORD panel in the corner (its rows lead to the pages)
           #/posts         every post, newest first          #/post/<file>   one post
-          #/quest/<id>    one quest's story                 #/photos        every photograph
-          #/about         about Chris
+          #/quests        every quest                       #/quest/<id>    one quest's story
+          #/photos        every photograph                  #/about         about Chris
+          #/alerts        sign up for email alerts (and a notification on this device)
         Old addresses from earlier versions of the site still lead to the right page.
      4. Every page but home has a close button (Escape works too); a post or quest closes back to wherever it was
         opened from.
@@ -155,7 +156,7 @@
   let here = ["home"];
   function nav(route, file) {
     document.body.classList.toggle("home", route === "home");
-    $$(".cmds a, .tabs a").forEach((a) => (a.dataset.route === route || (route === "quest" && a.dataset.route === "home") ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current")));
+    $$(".cmds a, .tabs a").forEach((a) => (a.dataset.route === route || (/^quests?$/.test(route) && a.dataset.route === "home") ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current")));
     $$("#entries a").forEach((a) => (a.dataset.file === file ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current")));
     side.classList.remove("open"); $(".menutoggle").setAttribute("aria-expanded", "false");
     choose($('.menu a[aria-current="page"]') || $(".cmds a"), true);
@@ -172,11 +173,10 @@
   addEventListener("resize", () => placeTower(...here));
 
   /* ================================================================================================ 7. THE PAGES */
-  // Home: the tower is the page; the alerts box sits at its foot.
+  // Home: the tower is the page (with the RECORD panel in the corner, section 13).
   function showHome() {
     nav("home"); document.title = "Half Life";
-    main.innerHTML = `<section class="hall" aria-label="Half Life"><h1 class="sr">Half Life</h1>${ALERTS}</section>`;
-    hookAlerts();
+    main.innerHTML = `<section class="hall" aria-label="Half Life"><h1 class="sr">Half Life</h1></section>`;
   }
   // Posts: every post, newest first, with its number, date and opening words.
   function showPosts() {
@@ -216,6 +216,23 @@
     nav("about"); document.title = "About · Half Life";
     main.innerHTML = `<article class="sheet about"><p class="kicker"><b>About</b> · the person behind Half Life</p><h1>About</h1>${FLOURISH}${markdown(DATA.about) || '<p class="empty">This remains to be set down.</p>'}</article>`;
   }
+  // Quests: every quest, those still to come first (by month only), then the completed ones with their dates.
+  // Opened from the RECORD panel. Like a quest page, it is drawn again once the calendar answers.
+  function showQuests() {
+    nav("quests"); document.title = "Quests · Half Life";
+    const list = QUESTS || [], soon = list.filter((q) => !q.over), done = list.filter((q) => q.over);
+    const item = (q) => `<li><a href="#/quest/${esc(q.id)}"><span class="n">${q.over ? "done" : "soon"}</span><span><span class="t">${esc(q.title)}</span><span class="d">${esc(q.over ? longDate(q.date) : "Sometime in " + q.month)}</span></span>${q.blurb ? `<span class="l">${esc(lede(q.blurb, 24))}</span>` : ""}</a></li>`;
+    main.innerHTML = `<article class="sheet quest quests"><p class="kicker"><b>Quests</b> · ${soon.length} to come · ${done.length} completed</p><h1>Quests</h1><p class="when">journeys undertaken, and those yet to be</p>${FLOURISH}
+      <ol class="contents">${QUESTS ? soon.concat(done).map(item).join("") || '<li class="empty">No quest has yet been declared.</li>' : '<li class="empty">Unrolling the map…</li>'}</ol></article>`;
+  }
+  // Email alerts: the sign-up form (section 11) on a page of its own, opened from the RECORD panel.
+  function showAlerts() {
+    nav("alerts"); document.title = "Email alerts · Half Life";
+    const signed = store.get("hl-alerts") === "on";
+    main.innerHTML = `<article class="sheet"><p class="kicker"><b>Alerts</b> · new entries only</p><h1>Email alerts</h1><p class="when">word of each new entry, and nothing else</p>${FLOURISH}
+      ${signed ? '<p class="signed">You\'re already signed up on this device. Every email has a link to stop them.</p>' : ""}${ALERTS}</article>`;
+    hookAlerts();
+  }
   // One quest: title, when (only the month while it is still to come), and the story from its calendar description.
   // If someone lands here before the calendar has answered, a placeholder shows and start() calls route() again.
   function showQuest(id) {
@@ -229,10 +246,10 @@
   }
 
   /* ======================================================================================= 8. CLOSING A PAGE */
-  // The round × at the top right of every page (and Escape). A post or quest opened from the tower or the post list
-  // closes back there; anything else closes to the tower.
+  // The round × at the top right of every page (and Escape). A post or quest opened from the tower, the post list or
+  // the quest list closes back there; anything else closes to the tower.
   let cameFrom = "#/", current = "#/";
-  const closeTo = () => (/^#\/(post|quest)\//.test(current) && /^(#\/?|#\/posts)?$/.test(cameFrom) ? cameFrom || "#/" : "#/");
+  const closeTo = () => (/^#\/(post|quest)\//.test(current) && /^(#\/?|#\/posts|#\/quests)?$/.test(cameFrom) ? cameFrom || "#/" : "#/");
   function addClose() {
     const sheet = $(".sheet", main); if (!sheet) return;
     const a = document.createElement("a"); a.className = "close"; a.href = closeTo(); a.setAttribute("aria-label", "Close this page");
@@ -244,7 +261,7 @@
 
   /* ================================================================================================== 9. ROUTES */
   // The part after # chooses the page. The second column lists older names that still work.
-  const ROUTES = { post: showPost, quest: showQuest, posts: showPosts, accounts: showPosts, journal: showPosts, photos: showPhotos, visions: showPhotos, about: showAbout, chronicler: showAbout };
+  const ROUTES = { post: showPost, quest: showQuest, quests: showQuests, alerts: showAlerts, posts: showPosts, accounts: showPosts, journal: showPosts, photos: showPhotos, visions: showPhotos, about: showAbout, chronicler: showAbout };
   function route() {
     cameFrom = current; current = location.hash || "#/";
     const h = decodeURIComponent(location.hash.replace(/^#\/?/, ""));
@@ -273,10 +290,11 @@
   viewer.addEventListener("touchend", (e) => { if (x0 == null) return; const dx = e.changedTouches[0].clientX - x0; if (Math.abs(dx) > 50) show(vk + (dx < 0 ? 1 : -1)); x0 = null; });
 
   /* =========================================================================================== 11. EMAIL ALERTS */
-  // The box at the foot of the front page. A friend leaves an email address (scripts/worker.js keeps it, and emails
+  // The form on the Email alerts page (#/alerts, opened from the RECORD panel). A friend leaves an email address (scripts/worker.js keeps it, and emails
   // them once per NEW entry, never for edits; every email has an unsubscribe link). The hidden "website" field is a
   // trap only robots fill in. After signing up (or entering an address that's already on the list) they're offered
   // a notification on this device too (section 12). Opened from an iPhone home screen, that offer shows straight away.
+  // Once signed up, this device remembers it (hl-alerts) and the panel's Alerts row reads "On" instead of "Sign up".
   const ALERTS = `<form class="alerts" novalidate>
       <label for="alert-email">Get an email when a new entry is set down</label>
       <div class="arow"><input id="alert-email" name="email" type="email" autocomplete="email" inputmode="email" placeholder="you@example.com" required>
@@ -298,7 +316,7 @@
         const r = await fetch("/api/subscribe", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email, website: f.website.value }) });
         const d = await r.json().catch(() => ({}));
         if (r.ok && d.ok) {
-          blip("pick"); f.classList.add("done"); f.email.value = "";
+          blip("pick"); f.classList.add("done"); f.email.value = ""; store.set("hl-alerts", "on"); readout();   // remembered here, so the panel says "On"
           msg.textContent = d.already ? "You're already in." : "You're in. New entries only, never spam.";
           $(".arow", f).hidden = true; $("label", f).hidden = true;
           if (!(await pushedHere())) pushPanel(box);
@@ -362,22 +380,32 @@
   }
 
   /* ============================================================================================= 13. THE READOUT */
-  // The panel in the corner, after the film's system monitor: entries (with posts per month over the last year as
-  // little bars), photos, words, the newest post's date, and its "half-life": 100% the day it's posted, halving every
-  // 30 days, back to 100% with each new post.
+  // The RECORD panel in the corner of the front page, after the film's system monitor. Each row is a count with a
+  // little picture, and most rows are also the way in:
+  //   Entries    posts per month over the last year, as bars          → the post list
+  //   Quests     one mark per quest, bright once completed             → the quest list
+  //   Photos     how many photographs                                  → the photographs
+  //   Words      every word written
+  //   Latest     the newest post's date
+  //   Half-life  100% the day a post goes up, halving every 30 days, back to 100% with each new post
+  //   Alerts     "Sign up" → the email alerts page; "On" once this device has signed up
+  // It is drawn again when the quests arrive and after a sign-up.
   function readout() {
-    const posts = DATA.posts, words = posts.reduce((n, p) => n + p.words, 0), now = new Date(), months = [];
+    const posts = DATA.posts, words = posts.reduce((n, p) => n + p.words, 0), now = new Date(), months = [], quests = QUESTS || [];
     for (let k = 11; k >= 0; k--) { const m = new Date(now.getFullYear(), now.getMonth() - k, 1).toISOString().slice(0, 7); months.push(posts.filter((p) => p.date.startsWith(m)).length); }
-    const top = Math.max(1, ...months), latest = posts[0];
+    const top = Math.max(1, ...months), latest = posts[0], signed = store.get("hl-alerts") === "on";
     const life = latest ? Math.round(100 * Math.pow(.5, Math.max(0, (Date.now() - Date.parse(latest.date + "T12:00:00")) / 864e5) / 30)) : 0;
-    $("#readout").innerHTML = `<p class="rt">Record</p>
-      <dl>
-        <div><dt>Entries</dt><dd class="spark" aria-hidden="true">${months.map((m) => `<i style="height:${Math.max(8, m / top * 100)}%" class="${m ? "on" : ""}"></i>`).join("")}</dd><dd>${posts.length}</dd></div>
-        <div><dt>Photos</dt><dd class="bar"><i style="width:${Math.min(100, PHOTOS.length * 4)}%"></i></dd><dd>${PHOTOS.length}</dd></div>
-        <div><dt>Words</dt><dd class="bar"><i style="width:${Math.min(100, words / 200)}%"></i></dd><dd>${words.toLocaleString()}</dd></div>
-        <div><dt>Latest</dt><dd class="bar"><i style="width:${life}%"></i></dd><dd>${latest ? esc(shortDate(latest.date)) : "—"}</dd></div>
-        <div><dt>Half-life</dt><dd class="bar life"><i style="width:${life}%"></i></dd><dd>${life}%</dd></div>
-      </dl>`;
+    const row = (cls, label, viz, value, href) => `<${href ? `a href="${href}"` : "div"} class="row ${cls}"><span class="k">${label}</span>${viz}<span class="v">${value}</span></${href ? "a" : "div"}>`;
+    const bar = (w, extra = "") => `<span class="bar ${extra}"><i style="width:${w}%"></i></span>`;
+    $("#readout").innerHTML = `<p class="rt">Record</p><div class="rows">
+      ${row("entries", "Entries", `<span class="spark">${months.map((m) => `<i style="height:${Math.max(8, m / top * 100)}%" class="${m ? "on" : ""}"></i>`).join("")}</span>`, posts.length, "#/posts")}
+      ${row("quests", "Quests", `<span class="marks">${quests.slice(0, 14).map((q) => `<i class="${q.over ? "done" : ""}"></i>`).join("")}</span>`, QUESTS ? quests.length : "…", "#/quests")}
+      ${row("photos", "Photos", bar(Math.min(100, PHOTOS.length * 4)), PHOTOS.length, "#/photos")}
+      ${row("words", "Words", bar(Math.min(100, words / 200)), words.toLocaleString())}
+      ${row("latest", "Latest", bar(life), latest ? esc(shortDate(latest.date)) : "—")}
+      ${row("life", "Half-life", bar(life, "life"), life + "%")}
+      ${row("alerts" + (signed ? " on" : ""), "Alerts", '<span class="note">new entries by email</span>', signed ? "On" : "Sign up ▸", signed ? "" : "#/alerts")}
+    </div>`;
   }
 
   /* ================================================================================================== 14. START */
@@ -386,10 +414,11 @@
   const questsArrive = fetch("/api/quests").then((r) => (r.ok ? r.json() : { quests: [] })).then((d) => (Array.isArray(d.quests) ? d.quests : [])).catch(() => []);
   const questsSoon = Promise.race([questsArrive, new Promise((ok) => setTimeout(() => ok(null), 1200))]);
   Promise.all([fetch("/posts.json", { cache: "no-cache" }).then((r) => r.json()), questsSoon]).then(([d, early]) => {
-    load(d); menuEntries(); readout();
+    load(d); menuEntries();
     if (early) QUESTS = early;
+    readout();
     if (window.Tower) Tower.start($("#tower"), DATA.posts, { quests: early || [], onOpen: (file) => { blip("pick"); location.hash = "#/post/" + encodeURIComponent(file); } });
-    if (!early) questsArrive.then((quests) => { QUESTS = quests; if (quests.length && window.Tower) Tower.quests(DATA.posts, quests); if (/^#\/quest\//.test(location.hash)) route(); });
+    if (!early) questsArrive.then((quests) => { QUESTS = quests; readout(); if (quests.length && window.Tower) Tower.quests(DATA.posts, quests); if (/^#\/quests?(\/|$)/.test(location.hash)) route(); });
     route();
   }).catch(() => { main.innerHTML = '<p class="empty">The pages could not be fetched. Try again in a moment.</p>'; });
 })();

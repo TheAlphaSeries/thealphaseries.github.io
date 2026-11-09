@@ -187,12 +187,12 @@
   /* =================================================================================================== 2. THE VIEW */
   const V = { x0: 0, x1: 1, dim: 1, cx: 0, top: 0, h: 0, R: 0 }, T = { x0: 0, x1: 1, dim: 1 };
   let W = 0, H = 0, S = 1, phone = false, cv = null, c = null, focusFile = null, hoverBand = null, onOpen = () => {};
-  // Fit the tower into its strip: room is kept above for the header and below for the alerts box. On a phone
+  // Fit the tower into its strip: room is kept above for the header and a little below. On a phone
   // (phone = a window 860 px wide or less, blog.css section 14) the tower is drawn larger, under the top bar, with
-  // room below for one saying, the alerts box and the tabs. dt = null snaps straight there.
+  // room below for one saying, the RECORD panel and the tabs. dt = null snaps straight there.
   function aim(dt) {
     const free = (T.x1 - T.x0) * W, home = T.dim > .9;
-    const top = (phone ? 80 : 56) * S, below = (phone ? (home ? 262 : 40) : (home ? 120 : 44)) * S;
+    const top = (phone ? 80 : 56) * S, below = (phone ? (home ? 262 : 40) : (home ? 70 : 44)) * S;
     const R = Math.max(40 * S, Math.min(free * (phone ? .36 : .19), H * (phone ? .24 : .2), (H - top - below) * .3));
     const to = { cx: (T.x0 + T.x1) / 2 * W, top, h: Math.max(80 * S, (H - top - below - R * .62) / 1.06), R };
     for (const k in to) V[k] = dt == null ? to[k] : ease(V[k], to[k], 3.5, dt);
@@ -463,7 +463,7 @@
     const fs = 12 * S, gapY = fs * 3.1, room = {
       l: Math.min(300 * S, (V.cx - V.R * 1.15 - 20 * S) - (V.x0 * W + 16 * S)),
       r: Math.min(300 * S, (V.x1 * W - 16 * S - reserved) - (V.cx + V.R * 1.15 + 20 * S)) };
-    const lowest = { l: H - 130 * S, r: H - 170 * S };
+    const lowest = { l: H - 130 * S, r: H - 215 * S };             // the right side stays clear of the RECORD panel
     const placed = { l: [], r: [] };
     for (const co of callouts) { const p = coPoint(co), side = p.x < V.cx ? "l" : "r"; placed[side].push({ co, p, alpha: coAlpha(co), y: clamp(p.y - 10 * S, 40 * S, lowest[side]) }); }
     c.textBaseline = "alphabetic"; c.globalCompositeOperation = "source-over";
@@ -559,6 +559,10 @@
   /* ============================================================================================== 11. RUNNING */
   function size() {
     if (!cv) return;
+    // On a phone the address bar slides away as the page scrolls, which counts as the window resizing. Rebuilding the
+    // canvas for that mid-scroll causes stutter, so a change of height alone (under 160 px) is ignored there; the
+    // canvas is simply stretched that little bit by the page's CSS until a real resize (or turning the phone).
+    if (W && phone && Math.round(innerWidth * S) === W && Math.abs(innerHeight * S - H) < 160 * S) return;
     const css = getComputedStyle(document.documentElement);
     chamberCols = chamberCols.map((v, i) => css.getPropertyValue("--chamber-" + (i + 1)).trim() || v);
     S = Math.min(devicePixelRatio || 1, coarse ? 1.5 : 1.75);            // canvas pixels per screen pixel (capped, for speed)
@@ -605,6 +609,7 @@
       hoverBand = null; stack(); poke();
     },
     view(v = {}) {
+      if (v.x0 === T.x0 && v.x1 === T.x1 && v.dim === T.dim && v.focus === focusFile) return;   // nothing changed: don't wake it
       if (v.x0 != null) T.x0 = v.x0; if (v.x1 != null) T.x1 = v.x1; if (v.dim != null) T.dim = v.dim;
       if ("focus" in v) focusFile = v.focus;
       if (!cv) { V.x0 = T.x0; V.x1 = T.x1; V.dim = T.dim; }

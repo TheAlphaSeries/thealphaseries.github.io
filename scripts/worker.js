@@ -8,7 +8,7 @@
    1. FRESH FILES   The page, its script and its style change often, so browsers are told to check for a newer copy
                     before reusing one ("no-cache"). Photos and everything else are served untouched.
 
-   2. EMAIL ALERTS  POST /api/subscribe    a friend leaves their address (the box at the foot of the front page)
+   2. EMAIL ALERTS  POST /api/subscribe    a friend leaves their address (the Email alerts page, from the RECORD panel)
                     GET  /api/unsubscribe  the link at the bottom of every email; removes the address at once
                     Every 5 minutes (the "cron" in wrangler.jsonc) checkForNewPosts() reads the site's own posts.json.
                     Any post it has never seen is new, and every friend gets one email for it. Edits never send
