@@ -62,8 +62,7 @@ anything. Every email has a link to stop them.
 Each post has a **Kind** menu in the editor. Leave it blank for an ordinary journal entry, or pick **Plants** (house
 plants and bonsai) or **Fishing** (fishing tales). Those entries get their own ring colour in the tower (green for
 plants, sea-glass teal for fishing), a matching card and post page, and their own list (`#/plants`, `#/fishing`),
-opened from the Plants and Fishing rows of the RECORD panel. Each also has its own texture, as quests are dashed gold: plant rings are vines (the tube broken by
-little nodes, with small leaves on the near side) and fishing rings are ripples (a gentle travelling wave). They keep the same entry numbers as everything else and
+opened from the Plants and Fishing rows of the RECORD panel. Apart from the colour, their rings look like any other entry's. They keep the same entry numbers as everything else and
 still appear under Posts, marked in their colour. The newest entry's pink goes to the newest ordinary entry.
 
 The colours live in `site/blog.css` (`--leaf`, `--tide`). Adding another kind takes a line in each of
