@@ -1,3 +1,5 @@
 build.json
 .wrangler
 node_modules
+tools/fonts/*.ttf
+site/h/

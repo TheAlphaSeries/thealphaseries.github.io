@@ -20,6 +20,9 @@
      4. Every page but home has a close button (Escape works too); a post or quest closes back to wherever it was
         opened from.
 
+   PUBLISHING: this file is the one to edit. When the site is published, scripts/build-site.mjs joins it with
+   quotes.js, tower.js and music.js into one shrunken file (site/h/app.<contents>.js) and index.html loads that.
+
    SECTIONS IN THIS FILE
      1 helpers · 2 the words (markdown) · 3 the data · 4 sounds · 5 the menu · 6 the tower's place · 7 the pages
      8 closing a page · 9 routes · 10 photo viewer · 11 email alerts · 12 push notifications · 13 the readout · 14 start
@@ -37,7 +40,19 @@
   const shortDate = (iso) => new Date(iso + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" });
   // Photos come in three sizes (scripts/make-thumbs.sh): /photos/x (original), /thumbs/x.jpg and /large/x.jpg.
   const sized = (src, dir) => (/^\/photos\//.test(src) ? "/" + dir + src.slice(7) + ".jpg" : src);
-  const imgTag = (src, alt, dir) => `<img src="${esc(sized(src, dir))}" data-full="${esc(src)}" alt="${esc(alt)}" loading="lazy" decoding="async" onerror="if(this.src!==this.dataset.full)this.src=this.dataset.full">`;
+// A photograph's <img>. `dir` is the copy that suits its place: "thumbs" (800 px) for grids and the prints beside a
+  // note, "large" (2200 px) for reading; for "large" both copies are offered (srcset) and the browser takes the
+  // smaller when the screen doesn't need more. Its width and height (DIMS, from posts.json) reserve its space, so
+  // the page doesn't jump when it arrives. opts.eager: fetch it at once, first in line (the picture a page opens on);
+  // otherwise it waits until it is about to scroll into view. If a copy is missing it falls back to the original.
+  let DIMS = {};
+  function imgTag(src, alt, dir, opts = {}) {
+    const own = /^\/photos\//.test(src), d = own && DIMS[src], big = dir === "large";
+    const set = big && d ? ` srcset="${esc(sized(src, "thumbs"))} ${d[0]}w, ${esc(sized(src, "large"))} ${d[2]}w" sizes="${opts.sizes || "(min-width: 861px) 700px, 100vw"}"` : "";
+    const wh = d ? ` width="${big ? d[2] : d[0]}" height="${big ? d[3] : d[1]}"` : "";
+    return `<img src="${esc(sized(src, dir))}"${set}${wh} data-full="${esc(src)}" alt="${esc(alt)}" ${opts.eager ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async" onerror="this.onerror=null;this.removeAttribute('srcset');this.src=this.dataset.full">`;
+  }
+  const unesc = (t) => t.replace(/&(amp|lt|gt|quot|#39);/g, (m, c) => ({ amp: "&", lt: "<", gt: ">", quot: '"', "#39": "'" }[c]));
   // A divider in the film's manner: a thin line with ticks and a bright mark at its left (styled in blog.css).
   const FLOURISH = '<svg class="flourish" viewBox="0 0 600 14" preserveAspectRatio="none" aria-hidden="true"><path d="M0 7 H600 M0 2 V12 M150 4 V10 M300 4 V10 M450 4 V10 M600 2 V12"/><rect class="tick" x="0" y="5" width="40" height="4"/></svg>';
 
@@ -48,7 +63,7 @@
   const safeUrl = (u) => (/^(https?:|mailto:|\/|#|\.\/)/i.test(u) ? u : "#");
   function inline(s) {
     return esc(s)
-      .replace(/!\[([^\]]*)\]\(([^)\s]+)(?:\s+&quot;([^&]*)&quot;)?\)/g, (m, alt, src) => `<img src="${safeUrl(src)}" alt="${alt}" loading="lazy">`)
+      .replace(/!\[([^\]]*)\]\(([^)\s]+)(?:\s+&quot;([^&]*)&quot;)?\)/g, (m, alt, src) => imgTag(safeUrl(unesc(src)), unesc(alt), "large"))
       .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (m, t, u) => `<a href="${safeUrl(u)}"${/^https?:/.test(u) ? ' rel="noopener" target="_blank"' : ""}>${t}</a>`)
       .replace(/`([^`]+)`/g, "<code>$1</code>")
       .replace(/\*\*([^*]+)\*\*|__([^_]+)__/g, (m, a, b) => `<strong>${a || b}</strong>`)
@@ -67,7 +82,7 @@
         out.push(`<${tag}>${items.join("")}</${tag}>`); continue;
       }
       const pic = /^!\[([^\]]*)\]\(([^)\s]+)(?:\s+"([^"]*)")?\)$/.exec(b.trim());
-      if (pic) { const cap = pic[3] || pic[1]; out.push(`<figure><img src="${esc(safeUrl(pic[2]))}" alt="${esc(pic[1])}" loading="lazy">${cap ? `<figcaption>${esc(cap)}</figcaption>` : ""}</figure>`); continue; }
+      if (pic) { const cap = pic[3] || pic[1]; out.push(`<figure>${imgTag(safeUrl(pic[2]), pic[1], "large")}${cap ? `<figcaption>${esc(cap)}</figcaption>` : ""}</figure>`); continue; }
       out.push(`<p>${inline(b)}</p>`);
     }
     return out.join("\n");
@@ -80,6 +95,7 @@
   // PHOTOS: every photograph, from albums and posts, without repeats (worked out once). QUESTS: from the calendar.
   let DATA = { posts: [], albums: [], about: "" }, PHOTOS = [], QUESTS = null;
   function load(d) {
+    DIMS = d.dims || {};
     DATA = { posts: Array.isArray(d.posts) ? d.posts : [], albums: Array.isArray(d.albums) ? d.albums : [], about: d.about || "" };
     DATA.albums.forEach((a) => { a.photos = Array.isArray(a.photos) ? a.photos : []; a.captions = Array.isArray(a.captions) ? a.captions : []; });
     DATA.posts.forEach((p, i) => { p.body = p.body || ""; p.cover = p.cover || ""; p.kind = KINDS[p.kind] ? p.kind : ""; p.entry = DATA.posts.length - i; p.words = plain(p.body).split(" ").filter(Boolean).length; });
@@ -222,10 +238,26 @@
     if (pics.length) {
       const shown = pics.slice(0, 3).reverse();                          // the first photograph on top of the stack
       return `<button type="button" class="prints" aria-label="Look at the photographs (${pics.length})">${shown.map((ph, j) => { const top = j === shown.length - 1, r = top ? -2 : (j ? 5 : -7);
-        return `<span class="print" style="--r:${r}deg;--x:${top ? 0 : j ? 14 : -16}px;--y:${top ? 0 : j ? 8 : 12}px">${imgTag(ph.src, ph.caption, "large")}${top && ph.caption ? `<span class="pcap">${esc(ph.caption)}</span>` : ""}</span>`; }).join("")}</button>
+        return `<span class="print" style="--r:${r}deg;--x:${top ? 0 : j ? 14 : -16}px;--y:${top ? 0 : j ? 8 : 12}px">${imgTag(ph.src, ph.caption, "thumbs", { eager: top })}${top && ph.caption ? `<span class="pcap">${esc(ph.caption)}</span>` : ""}</span>`; }).join("")}</button>
         <p class="cap">${pics.length === 1 ? "a photograph" : pics.length + " photographs"} · ${matchMedia("(pointer: coarse)").matches ? "tap" : "click"} to look closer</p>`;
     }
-    return `<div class="relicobj">${window.Relics ? Relics.svg(relic) : ""}</div><p class="cap">${window.Relics ? esc(Relics.name(relic.n)) : ""}</p>`;
+    return `<div class="relicobj" data-relic="${esc(JSON.stringify(relic))}"></div><p class="cap"></p>`;   // drawn by fillRelics() once relics.js is here
+  }
+  // relics.js (the storage-media pictures) isn't needed to show the front page, so it is fetched separately: in a quiet
+  // moment after the page starts (see START), or the moment a note needs it. The space is already reserved.
+  let relicsReady = null;
+  function needRelics() {
+    if (window.Relics) return Promise.resolve();
+    return (relicsReady = relicsReady || new Promise((ok) => {
+      const get = (src, retry) => { const el = document.createElement("script"); el.src = src; el.onload = ok; el.onerror = () => (retry ? get("/site/relics.js") : ok()); document.head.appendChild(el); };
+      get(window.HL_RELICS || "/site/relics.js", !!window.HL_RELICS);   // the published copy; if a new version has just replaced it, the plain one
+    }));
+  }
+  function fillRelics() {
+    needRelics().then(() => { if (window.Relics) $$(".relicobj[data-relic]", main).forEach((el) => {
+      const r = JSON.parse(el.dataset.relic); if (r.n == null) r.n = 1 + (r.pick || 0) % Relics.count;
+      el.removeAttribute("data-relic"); el.innerHTML = Relics.svg(r); el.nextElementSibling.textContent = Relics.name(r.n);
+    }); });
   }
   function note({ cls, collection, title, sub, pips, object, prose, after = "" }) {
     return `<article class="sheet note${cls}">
@@ -257,9 +289,10 @@
           ${older ? `<a class="prev" href="#/post/${esc(older.file)}"><span class="k">&larr; The post before</span><span class="t">${esc(older.title)}</span></a>` : "<span></span>"}
           ${newer ? `<a class="next" href="#/post/${esc(newer.file)}"><span class="k">The post after &rarr;</span><span class="t">${esc(newer.title)}</span></a>` : ""}
         </nav>` });
+    fillRelics();
     const stack = $(".prints", main); if (stack) stack.addEventListener("click", () => view(pics, 0));
     const inText = $$(".prose figure img", main);
-    inText.forEach((im) => im.addEventListener("click", () => view(pics, Math.max(0, pics.findIndex((ph) => ph.src === im.getAttribute("src"))))));
+    inText.forEach((im) => im.addEventListener("click", () => view(pics, Math.max(0, pics.findIndex((ph) => ph.src === (im.dataset.full || im.getAttribute("src")))))));
   }
   // Photos: every photograph as a grid of thumbnails; each opens in the viewer.
   function showPhotos() {
@@ -298,12 +331,13 @@
     if (!q) { main.innerHTML = `<article class="sheet"><p class="kicker"><b>Quest</b></p><h1>${QUESTS ? "This quest is gone" : "Unrolling the map…"}</h1>${QUESTS ? '<p class="when">It may have been struck from the record.</p>' : ""}</article>`; return; }
     document.title = q.title + " · Half Life";
     const when = q.over ? longDate(q.date) + (q.end && q.end !== q.date ? " – " + longDate(q.end) : "") : "Sometime in " + q.month;
-    const all = QUESTS.slice().sort((a, b) => a.date.localeCompare(b.date)), n = 1 + (parseInt(q.id, 36) || 0) % (window.Relics ? Relics.count : 1);
+    const all = QUESTS.slice().sort((a, b) => a.date.localeCompare(b.date));
     main.innerHTML = note({
       cls: " quest", collection: "Quests", title: q.title, sub: `${q.over ? "Completed" : "To come"} · ${esc(when)}`,
       pips: pipsFor(all, q, (x) => "#/quest/" + esc(x.id), (x) => x.title),
-      object: noteObject([], { seed: "quest:" + q.id, n, title: q.title, sub: q.over ? "done" : "to come" }),
+      object: noteObject([], { seed: "quest:" + q.id, pick: parseInt(q.id, 36) || 0, title: q.title, sub: q.over ? "done" : "to come" }),
       prose: q.blurb ? markdown(q.blurb) : '<p class="empty">The particulars of this quest have not yet been set down.</p>' });
+    fillRelics();
   }
 
   /* ======================================================================================= 8. CLOSING A PAGE */
@@ -451,7 +485,7 @@
   //   Words      every word written
   //   Latest     the newest post's date
   //   Half-life  100% the day a post goes up, halving every 30 days, back to 100% with each new post
-  //   Alerts     "Sign up" → the email alerts page; "On" once this device has signed up
+  //   Alerts     "Sign up", or "On" once this device has signed up       → the email alerts page
   // It is drawn again when the quests arrive and after a sign-up.
   function readout() {
     const posts = DATA.posts, words = posts.reduce((n, p) => n + p.words, 0), now = new Date(), months = [], quests = QUESTS || [];
@@ -468,21 +502,27 @@
       ${row("words", "Words", bar(Math.min(100, words / 200)), words.toLocaleString())}
       ${row("latest", "Latest", bar(life), latest ? esc(shortDate(latest.date)) : "—")}
       ${row("life", "Half-life", bar(life, "life"), life + "%")}
-      ${row("alerts" + (signed ? " on" : ""), "Alerts", '<span class="note">new entries by email</span>', signed ? "On" : "Sign up ▸", signed ? "" : "#/alerts")}
+      ${row("alerts" + (signed ? " on" : ""), "Alerts", '<span class="note">new entries by email</span>', signed ? "On" : "Sign up ▸", "#/alerts")}
     </div>`;
   }
 
   /* ================================================================================================== 14. START */
+  // Both requests were already started by the <link rel="preload"> lines in index.html, so these pick up answers that
+  // are on their way (or here) rather than starting from scratch. The server marks both "check before reusing".
   // The calendar gets 1.2 s to answer so the gold can join the opening; after that the tower starts without it and
   // Tower.quests() adds it on arrival (and a quest page opened directly is drawn again once its story is known).
   const questsArrive = fetch("/api/quests").then((r) => (r.ok ? r.json() : { quests: [] })).then((d) => (Array.isArray(d.quests) ? d.quests : [])).catch(() => []);
   const questsSoon = Promise.race([questsArrive, new Promise((ok) => setTimeout(() => ok(null), 1200))]);
-  Promise.all([fetch("/posts.json", { cache: "no-cache" }).then((r) => r.json()), questsSoon]).then(([d, early]) => {
+  Promise.all([fetch("/posts.json").then((r) => r.json()), questsSoon]).then(([d, early]) => {
     load(d); menuEntries();
     if (early) QUESTS = early;
     readout();
     if (window.Tower) Tower.start($("#tower"), DATA.posts, { quests: early || [], onOpen: (file) => { blip("pick"); location.hash = "#/post/" + encodeURIComponent(file); } });
     if (!early) questsArrive.then((quests) => { QUESTS = quests; readout(); if (quests.length && window.Tower) Tower.quests(DATA.posts, quests); if (/^#\/quests?(\/|$)/.test(location.hash)) route(); });
     route();
+    (window.requestIdleCallback || setTimeout)(() => needRelics(), { timeout: 4000 });
+    // Opened from a phone's home screen (the last step of the iPhone walkthrough) without notifications on yet: go
+    // straight to the alerts page, where the "Turn on notifications" button is waiting.
+    if (DEVICE.standalone && DEVICE.push && !/^#\/./.test(location.hash) && store.get("hl-push") !== "no") pushedHere().then((on) => { if (!on) location.hash = "#/alerts"; });   // fetch the relic pictures in a quiet moment
   }).catch(() => { main.innerHTML = '<p class="empty">The pages could not be fetched. Try again in a moment.</p>'; });
 })();

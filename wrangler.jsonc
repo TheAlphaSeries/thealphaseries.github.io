@@ -13,6 +13,7 @@
   "triggers": { "crons": ["*/5 * * * *"] },
   // Cloudflare's own AI, used to retell quest descriptions in Cugel's manner (see scripts/worker.js, section 9).
   "ai": { "binding": "AI" },
-  // Rebuild the entry list from posts/ before every publish.
-  "build": { "command": "node scripts/build-index.mjs" }
+  // Before every publish: rebuild the entry list from posts/, then shrink and rename the site's own code so
+  // browsers can keep it (see scripts/build-site.mjs).
+  "build": { "command": "node scripts/build-index.mjs && node scripts/build-site.mjs" }
 }

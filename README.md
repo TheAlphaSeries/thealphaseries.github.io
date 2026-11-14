@@ -21,14 +21,29 @@ The site updates itself a minute or two after saving.
 1. Saving in the editor makes a small text file in `posts/`, `albums/` or `pages/`, and puts photos in `photos/`.
 2. `scripts/build-index.mjs` gathers them into `posts.json`, and `scripts/make-thumbs.sh` makes smaller copies of new
    photos in `thumbs/` and `large/`. Both run by themselves (`.github/workflows/build-index.yml`).
-3. Cloudflare publishes the result (`wrangler.jsonc`, `scripts/worker.js`).
+3. Cloudflare publishes the result (`wrangler.jsonc`, `scripts/worker.js`). As it does, `scripts/build-site.mjs`
+   joins and shrinks the site's code and names each file after its contents (in `site/h/`, made fresh each time and
+   never saved here), so visitors' browsers can keep it instead of downloading it again.
 
 The page itself is `index.html`, `site/blog.css` (the look: colours at the top), `site/blog.js` (the pages, the menu
 and the readout) and `site/tower.js` (the tower). The tower draws every post as a band of glowing rings, after the
 security tower in *Ghost in the Shell 2: Innocence* and [gits-file-visualizer](https://github.com/iliabaranov/gits-file-visualizer)
 (Apache-2.0), which draws a computer's files that way: each sentence is an arc, each paragraph a ring, the newest post at
-the top. Nothing about it needs updating by hand; a new post simply appears in it. The portrait is on the About page,
-`site/portrait-5.webp`.
+the top. Nothing about it needs updating by hand; a new post simply appears in it.
+
+## Speed
+
+- **Fonts** are served by the site itself from `site/fonts/` (all open-licensed), not by Google. The Cantonese font
+  is one small file holding only the characters the sayings use. After adding or changing a Cantonese saying in
+  `site/quotes.js`, run `python3 tools/fonts/subset-cantonese.py` to remake it (otherwise any new character shows in
+  the visitor's own system font).
+- **Keeping files** (`_headers`): the code and fonts are kept by browsers for a year; photos for a day; the page
+  itself and the post list are checked on every visit, so new entries always appear at once.
+- **Photos** are shown from their smaller copies (`thumbs/` 800 px, `large/` 2200 px); the original is only a
+  fallback. `posts.json` records each copy's size so pages don't jump as photos load.
+- The files in `site/` are the ones to edit, comments and all; the shrunken copies are made from them on publish.
+- To try the site on your own computer, any simple web server in this folder works (it then uses the files in
+  `site/` directly). Don't run `scripts/build-site.mjs` here: it rewrites `index.html` for publishing.
 
 ## Email alerts
 

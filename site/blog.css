@@ -15,10 +15,42 @@
      · The soft neon glow is all in one place (section 12), so it can be turned up or down in one go.
 
    SECTIONS
-     1 colours and type · 2 the basics · 3 the side menu · 4 home · 5 the tower's card · 6 the readout · 7 the pages
+     0 fonts · 1 colours and type · 2 the basics · 3 the side menu · 4 home · 5 the tower's card · 6 the readout · 7 the pages
      7b a note · 8 a post · 8b plants and fishing · 9 a quest · 10 photos and the viewer · 11 the close button · 11b email alerts and notifications
      12 the neon · 13 blackout and aurora · 14 the phone view
    ================================================================================================================== */
+
+/* ================================================================================================ 0. FONTS */
+/* The typefaces are served by the site itself (site/fonts/, all under the SIL Open Font License) instead of by
+   Google: no second website to connect to before the page can draw, and they're kept by the browser for a year.
+   A browser only downloads a face when some text on the page uses it. Each comes in two files: "latin" for ordinary
+   letters and "latin-ext" for the rarer accented ones (unicode-range tells the browser which file holds what).
+   "swap" means text shows at once in a fallback face and switches when the real one arrives.
+   Noto Serif TC is the Cantonese face: one small file holding only the characters the sayings use
+   (remade by tools/fonts/subset-cantonese.py when a saying changes). */
+@font-face { font-family: "Cinzel"; font-style: normal; font-weight: 400; font-display: swap; src: url(/site/fonts/cinzel-latin-ext-400-normal.woff2) format("woff2"); unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+@font-face { font-family: "Cinzel"; font-style: normal; font-weight: 400; font-display: swap; src: url(/site/fonts/cinzel-latin-400-normal.woff2) format("woff2"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: "Cormorant Garamond"; font-style: normal; font-weight: 400; font-display: swap; src: url(/site/fonts/cormorant-garamond-latin-ext-400-normal.woff2) format("woff2"); unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+@font-face { font-family: "Cormorant Garamond"; font-style: normal; font-weight: 400; font-display: swap; src: url(/site/fonts/cormorant-garamond-latin-400-normal.woff2) format("woff2"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: "Cormorant Garamond"; font-style: normal; font-weight: 500; font-display: swap; src: url(/site/fonts/cormorant-garamond-latin-ext-500-normal.woff2) format("woff2"); unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+@font-face { font-family: "Cormorant Garamond"; font-style: normal; font-weight: 500; font-display: swap; src: url(/site/fonts/cormorant-garamond-latin-500-normal.woff2) format("woff2"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: "Cormorant Garamond"; font-style: italic; font-weight: 400; font-display: swap; src: url(/site/fonts/cormorant-garamond-latin-ext-400-italic.woff2) format("woff2"); unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+@font-face { font-family: "Cormorant Garamond"; font-style: italic; font-weight: 400; font-display: swap; src: url(/site/fonts/cormorant-garamond-latin-400-italic.woff2) format("woff2"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: "Cormorant Garamond"; font-style: italic; font-weight: 500; font-display: swap; src: url(/site/fonts/cormorant-garamond-latin-ext-500-italic.woff2) format("woff2"); unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+@font-face { font-family: "Cormorant Garamond"; font-style: italic; font-weight: 500; font-display: swap; src: url(/site/fonts/cormorant-garamond-latin-500-italic.woff2) format("woff2"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: "EB Garamond"; font-style: normal; font-weight: 400; font-display: swap; src: url(/site/fonts/eb-garamond-latin-ext-400-normal.woff2) format("woff2"); unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+@font-face { font-family: "EB Garamond"; font-style: normal; font-weight: 400; font-display: swap; src: url(/site/fonts/eb-garamond-latin-400-normal.woff2) format("woff2"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: "EB Garamond"; font-style: normal; font-weight: 500; font-display: swap; src: url(/site/fonts/eb-garamond-latin-ext-500-normal.woff2) format("woff2"); unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+@font-face { font-family: "EB Garamond"; font-style: normal; font-weight: 500; font-display: swap; src: url(/site/fonts/eb-garamond-latin-500-normal.woff2) format("woff2"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: "EB Garamond"; font-style: italic; font-weight: 400; font-display: swap; src: url(/site/fonts/eb-garamond-latin-ext-400-italic.woff2) format("woff2"); unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+@font-face { font-family: "EB Garamond"; font-style: italic; font-weight: 400; font-display: swap; src: url(/site/fonts/eb-garamond-latin-400-italic.woff2) format("woff2"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: "IBM Plex Mono"; font-style: normal; font-weight: 400; font-display: swap; src: url(/site/fonts/ibm-plex-mono-latin-ext-400-normal.woff2) format("woff2"); unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+@font-face { font-family: "IBM Plex Mono"; font-style: normal; font-weight: 400; font-display: swap; src: url(/site/fonts/ibm-plex-mono-latin-400-normal.woff2) format("woff2"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: "IBM Plex Mono"; font-style: normal; font-weight: 500; font-display: swap; src: url(/site/fonts/ibm-plex-mono-latin-ext-500-normal.woff2) format("woff2"); unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+@font-face { font-family: "IBM Plex Mono"; font-style: normal; font-weight: 500; font-display: swap; src: url(/site/fonts/ibm-plex-mono-latin-500-normal.woff2) format("woff2"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: "Caveat"; font-style: normal; font-weight: 500; font-display: swap; src: url(/site/fonts/caveat-latin-ext-500-normal.woff2) format("woff2"); unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+@font-face { font-family: "Caveat"; font-style: normal; font-weight: 500; font-display: swap; src: url(/site/fonts/caveat-latin-500-normal.woff2) format("woff2"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: "Noto Serif TC"; font-style: normal; font-weight: 500; font-display: swap; src: url(/site/fonts/noto-serif-tc-500-ed277e86.woff2) format("woff2"); }
 
 /* ===================================================================================== 1. COLOURS AND TYPE */
 :root {
@@ -85,7 +117,7 @@ body::after {
 @media (max-width: 1100px) { body:not(.home) #tower { pointer-events: none; } }
 a { color: var(--ink); text-decoration-color: var(--ink-dim); text-underline-offset: .2em; text-decoration-thickness: 1px; }
 :focus-visible { outline: 1px solid var(--accent); outline-offset: 4px; }
-img { max-width: 100%; display: block; }
+img { max-width: 100%; height: auto; display: block; }   /* height: auto, because photos carry their true width and height (to reserve their space) */
 .skip { position: absolute; left: -999px; top: 8px; z-index: 100; background: var(--black); padding: 8px 14px; }   /* "skip to the posts", for keyboards */
 .skip:focus { left: 8px; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }   /* for screen readers only */
@@ -133,7 +165,7 @@ img { max-width: 100%; display: block; }
 /* ================================================================================================ 4. HOME */
 /* The tower is the page. <main> lets clicks through to it. */
 main { position: relative; z-index: 2; min-height: 100vh; outline: none; }
-.loading { padding: 40vh 0 0; text-align: center; font: 500 .7rem/1 var(--mono); letter-spacing: .3em; text-transform: uppercase; color: var(--ink-dim); }
+.loading { margin: 0; padding: 40vh 0 0; text-align: center; font: 500 .7rem/1 var(--mono); letter-spacing: .3em; text-transform: uppercase; color: var(--ink-dim); }
 body.home main { pointer-events: none; }
 
 /* ===================================================================================== 5. THE TOWER'S CARD */
@@ -218,7 +250,7 @@ body:not(.home) main { margin-left: auto; width: var(--sheet); padding: 0; }
 .note { --glowc: var(--k, 189, 148, 255); }
 .note.quest { --glowc: var(--gold); }
 .note .relic { display: grid; justify-items: center; gap: 12px; margin: 4px 0 30px; }
-.note .relicobj, .note .prints { position: relative; width: min(330px, 78%); aspect-ratio: 1; filter: drop-shadow(0 0 46px rgba(var(--glowc), .22)); animation: hover-object 8s ease-in-out infinite; }
+.note .relicobj, .note .prints { position: relative; width: min(330px, 78%); aspect-ratio: 1; filter: drop-shadow(0 0 46px rgba(var(--glowc), .22)); will-change: transform; animation: hover-object 8s ease-in-out infinite; }
 @keyframes hover-object { 50% { transform: translateY(-8px) rotate(.6deg); } }
 .relic-svg { width: 100%; height: 100%; display: block; }
 .note .cap { margin: 0; font: italic 400 1rem/1.3 var(--title); color: var(--ink-dim); text-align: center; }
@@ -427,7 +459,8 @@ html.aurora .side { background: none; }
   body:has(.pin.on) .readout { visibility: hidden; }                  /* the card takes the panel's place while it's up */
   /* the pages */
   body:not(.home) main { margin: 0; width: auto; }
-  body:not(.home) #tower, body:not(.home) .aurora-light, body:not(.home)::after { visibility: hidden; }
+  body:not(.home) #tower, body:not(.home)::after { visibility: hidden; }
+  body:not(.home) .aurora-light { display: none; }                     /* gone, not just hidden: a hidden animation still costs every frame */
   body:not(.home) { text-shadow: none; }
   .sheet { padding: calc(var(--bar) + env(safe-area-inset-top) + 16px) 20px calc(var(--tabs) + 48px); border-left: 0; box-shadow: none; background: #000; }
   .sheet.quest, .sheet.kind { box-shadow: none; }

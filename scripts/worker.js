@@ -5,8 +5,8 @@
    The site is plain files and Cloudflare serves those by itself. This small program (a Cloudflare Worker, set up in
    wrangler.jsonc) sits in front of them and does four things besides:
 
-   1. FRESH FILES   The page, its script and its style change often, so browsers are told to check for a newer copy
-                    before reusing one ("no-cache"). Photos and everything else are served untouched.
+   1. FILES         Cloudflare serves the site's files itself, without running this program at all. How long a
+                    browser may keep each kind is set in the _headers file at the top of the repository.
 
    2. EMAIL ALERTS  POST /api/subscribe    a friend leaves their address (the Email alerts page, from the RECORD panel)
                     GET  /api/unsubscribe  the link at the bottom of every email; removes the address at once
@@ -62,11 +62,9 @@ export default {
       if (path === "/api/push/latest") return pushLatest(env);
       return text("Gone.", 410);
     }
-    // a file: served as is, except that pages, scripts, styles and data must be checked for a newer copy each time
-    const r = await env.ASSETS.fetch(request);
-    if (!/text\/html|javascript|text\/css|json/i.test(r.headers.get("content-type") || "")) return r;
-    const h = new Headers(r.headers); h.set("cache-control", "no-cache");
-    return new Response(r.body, { status: r.status, statusText: r.statusText, headers: h });
+    // Anything else that reaches here is a request for a file that doesn't exist (real files are served by
+    // Cloudflare before this program is asked): pass on its "not found".
+    return env.ASSETS.fetch(request);
   }
 };
 

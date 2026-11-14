@@ -3,6 +3,7 @@
 //   posts/      the journal: one file per post    ->  "posts"
 //   albums/     photo albums                      ->  "albums"
 //   pages/about.md                                ->  "about"
+//   thumbs/, large/  (the photos' smaller copies)  ->  "dims" (their sizes)
 //
 // Each file is a small header between two "---" lines (name: value pairs, and lists) followed by
 // the writing itself. parse() reads that shape; the rest of this script picks out the fields the
@@ -91,7 +92,33 @@ if (existsSync("albums")) {
 }
 albums.sort((a, b) => b.date.localeCompare(a.date) || b.file.localeCompare(a.file));
 
+// The size of every photo's two smaller copies (scripts/make-thumbs.sh makes them: thumbs/ and large/), read from the
+// first bytes of each JPEG: "dims" = { "/photos/x.jpeg": [thumbWidth, thumbHeight, largeWidth, largeHeight] }.
+// The page uses these to reserve a photo's space before it loads, so the text doesn't jump when it arrives.
+function jpegSize(path) {
+  try {
+    const b = readFileSync(path);
+    for (let i = 2; i + 9 < b.length;) {
+      if (b[i] !== 0xff) { i++; continue; }
+      const m = b[i + 1], len = b.readUInt16BE(i + 2);
+      if (m >= 0xc0 && m <= 0xcf && m !== 0xc4 && m !== 0xc8 && m !== 0xcc) return [b.readUInt16BE(i + 7), b.readUInt16BE(i + 5)];   // a "start of frame" block holds height, width
+      i += 2 + len;
+    }
+  } catch {}
+  return null;
+}
+const dims = {};
+(function walk(dir) {
+  if (!existsSync("thumbs/" + dir)) return;
+  for (const e of readdirSync("thumbs/" + dir, { withFileTypes: true })) {
+    if (e.isDirectory()) { walk(dir + e.name + "/"); continue; }
+    if (!e.name.endsWith(".jpg")) continue;
+    const t = jpegSize("thumbs/" + dir + e.name), l = jpegSize("large/" + dir + e.name);
+    if (t && l) dims["/photos/" + dir + e.name.replace(/\.jpg$/, "")] = [...t, ...l];
+  }
+})("");
+
 const about = existsSync("pages/about.md") ? parse(readFileSync("pages/about.md", "utf8")).body : "";
 const source = process.env.GITHUB_ACTIONS ? "github" : (process.env.WORKERS_CI || process.env.WORKERS_CI_BUILD_UUID) ? "cloudflare" : "other";
-writeFileSync("posts.json", JSON.stringify({ source, about, posts, albums }, null, 2) + "\n");
+writeFileSync("posts.json", JSON.stringify({ source, about, posts, albums, dims }, null, 2) + "\n");
 console.log("posts.json: " + posts.length + " posts, " + albums.length + " albums");

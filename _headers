@@ -1,0 +1,38 @@
+# How long browsers may keep each kind of file before asking the site again. (Cloudflare reads this file; it is not
+# itself published.) By default everything is "check with the site every time", which stays true for the page
+# itself (index.html) and the post list (posts.json), so new entries always show at once.
+
+# Never changes: these are named after their contents (scripts/build-site.mjs), and the fonts never change either
+# (the Cantonese font carries its own contents-name). Keep for a year, never ask again.
+/site/h/*
+  ! Cache-Control
+  Cache-Control: public, max-age=31536000, immutable
+/site/fonts/*
+  ! Cache-Control
+  Cache-Control: public, max-age=31536000, immutable
+
+# Photographs and their smaller copies: keep for a day. (A photo replaced under the very same file name could show
+# its old self for up to a day; a new photo has a new name and shows at once.)
+/photos/*
+  ! Cache-Control
+  Cache-Control: public, max-age=86400
+/thumbs/*
+  ! Cache-Control
+  Cache-Control: public, max-age=86400
+/large/*
+  ! Cache-Control
+  Cache-Control: public, max-age=86400
+
+# The music and the icons: keep for a week.
+/site/theme.m4a
+  ! Cache-Control
+  Cache-Control: public, max-age=604800
+/site/*.png
+  ! Cache-Control
+  Cache-Control: public, max-age=604800
+
+# Two small safety settings for every file: browsers must trust the declared file types, and other sites are told
+# only this site's name (not the page) when a visitor follows a link out.
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin

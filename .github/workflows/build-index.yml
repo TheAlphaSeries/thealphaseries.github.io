@@ -14,9 +14,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: node scripts/build-index.mjs
       - name: Make small copies of new photos
         run: bash scripts/make-thumbs.sh
+      # after the copies exist, because the index records their sizes
+      - run: node scripts/build-index.mjs
       - name: Save the index and photo copies if they changed
         run: |
           git add posts.json thumbs large

@@ -419,19 +419,32 @@
   // The glow: the picture (light only, on a clear canvas) shrunk to 1/4, then 1/10, then 1/26 of its size, each from
   // the last; shrinking blurs it. Each is stretched back over the picture and added: a close glow, a halo, a faint
   // wash. Because the dark background is laid in only afterwards, only the light glows.
+  // Full-screen copies are the dear part of this, so there are only two per frame: the picture is read once (shrunk
+  // to 1/4), and the three glows are first added together on a small 1/4-size canvas and laid over the picture in one
+  // go. (It used to lay each of the three over the full picture separately: four full-screen copies a frame.)
   const GLOW = [[4, .55], [10, .4], [26, .22]];                           // [times smaller, strength]
-  let glows = null;
+  // And the glow itself is worked out afresh only every second frame; on the frames between, the last one is laid
+  // over again (it is a soft blur of a slowly turning tower: a sixtieth of a second stale can't be seen). When the
+  // tower stands still (reduced motion) it is always fresh.
+  let glows = null, glowSum = null, glowTurn = 0;
   function glow() {
-    if (!glows) glows = GLOW.map(() => document.createElement("canvas"));
+    if (!glows) { glows = GLOW.map(() => document.createElement("canvas")); glowSum = document.createElement("canvas"); }
+    if (!still && glowTurn++ % 2 && glowSum.width === Math.max(1, Math.round(W / GLOW[0][0]))) {
+      c.globalCompositeOperation = "lighter"; c.imageSmoothingEnabled = true; c.globalAlpha = 1; c.drawImage(glowSum, 0, 0, W, H);
+      c.globalCompositeOperation = "source-over"; return;
+    }
     let from = cv;
     GLOW.forEach(([k], i) => {
       const g = glows[i], w = Math.max(1, Math.round(W / k)), h = Math.max(1, Math.round(H / k));
       if (g.width !== w || g.height !== h) { g.width = w; g.height = h; }
       const x = g.getContext("2d"); x.globalCompositeOperation = "copy"; x.imageSmoothingEnabled = true; x.drawImage(from, 0, 0, w, h); from = g;
     });
-    c.globalCompositeOperation = "lighter"; c.imageSmoothingEnabled = true;
-    GLOW.forEach(([, strength], i) => { c.globalAlpha = strength; c.drawImage(glows[i], 0, 0, W, H); });
-    c.globalAlpha = 1; c.globalCompositeOperation = "source-over";
+    const w = glows[0].width, h = glows[0].height;
+    if (glowSum.width !== w || glowSum.height !== h) { glowSum.width = w; glowSum.height = h; }
+    const x = glowSum.getContext("2d"); x.imageSmoothingEnabled = true;
+    GLOW.forEach(([, strength], i) => { x.globalCompositeOperation = i ? "lighter" : "copy"; x.globalAlpha = strength; x.drawImage(glows[i], 0, 0, w, h); });
+    c.globalCompositeOperation = "lighter"; c.imageSmoothingEnabled = true; c.globalAlpha = 1; c.drawImage(glowSum, 0, 0, W, H);
+    c.globalCompositeOperation = "source-over";
   }
 
   /* ========================================================================================== 7. DRAWING: SAYINGS */
