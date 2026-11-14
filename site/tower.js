@@ -15,7 +15,7 @@
      a directory (many rings)    = one BAND         one post (or one quest)             = one BAND
      ~ at the top, deeper folders further out       newest post at the top and narrowest, older ones lower and wider
      a file being read flashes cream                every few seconds a random passage flashes white (READ)
-     a new file grows along its ring                a post < 30 days old writes itself in on page load (NEW), and the newest post stays pink; plant and fishing entries keep their own colours;
+     a new file grows along its ring                the whole tower writes itself in on page load, top down (the newest post in magenta, NEW); the newest post stays pink; plant and fishing entries keep their own colours;
                                                     quest rings draw themselves in the same way
      activity "unwinds" a subtree (rings part)      pointing at a band unwinds it: its rings part and it glows
      callouts name the files being touched          callouts name the passage being "read"
@@ -240,15 +240,20 @@
     const posts = bands.filter((x) => x.kind === "post"); if (!posts.length) return null;
     let w = 0; const weights = posts.map((x, k) => (w += Math.exp(-k * .35)));
     const t = Math.random() * w, b = posts[weights.findIndex((x) => x >= t)] || posts[0];
-    const pool = b.rings.flatMap((r) => r.segs).filter((s) => s.kind !== "rule" && clock - s.litAt > 12);
+    const pool = b.rings.flatMap((r) => r.segs).filter((s) => s.kind !== "rule" && s.grow >= 1 && clock - s.litAt > 12);
     return pool[Math.floor(Math.random() * pool.length)];
   }
-  // NEW: a post under a month old writes itself in on page load, arc after arc, magenta cooling to violet.
+  // THE OPENING: on page load the whole tower writes itself in, arc after arc, from the top down over WRITE seconds
+  // (each arc takes GROW seconds to run along its ring, with a bright tip). The newest ordinary post, if under a month
+  // old, is written in magenta and named by a NEW callout; it then cools to its resting pink.
+  const WRITE = 3.4;
   function writeIn() {
-    const b = bands.find((x) => x.kind === "post"); if (!b || b.age > 30 || still) return;
-    const list = b.rings.flatMap((r) => r.segs);
-    list.forEach((s, k) => { s.grow = 0; s.red = b.sort ? 0 : .9; s.tc = 1.2 + k * Math.min(.06, 6 / list.length); });
-    const first = list.find((s) => s.kind === "head") || list[0];
+    if (still) return;
+    const list = bands.filter((b) => b.kind === "post").flatMap((b) => b.rings.flatMap((r) => r.segs)), n = Math.max(1, list.length);
+    list.forEach((s, k) => { s.grow = 0; s.tc = .3 + (k / n) * WRITE + Math.random() * .12; });
+    const b = bands.find((x) => x.kind === "post" && x.pink); if (!b || b.age > 30) return;
+    const mine = b.rings.flatMap((r) => r.segs); mine.forEach((s) => { s.red = .9; });
+    const first = mine.find((s) => s.kind === "head") || mine[0];
     if (first) setTimeout(() => callouts.push({ seg: first, kind: "NEW", t0: clock, ttl: 11, title: b.title }), 1300);
   }
 
