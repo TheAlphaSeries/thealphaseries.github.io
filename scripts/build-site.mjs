@@ -4,7 +4,7 @@
 // What it does, and why:
 //   1. Joins the four scripts every page needs (quotes, tower, blog, music) into ONE file, and shrinks it (comments
 //      and spare spaces removed: the files in site/ stay fully commented for people; visitors get the lean copy).
-//      Likewise the stylesheet, and relics.js on its own (it is fetched only when a note needs it).
+//      Likewise the stylesheet.
 //   2. Names each result after its contents, e.g. site/h/app.3f9a1c2e.js. A file with such a name never changes, so
 //      browsers are told to keep it for a year without asking again (the _headers file). When the code changes, the
 //      name changes, and index.html (which is always checked) points at the new one.
@@ -47,9 +47,5 @@ const css = publish("blog", "css", shrink(read("site/blog.css"), "css"));
 if (!html.includes('href="/site/blog.css"')) throw new Error("index.html does not link /site/blog.css");
 html = html.replace('href="/site/blog.css"', `href="${css}"`);
 
-const relics = publish("relics", "js", shrink(read("site/relics.js"), "js"));
-if (!html.includes('"/site/relics.js"')) throw new Error("index.html does not name /site/relics.js");
-html = html.replace('"/site/relics.js"', `"${relics}"`);
-
 writeFileSync("index.html", html);
-console.log("index.html now loads: " + [app, css, relics].join(", "));
+console.log("index.html now loads: " + [app, css].join(", "));

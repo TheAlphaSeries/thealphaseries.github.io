@@ -34,7 +34,7 @@ content:
             - name: fishing
               label: Fishing (fishing tales)
       - name: cover
-        label: Note photo (optional - shown beside the entry when it is opened, like the object in a game's lore note; otherwise the first photo in the post is used, and with no photo at all the entry gets its own storage-media relic)
+        label: Note photo (optional - shown beside the entry when it is opened, like the object in a game's lore note; otherwise the first photo in the post is used)
         type: image
       - name: body
         label: Post

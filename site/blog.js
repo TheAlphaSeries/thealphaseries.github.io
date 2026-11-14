@@ -170,13 +170,13 @@
   // (dim 0 puts it to sleep), so the page scrolls smoothly and the battery is spared.
   // `file` is the band to keep unwound and glowing (the post or quest being read).
   const SIDE_WIDTH = 240, PHONE = 860;                                   // = --side and the phone breakpoint in blog.css
-  // A note (a post or quest) on a screen at least NOTE_WIDE across stands in two columns, as wide as leaves the tower
+  // A note with photographs, on a screen at least NOTE_WIDE across, stands in two columns, as wide as leaves the tower
   // a 300 px strip, between 760 and 1220 px: the same sum as body.note main in blog.css.
   const NOTE_WIDE = 1280, noteWidth = () => Math.max(760, Math.min(1220, innerWidth - SIDE_WIDTH - 300));
   let here = ["home"];
-  function nav(route, file) {
+  function nav(route, file, wide) {
     document.body.classList.toggle("home", route === "home");
-    document.body.classList.toggle("note", !!file);                      // a post or quest page: the note layout (section 7)
+    document.body.classList.toggle("note", !!wide);                      // a note with photographs: the wider, two-column page (section 7)
     $$(".cmds a, .tabs a").forEach((a) => (a.dataset.route === route || ((/^quests?$/.test(route) || KINDS[route]) && a.dataset.route === "home") ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current")));
     $$("#entries a").forEach((a) => (a.dataset.file === file ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current")));
     side.classList.remove("open"); $(".menutoggle").setAttribute("aria-expanded", "false");
@@ -187,7 +187,7 @@
     if (!window.Tower) return;
     const side = innerWidth > PHONE ? SIDE_WIDTH / innerWidth : 0;
     if (route === "home") Tower.view({ x0: side, x1: 1, dim: 1, focus: null });
-    else if (innerWidth >= NOTE_WIDE && file) Tower.view({ x0: side, x1: 1 - noteWidth() / innerWidth, dim: .55, focus: file });   // a note, two columns
+    else if (innerWidth >= NOTE_WIDE && document.body.classList.contains("note")) Tower.view({ x0: side, x1: 1 - noteWidth() / innerWidth, dim: .55, focus: file });   // a note, two columns
     else if (innerWidth > 1100) Tower.view({ x0: side, x1: 1 - Math.min(760, innerWidth * .55) / innerWidth, dim: .55, focus: file || null });
     else if (innerWidth > PHONE) Tower.view({ x0: side, x1: 1, dim: .16, focus: file || null });
     else Tower.view({ x0: 0, x1: 1, dim: 0, focus: file || null });
@@ -222,9 +222,9 @@
       <ol class="contents">${list.map(entryRow).join("") || `<li class="empty">${K.empty}</li>`}</ol></article>`;
   }
   /* ---- a note: how a post or a quest opens, after the lore notes in Phantom Blade Zero ----
-     On a wide screen: the object on the left (sticky), the words on the right. Narrower: the object above the words.
-       the object   the entry's photographs as a small stack of prints (tap: the viewer, to look closer), or, with no
-                    photograph, its own relic: an old storage medium with the title on its label (site/relics.js)
+     With photographs: they stand beside the words as a small stack of prints (on a wide screen in their own column on
+     the left, staying put as the words scroll; narrower, above the words). Tap them for the viewer, to look closer.
+     Without photographs: just the words, in the ordinary page width.
        the words    "Records" · the collection in capitals (JOURNAL, PLANTS, FISHING TALES, QUESTS) · the entry's
                     title · a row of diamonds, one per note in the collection, oldest to newest, this one lit (each is
                     a link) · a rule · the writing
@@ -234,34 +234,16 @@
     const k = list.indexOf(here), from = Math.max(0, Math.min(k - 7, list.length - 15)), shown = list.slice(from, from + 15);
     return `<nav class="pips" aria-label="Other notes in this collection">${from > 0 ? '<span class="more">…</span>' : ""}${shown.map((x) => `<a href="${href(x)}" class="${x === here ? "on" : ""}" title="${esc(title(x))}" aria-label="${esc(title(x))}"${x === here ? ' aria-current="page"' : ""}></a>`).join("")}${from + 15 < list.length ? '<span class="more">…</span>' : ""}</nav>`;
   }
-  function noteObject(pics, relic) {
-    if (pics.length) {
-      const shown = pics.slice(0, 3).reverse();                          // the first photograph on top of the stack
-      return `<button type="button" class="prints" aria-label="Look at the photographs (${pics.length})">${shown.map((ph, j) => { const top = j === shown.length - 1, r = top ? -2 : (j ? 5 : -7);
-        return `<span class="print" style="--r:${r}deg;--x:${top ? 0 : j ? 14 : -16}px;--y:${top ? 0 : j ? 8 : 12}px">${imgTag(ph.src, ph.caption, "thumbs", { eager: top })}${top && ph.caption ? `<span class="pcap">${esc(ph.caption)}</span>` : ""}</span>`; }).join("")}</button>
-        <p class="cap">${pics.length === 1 ? "a photograph" : pics.length + " photographs"} · ${matchMedia("(pointer: coarse)").matches ? "tap" : "click"} to look closer</p>`;
-    }
-    return `<div class="relicobj" data-relic="${esc(JSON.stringify(relic))}"></div><p class="cap"></p>`;   // drawn by fillRelics() once relics.js is here
-  }
-  // relics.js (the storage-media pictures) isn't needed to show the front page, so it is fetched separately: in a quiet
-  // moment after the page starts (see START), or the moment a note needs it. The space is already reserved.
-  let relicsReady = null;
-  function needRelics() {
-    if (window.Relics) return Promise.resolve();
-    return (relicsReady = relicsReady || new Promise((ok) => {
-      const get = (src, retry) => { const el = document.createElement("script"); el.src = src; el.onload = ok; el.onerror = () => (retry ? get("/site/relics.js") : ok()); document.head.appendChild(el); };
-      get(window.HL_RELICS || "/site/relics.js", !!window.HL_RELICS);   // the published copy; if a new version has just replaced it, the plain one
-    }));
-  }
-  function fillRelics() {
-    needRelics().then(() => { if (window.Relics) $$(".relicobj[data-relic]", main).forEach((el) => {
-      const r = JSON.parse(el.dataset.relic); if (r.n == null) r.n = 1 + (r.pick || 0) % Relics.count;
-      el.removeAttribute("data-relic"); el.innerHTML = Relics.svg(r); el.nextElementSibling.textContent = Relics.name(r.n);
-    }); });
+  function noteObject(pics) {                                            // the prints; nothing at all without photographs
+    if (!pics.length) return "";
+    const shown = pics.slice(0, 3).reverse();                            // the first photograph on top of the stack
+    return `<button type="button" class="prints" aria-label="Look at the photographs (${pics.length})">${shown.map((ph, j) => { const top = j === shown.length - 1, r = top ? -2 : (j ? 5 : -7);
+      return `<span class="print" style="--r:${r}deg;--x:${top ? 0 : j ? 14 : -16}px;--y:${top ? 0 : j ? 8 : 12}px">${imgTag(ph.src, ph.caption, "thumbs", { eager: top })}${top && ph.caption ? `<span class="pcap">${esc(ph.caption)}</span>` : ""}</span>`; }).join("")}</button>
+      <p class="cap">${pics.length === 1 ? "a photograph" : pics.length + " photographs"} · ${matchMedia("(pointer: coarse)").matches ? "tap" : "click"} to look closer</p>`;
   }
   function note({ cls, collection, title, sub, pips, object, prose, after = "" }) {
-    return `<article class="sheet note${cls}">
-        <div class="relic">${object}</div>
+    return `<article class="sheet note${cls}${object ? "" : " bare"}">
+        ${object ? `<div class="noteobj">${object}</div>` : ""}
         <div class="notebody"><p class="notecat">Records</p><h1>${esc(collection)}</h1><h2 class="notetitle">${esc(title)}</h2>
           ${pips}<p class="notesub">${sub}</p><hr class="noterule">
           <div class="prose">${prose}</div>${after}</div>
@@ -277,19 +259,19 @@
   function showPost(file) {
     const i = DATA.posts.findIndex((p) => p.file === file), p = DATA.posts[i];
     if (!p) { location.replace("#/posts"); return; }
-    nav("posts", file); document.title = p.title + " · Half Life";
-    const newer = DATA.posts[i - 1], older = DATA.posts[i + 1], pics = photosOf(p), same = DATA.posts.filter((x) => x.kind === p.kind).reverse();
+    const pics = photosOf(p);
+    nav("posts", file, pics.length > 0); document.title = p.title + " · Half Life";
+    const newer = DATA.posts[i - 1], older = DATA.posts[i + 1], same = DATA.posts.filter((x) => x.kind === p.kind).reverse();
     main.innerHTML = note({
       cls: kindClass(p), collection: COLLECTION[p.kind] || "Journal", title: p.title,
       sub: `Entry ${p.entry} · ${esc(longDate(p.date))} · ${p.words.toLocaleString()} words`,
       pips: pipsFor(same, p, (x) => "#/post/" + esc(x.file), (x) => `Entry ${x.entry}: ${x.title}`),
-      object: noteObject(pics, { seed: p.file, n: p.entry, title: p.title, sub: "No. " + p.entry }),
+      object: noteObject(pics),
       prose: markdown(p.body),
       after: `<nav class="postnav" aria-label="More entries">
           ${older ? `<a class="prev" href="#/post/${esc(older.file)}"><span class="k">&larr; The post before</span><span class="t">${esc(older.title)}</span></a>` : "<span></span>"}
           ${newer ? `<a class="next" href="#/post/${esc(newer.file)}"><span class="k">The post after &rarr;</span><span class="t">${esc(newer.title)}</span></a>` : ""}
         </nav>` });
-    fillRelics();
     const stack = $(".prints", main); if (stack) stack.addEventListener("click", () => view(pics, 0));
     const inText = $$(".prose figure img", main);
     inText.forEach((im) => im.addEventListener("click", () => view(pics, Math.max(0, pics.findIndex((ph) => ph.src === (im.dataset.full || im.getAttribute("src")))))));
@@ -335,9 +317,8 @@
     main.innerHTML = note({
       cls: " quest", collection: "Quests", title: q.title, sub: `${q.over ? "Completed" : "To come"} · ${esc(when)}`,
       pips: pipsFor(all, q, (x) => "#/quest/" + esc(x.id), (x) => x.title),
-      object: noteObject([], { seed: "quest:" + q.id, pick: parseInt(q.id, 36) || 0, title: q.title, sub: q.over ? "done" : "to come" }),
+      object: "",
       prose: q.blurb ? markdown(q.blurb) : '<p class="empty">The particulars of this quest have not yet been set down.</p>' });
-    fillRelics();
   }
 
   /* ======================================================================================= 8. CLOSING A PAGE */
@@ -520,9 +501,8 @@
     if (window.Tower) Tower.start($("#tower"), DATA.posts, { quests: early || [], onOpen: (file) => { blip("pick"); location.hash = "#/post/" + encodeURIComponent(file); } });
     if (!early) questsArrive.then((quests) => { QUESTS = quests; readout(); if (quests.length && window.Tower) Tower.quests(DATA.posts, quests); if (/^#\/quests?(\/|$)/.test(location.hash)) route(); });
     route();
-    (window.requestIdleCallback || setTimeout)(() => needRelics(), { timeout: 4000 });
     // Opened from a phone's home screen (the last step of the iPhone walkthrough) without notifications on yet: go
     // straight to the alerts page, where the "Turn on notifications" button is waiting.
-    if (DEVICE.standalone && DEVICE.push && !/^#\/./.test(location.hash) && store.get("hl-push") !== "no") pushedHere().then((on) => { if (!on) location.hash = "#/alerts"; });   // fetch the relic pictures in a quiet moment
+    if (DEVICE.standalone && DEVICE.push && !/^#\/./.test(location.hash) && store.get("hl-push") !== "no") pushedHere().then((on) => { if (!on) location.hash = "#/alerts"; });
   }).catch(() => { main.innerHTML = '<p class="empty">The pages could not be fetched. Try again in a moment.</p>'; });
 })();

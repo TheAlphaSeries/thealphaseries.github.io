@@ -70,15 +70,13 @@ The colours live in `site/blog.css` (`--leaf`, `--tide`). Adding another kind ta
 
 ## Opening an entry: the note
 
-An entry (and a quest) opens like a lore note in a game such as Phantom Blade Zero: the object on the left (above,
-on a phone) and the words beside it, under "Records", the collection's name (JOURNAL, PLANTS, FISHING TALES, QUESTS),
+An entry (and a quest) opens like a lore note in a game such as Phantom Blade Zero: its photographs on the left (above,
+on a phone) and the words beside them, under "Records", the collection's name (JOURNAL, PLANTS, FISHING TALES, QUESTS),
 the title, and a row of diamonds, one per note in that collection (click one to go to it).
 
-The object is the entry's photographs, shown as a small stack of prints that open in the photo viewer: the **Note
-photo** chosen in the editor first, then any photographs in the text. An entry with no photographs gets its own
-relic instead: an old storage medium (floppy disk, cassette, punch card, CD-R, reel of tape, and so on, seventeen in
-all) drawn by `site/relics.js` with the title handwritten on its label. Each entry's relic is its own and never
-changes.
+An entry with photographs shows them beside the words as a small stack of prints that open in the photo viewer:
+the **Note photo** chosen in the editor first, then any photographs in the text. An entry without photographs is
+simply the words.
 
 ## Quests
 
